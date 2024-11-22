@@ -1,7 +1,7 @@
 using TensorKitTensors
 using Documenter
 
-DocMeta.setdocmeta!(BroadcastMapConversion, :DocTestSetup, :(using TensorKitTensors);
+DocMeta.setdocmeta!(TensorKitTensors, :DocTestSetup, :(using TensorKitTensors);
                     recursive=true)
 
 makedocs(;
@@ -9,7 +9,7 @@ makedocs(;
          authors="QuantumKitHub",
          sitename="TensorKitTensors.jl",
          format=Documenter.HTML(;
-                                canonical="https://ITensor.github.io/TensorKitTensors.jl",
+                                canonical="https://QuantumKitHub.github.io/TensorKitTensors.jl",
                                 edit_link="main",
                                 assets=String[],),
          pages=["Home" => "index.md"],)
