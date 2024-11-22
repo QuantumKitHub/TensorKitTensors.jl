@@ -1,5 +1,5 @@
 module TensorKitTensors
 
-using TensorKit
+include("spinoperators.jl")
 
 end

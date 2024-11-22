@@ -1,10 +1,9 @@
-using TensorKitTensors
-using Test
-using Aqua
+using SafeTestsets
 
-@testset "TensorKitTensors.jl" begin
-    @testset "Code quality (Aqua.jl)" begin
-        Aqua.test_all(TensorKitTensors)
-    end
-    # Write your tests here.
+@time @safetestset "SpinOperators" begin
+    include("spinoperators.jl")
+end
+
+@time @safetestset "Aqua" begin
+    include("aqua.jl")
 end
