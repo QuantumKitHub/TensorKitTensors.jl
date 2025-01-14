@@ -4,6 +4,7 @@ using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.BosonOperators
+using StableRNGs
 
 const cutoff = 4
 
@@ -41,6 +42,7 @@ const cutoff = 4
 end
 
 @testset "U1-symmetric bosonic operators" begin
+    rng = StableRNG(123)
     # inferrability
     N = @inferred n(U1Irrep; cutoff)
     A⁺A = @inferred a⁺a(U1Irrep; cutoff)
@@ -55,7 +57,7 @@ end
     @test_throws ArgumentError a_minmin(U1Irrep; cutoff)
 
     L = 4
-    a_pm, a_mp, a_n = rand(3)
+    a_pm, a_mp, a_n = rand(rng, 3)
     O_u1 = (N ⊗ id(V) + id(V) ⊗ N) * a_n + AA⁺ * a_mp + A⁺A * a_pm
 
     O_triv = (n(; cutoff) ⊗ id(boson_space(Trivial; cutoff)) +

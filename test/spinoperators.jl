@@ -4,8 +4,9 @@ using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.SpinOperators
+using StableRNGs
 
-ε = zeros(Int, 3, 3, 3)
+const ε = zeros(Int, 3, 3, 3)
 for i in 1:3
     ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
     ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
@@ -57,6 +58,8 @@ end
 end
 
 @testset "Z2-Symmetric spin 1//2 operators" begin
+    rng = StableRNG(123)
+
     # inferrability
     X = @inferred S_x(Z2Irrep)
     XX = @inferred S_xx(Z2Irrep)
@@ -77,7 +80,7 @@ end
     @test_broken S_exchange(Z2Irrep)
 
     L = 4
-    a_x, a_xx, a_zz = rand(3)
+    a_x, a_xx, a_zz = rand(rng, 3)
     O_z2 = (X ⊗ id(domain(X)) + id(domain(X)) ⊗ X) * a_x + XX * a_xx + ZZ * a_zz
 
     O_triv = (S_x() ⊗ id(domain(S_x())) + id(domain(S_x())) ⊗ S_x()) * a_x +
@@ -87,6 +90,8 @@ end
 end
 
 @testset "U1-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
+    rng = StableRNG(123)
+
     # inferrability
     Z = @inferred S_z(U1Irrep; spin)
     ZZ = @inferred S_zz(U1Irrep; spin)
@@ -106,7 +111,7 @@ end
         test_operator(f(U1Irrep; spin), f(; spin); L)
     end
 
-    a_z, a_zz, a_plusmin, a_minplus, a_exchange = rand(5)
+    a_z, a_zz, a_plusmin, a_minplus, a_exchange = rand(rng, 5)
     O_u1 = (Z ⊗ id(domain(Z)) + id(domain(Z)) ⊗ Z) * a_z +
            ZZ * a_zz +
            plusmin * a_plusmin +
