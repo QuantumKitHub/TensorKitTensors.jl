@@ -5,5 +5,6 @@ export BosonOperators
 
 include("spinoperators.jl")
 include("bosonoperators.jl")
+include("hubbardoperators.jl")
 
 end
