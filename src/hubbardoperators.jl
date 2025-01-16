@@ -82,13 +82,25 @@ function e_plusmin_up(T, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function e_plusmin_up(T, ::Type{Trivial}, ::Type{U1Irrep})
-    return error("Not implemented")
+    t = two_site_operator(T, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(1, 1//2), I(0,0), dual(I(0,0)), dual(I(1, 1//2)))][1, 1, 1, 1] = 1
+    t[(I(1, 1//2), I(1, -1//2), dual(I(0,0)), dual(I(0,0)))][1, 1, 1, 2] = 1
+    t[(I(0,0), I(0,0), dual(I(1, -1//2)), dual(I(1, 1//2)))][2, 1, 1, 1] = -1
+    t[(I(0,0), I(1, -1//2), dual(I(1, -1//2)), dual(I(0,0)))][2, 1, 1, 2] = -1
+    return t
 end
 function e_plusmin_up(T, ::Type{Trivial}, ::Type{SU2Irrep})
     return error("Not implemented")
 end
 function e_plusmin_up(T, ::Type{U1Irrep}, ::Type{Trivial})
-    return error("Not implemented")
+    t = two_site_operator(T, U1Irrep, Trivial)
+    I = sectortype(t)
+    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][1,1,1,1] = 1
+    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][1,2,1,1] = 1
+    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1,1,2,1] = -1
+    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1,2,2,1] = -1
+    return t
 end
 function e_plusmin_up(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     t = two_site_operator(T, U1Irrep, U1Irrep)
@@ -129,13 +141,25 @@ function e_plusmin_down(T, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function e_plusmin_down(T, ::Type{Trivial}, ::Type{U1Irrep})
-    return error("Not implemented")
+    t = two_site_operator(T, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(1,-1//2), I(0,0), dual(I(0,0)), dual(I(1,-1//2)))][1, 1, 1, 1] = 1
+    t[(I(1,-1//2), I(1,1//2), dual(I(0,0)), dual(I(0,0)))][1, 1, 1, 2] = -1
+    t[(I(0,0), I(0,0), dual(I(1,1//2)), dual(I(1,-1//2)))][2, 1, 1, 1] = 1
+    t[(I(0,0), I(1,1//2), dual(I(1,1//2)), dual(I(0,0)))][2, 1, 1, 2] = -1
+    return t
 end
 function e_plusmin_down(T, ::Type{Trivial}, ::Type{SU2Irrep})
     return error("Not implemented")
 end
 function e_plusmin_down(T, ::Type{U1Irrep}, ::Type{Trivial})
-    return error("Not implemented")
+    t = two_site_operator(T, U1Irrep, Trivial)
+    I = sectortype(t)
+    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][2,1,1,2] = 1
+    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][2,1,1,1] = -1
+    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1,1,1,2] = 1
+    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1,1,1,1] = -1
+    return t
 end
 function e_plusmin_down(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     t = two_site_operator(T, U1Irrep, U1Irrep)
@@ -214,6 +238,23 @@ function e_plusmin(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
     t[f7, f8] .= sqrt(2)
     return t
 end
+function e_plusmin(T, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = two_site_operator(T, Trivial, SU2Irrep)
+    I = sectortype(t)
+    f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
+    f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
+    t[f1, f2][1,1,1,1] = 1
+    f3 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
+    f4 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
+    t[f3, f4][1,2,2,1] = -1
+    f5 = only(fusiontrees((I(0, 0), I(0, 0)), I(0, 0)))
+    f6 = only(fusiontrees((I(1, 1 // 2), I(1, 1 // 2)), I(0, 0)))
+    t[f5, f6][1,2,1,1] = sqrt(2)
+    f7 = only(fusiontrees((I(1, 1 // 2), I(1, 1 // 2)), I(0, 0)))
+    f8 = only(fusiontrees((I(0, 0), I(0, 0)), I(0, 0)))
+    t[f7, f8][1,1,2,1] = sqrt(2)
+    return t
+end
 const e⁺e⁻ = e_plusmin
 
 """
@@ -242,13 +283,21 @@ function e_number_up(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}
     return t
 end
 function e_number_up(T, ::Type{Trivial}, ::Type{U1Irrep})
-    return error("Not implemented")
+    t = single_site_operator(T, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(1,1//2), dual(I(1,1//2)))][1, 1] = 1
+    t[(I(0,0), dual(I(0,0)))][2, 2] = 1
+    return t
 end
 function e_number_up(T, ::Type{Trivial}, ::Type{SU2Irrep})
     throw(ArgumentError("`e_number_up` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function e_number_up(T, ::Type{U1Irrep}, ::Type{Trivial})
-    return error("Not implemented")
+    t = single_site_operator(T, U1Irrep, Trivial)
+    I = sectortype(t)
+    block(t, I(1, 1))[1,1] = 1
+    block(t, I(0, 2))[1,1] = 1
+    return t
 end
 function e_number_up(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     t = single_site_operator(T, U1Irrep, U1Irrep)
@@ -285,13 +334,21 @@ function e_number_down(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivia
     return t
 end
 function e_number_down(T, ::Type{Trivial}, ::Type{U1Irrep})
-    return error("Not implemented")
+    t = single_site_operator(T, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(1,-1//2), dual(I(1,-1//2)))][1, 1] = 1
+    t[(I(0,0), I(0,0))][2, 2] = 1
+    return t
 end
 function e_number_down(T, ::Type{Trivial}, ::Type{SU2Irrep})
     throw(ArgumentError("`e_number_down` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function e_number_down(T, ::Type{U1Irrep}, ::Type{Trivial})
-    return error("Not implemented")
+    t = single_site_operator(T, U1Irrep, Trivial)
+    I = sectortype(t)
+    block(t, I(1, 1))[2,2] = 1 # expected to be [1,2]
+    block(t, I(0, 2))[1,1] = 1
+    return t
 end
 function e_number_down(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     t = single_site_operator(T, U1Irrep, U1Irrep)
@@ -331,6 +388,13 @@ function e_number(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
     block(t, I(0, 2, 0)) .= 2
     return t
 end
+function e_number(T, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = single_site_operator(T, Trivial, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(1, 1 // 2))[1,1] = 1
+    block(t, I(0, 0))[2,2] = 2
+    return t
+end
 const n = e_number
 
 """
@@ -348,6 +412,12 @@ function e_number_updown(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
     t = single_site_operator(T, U1Irrep, SU2Irrep)
     I = sectortype(t)
     block(t, I(0, 2, 0)) .= 1
+    return t
+end
+function e_number_updown(T, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = single_site_operator(T, Trivial, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(0, 0))[2,2] = 1
     return t
 end
 const nꜛnꜜ = e_number_updown
