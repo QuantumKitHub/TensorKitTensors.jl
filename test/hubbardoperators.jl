@@ -6,26 +6,36 @@ using .TensorKitTensorsTestSetup
 using TensorKitTensors.HubbardOperators
 using StableRNGs
 
-@testset "Symmetric operators with symmetries $(particle_symmetry) and $(spin_symmetry)" for particle_symmetry = [Trivial, U1Irrep, SU2Irrep], spin_symmetry = [Trivial, U1Irrep, SU2Irrep]
-    space = hubbard_space(particle_symmetry, spin_symmetry)
-
-    O = e_plusmin(ComplexF64, particle_symmetry, spin_symmetry)
-    O_triv = e_plusmin(ComplexF64, Trivial, Trivial)
-    test_operator(O, O_triv)
-
-    O = e_number(ComplexF64, particle_symmetry, spin_symmetry)
-    O_triv = e_number(ComplexF64, Trivial, Trivial)
-    test_operator(O, O_triv)
-
-    O = e_number_updown(ComplexF64, particle_symmetry, spin_symmetry)
-    O_triv = e_number_updown(ComplexF64, Trivial, Trivial)
-    test_operator(O, O_triv)
-end
-
 implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep), (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
 
+@testset "Compare symmetric with trivial tensors" begin
+    for particle_symmetry = [Trivial, U1Irrep, SU2Irrep], 
+        spin_symmetry = [Trivial, U1Irrep, SU2Irrep]
+
+        if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            space = hubbard_space(particle_symmetry, spin_symmetry)
+
+            O = e_plusmin(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = e_plusmin(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
+
+            O = e_number(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = e_number(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
+
+            O = e_number_updown(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = e_number_updown(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
+        else
+            @test_broken e_plusmin(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken e_number(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken e_number_updown(ComplexF64, particle_symmetry, spin_symmetry)
+        end
+    end
+end
+
 @testset "basic properties" begin
-    for particle_symmetry in (Trivial, U1Irrep), #(Trivial, U1Irrep, SU2Irrep)
+    for particle_symmetry in (Trivial, U1Irrep, SU2Irrep),
         spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries

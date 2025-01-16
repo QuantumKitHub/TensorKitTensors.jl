@@ -221,23 +221,6 @@ function e_plusmin(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:S
     return e_plusmin_up(T, particle_symmetry, spin_symmetry) +
            e_plusmin_down(T, particle_symmetry, spin_symmetry)
 end
-function e_plusmin(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = two_site_operator(T, U1Irrep, SU2Irrep)
-    I = sectortype(t)
-    f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
-    f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
-    t[f1, f2] .= 1
-    f3 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 2, 0)), I(1, 3, 1 // 2)))
-    f4 = only(fusiontrees((I(0, 2, 0), I(1, 1, 1 // 2)), I(1, 3, 1 // 2)))
-    t[f3, f4] .= -1
-    f5 = only(fusiontrees((I(0, 0, 0), I(0, 2, 0)), I(0, 2, 0)))
-    f6 = only(fusiontrees((I(1, 1, 1 // 2), I(1, 1, 1 // 2)), I(0, 2, 0)))
-    t[f5, f6] .= sqrt(2)
-    f7 = only(fusiontrees((I(1, 1, 1 // 2), I(1, 1, 1 // 2)), I(0, 2, 0)))
-    f8 = only(fusiontrees((I(0, 2, 0), I(0, 0, 0)), I(0, 2, 0)))
-    t[f7, f8] .= sqrt(2)
-    return t
-end
 function e_plusmin(T, ::Type{Trivial}, ::Type{SU2Irrep})
     t = two_site_operator(T, Trivial, SU2Irrep)
     I = sectortype(t)
@@ -253,6 +236,23 @@ function e_plusmin(T, ::Type{Trivial}, ::Type{SU2Irrep})
     f7 = only(fusiontrees((I(1, 1 // 2), I(1, 1 // 2)), I(0, 0)))
     f8 = only(fusiontrees((I(0, 0), I(0, 0)), I(0, 0)))
     t[f7, f8][1,1,2,1] = sqrt(2)
+    return t
+end
+function e_plusmin(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = two_site_operator(T, U1Irrep, SU2Irrep)
+    I = sectortype(t)
+    f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
+    f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
+    t[f1, f2] .= 1
+    f3 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 2, 0)), I(1, 3, 1 // 2)))
+    f4 = only(fusiontrees((I(0, 2, 0), I(1, 1, 1 // 2)), I(1, 3, 1 // 2)))
+    t[f3, f4] .= -1
+    f5 = only(fusiontrees((I(0, 0, 0), I(0, 2, 0)), I(0, 2, 0)))
+    f6 = only(fusiontrees((I(1, 1, 1 // 2), I(1, 1, 1 // 2)), I(0, 2, 0)))
+    t[f5, f6] .= sqrt(2)
+    f7 = only(fusiontrees((I(1, 1, 1 // 2), I(1, 1, 1 // 2)), I(0, 2, 0)))
+    f8 = only(fusiontrees((I(0, 2, 0), I(0, 0, 0)), I(0, 2, 0)))
+    t[f7, f8] .= sqrt(2)
     return t
 end
 const e⁺e⁻ = e_plusmin
@@ -381,18 +381,18 @@ function e_number(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Se
     return e_number_up(T, particle_symmetry, spin_symmetry) +
            e_number_down(T, particle_symmetry, spin_symmetry)
 end
-function e_number(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = single_site_operator(T, U1Irrep, SU2Irrep)
-    I = sectortype(t)
-    block(t, I(1, 1, 1 // 2)) .= 1
-    block(t, I(0, 2, 0)) .= 2
-    return t
-end
 function e_number(T, ::Type{Trivial}, ::Type{SU2Irrep})
     t = single_site_operator(T, Trivial, SU2Irrep)
     I = sectortype(t)
     block(t, I(1, 1 // 2))[1,1] = 1
     block(t, I(0, 0))[2,2] = 2
+    return t
+end
+function e_number(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(T, U1Irrep, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(1, 1, 1 // 2)) .= 1
+    block(t, I(0, 2, 0)) .= 2
     return t
 end
 const n = e_number
@@ -408,16 +408,16 @@ function e_number_updown(T, particle_symmetry::Type{<:Sector},
     return e_number_up(T, particle_symmetry, spin_symmetry) *
            e_number_down(T, particle_symmetry, spin_symmetry)
 end
-function e_number_updown(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = single_site_operator(T, U1Irrep, SU2Irrep)
-    I = sectortype(t)
-    block(t, I(0, 2, 0)) .= 1
-    return t
-end
 function e_number_updown(T, ::Type{Trivial}, ::Type{SU2Irrep})
     t = single_site_operator(T, Trivial, SU2Irrep)
     I = sectortype(t)
     block(t, I(0, 0))[2,2] = 1
+    return t
+end
+function e_number_updown(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(T, U1Irrep, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(0, 2, 0)) .= 1
     return t
 end
 const nꜛnꜜ = e_number_updown
