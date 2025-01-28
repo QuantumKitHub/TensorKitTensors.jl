@@ -15,21 +15,21 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = hubbard_space(particle_symmetry, spin_symmetry)
 
-            O = e_plusmin(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = e_plusmin(ComplexF64, Trivial, Trivial)
+            O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
 
-            O = e_number(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = e_number(ComplexF64, Trivial, Trivial)
+            O = c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = c_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
 
-            O = e_number_updown(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = e_number_updown(ComplexF64, Trivial, Trivial)
+            O = ud_num(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = ud_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
         else
-            @test_broken e_plusmin(ComplexF64, particle_symmetry, spin_symmetry)
-            @test_broken e_number(ComplexF64, particle_symmetry, spin_symmetry)
-            @test_broken e_number_updown(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken ud_num(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
 end
@@ -40,42 +40,42 @@ end
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             # test hermiticity
-            @test e_plusmin(particle_symmetry, spin_symmetry)' ≈
-                  e_minplus(particle_symmetry, spin_symmetry)
+            @test c_plus_c_min(particle_symmetry, spin_symmetry)' ≈
+                  c_min_c_plus(particle_symmetry, spin_symmetry)
             if spin_symmetry !== SU2Irrep
-                @test e_plusmin_down(particle_symmetry, spin_symmetry)' ≈
-                      e_minplus_down(particle_symmetry, spin_symmetry)
-                @test e_plusmin_up(particle_symmetry, spin_symmetry)' ≈
-                      e_minplus_up(particle_symmetry, spin_symmetry)
-                @test e_plusmin_down(particle_symmetry, spin_symmetry)' ≈
-                      e_minplus_down(particle_symmetry, spin_symmetry)
-                @test e_plusmin_up(particle_symmetry, spin_symmetry)' ≈
-                      e_minplus_up(particle_symmetry, spin_symmetry)
+                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
+                      d_min_d_plus(particle_symmetry, spin_symmetry)
+                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
+                      u_min_u_plus(particle_symmetry, spin_symmetry)
+                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
+                      d_min_d_plus(particle_symmetry, spin_symmetry)
+                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
+                      u_min_u_plus(particle_symmetry, spin_symmetry)
             end
 
             # test number operator
             if spin_symmetry !== SU2Irrep
-                @test e_number(particle_symmetry, spin_symmetry) ≈
-                      e_number_up(particle_symmetry, spin_symmetry) +
-                      e_number_down(particle_symmetry, spin_symmetry)
-                @test e_number_updown(particle_symmetry, spin_symmetry) ≈
-                      e_number_up(particle_symmetry, spin_symmetry) *
-                      e_number_down(particle_symmetry, spin_symmetry) ≈
-                      e_number_down(particle_symmetry, spin_symmetry) *
-                      e_number_up(particle_symmetry, spin_symmetry)
+                @test c_num(particle_symmetry, spin_symmetry) ≈
+                      u_num(particle_symmetry, spin_symmetry) +
+                      d_num(particle_symmetry, spin_symmetry)
+                @test ud_num(particle_symmetry, spin_symmetry) ≈
+                      u_num(particle_symmetry, spin_symmetry) *
+                      d_num(particle_symmetry, spin_symmetry) ≈
+                      d_num(particle_symmetry, spin_symmetry) *
+                      u_num(particle_symmetry, spin_symmetry)
             end
         else
-            @test_broken e_plusmin(particle_symmetry, spin_symmetry)
-            @test_broken e_minplus(particle_symmetry, spin_symmetry)
+            @test_broken c_plus_c_min(particle_symmetry, spin_symmetry)
+            @test_broken c_min_c_plus(particle_symmetry, spin_symmetry)
         end
     end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = t * (e_plusmin(particle_symmetry, spin_symmetry) +
-                   e_minplus(particle_symmetry, spin_symmetry))
-    interaction = U * e_number_updown(particle_symmetry, spin_symmetry)
-    chemical_potential = mu * e_number(particle_symmetry, spin_symmetry)
+    hopping = t * (c_plus_c_min(particle_symmetry, spin_symmetry) +
+                   c_min_c_plus(particle_symmetry, spin_symmetry))
+    interaction = U * ud_num(particle_symmetry, spin_symmetry)
+    chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
             return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
