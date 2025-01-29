@@ -69,7 +69,7 @@ end
 """
     u_plus_u_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the two-body operator ``e†_{1,↑}, e_{2,↑}`` that creates a spin-up electron at the first site and annihilates a spin-up electron at the second.
+Return the two-body operator ``c†_{1,↑}, c_{2,↑}`` that creates a spin-up particle at the first site and annihilates a spin-up particle at the second.
 """
 u_plus_u_min(P::Type{<:Sector}, S::Type{<:Sector}) = u_plus_u_min(ComplexF64, P, S)
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{Trivial})
@@ -128,7 +128,7 @@ const u⁺d⁻ = u_plus_u_min
 """
     d_plus_d_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the two-body operator ``e†_{1,↓}, e_{2,↓}`` that creates a spin-down electron at the first site and annihilates a spin-down electron at the second.
+Return the two-body operator ``c†_{1,↓}, c_{2,↓}`` that creates a spin-down particle at the first site and annihilates a spin-down particle at the second.
 """
 d_plus_d_min(P::Type{<:Sector}, S::Type{<:Sector}) = d_plus_d_min(ComplexF64, P, S)
 function d_plus_d_min(T, ::Type{Trivial}, ::Type{Trivial})
@@ -188,8 +188,8 @@ const d⁺d⁻ = d_plus_d_min
     u_min_u_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the Hermitian conjugate of `u_plus_u_min`, i.e.
-``(e†_{1,↑}, e_{2,↑})† = -e_{1,↑}, e†_{2,↑}`` (note the extra minus sign). 
-It annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
+``(c†_{1,↑}, c_{2,↑})† = -c_{1,↑}, c†_{2,↑}`` (note the extra minus sign). 
+It annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
 """
 u_min_u_plus(P::Type{<:Sector}, S::Type{<:Sector}) = u_min_u_plus(ComplexF64, P, S)
 function u_min_u_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -201,8 +201,8 @@ const u⁻u⁺ = u_min_u_plus
     d_min_d_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the Hermitian conjugate of `d_plus_d_min`, i.e.
-``(e†_{1,↓}, e_{2,↓})† = -e_{1,↓}, e†_{2,↓}`` (note the extra minus sign). 
-It annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
+``(c†_{1,↓}, c_{2,↓})† = -c_{1,↓}, c†_{2,↓}`` (note the extra minus sign). 
+It annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
 """
 d_min_d_plus(P::Type{<:Sector}, S::Type{<:Sector}) = d_min_d_plus(ComplexF64, P, S)
 function d_min_d_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -272,7 +272,7 @@ const c⁻c⁺ = c_min_c_plus
 """
     u_num(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body operator that counts the number of spin-up electrons.
+Return the one-body operator that counts the number of spin-up particles.
 """
 u_num(P::Type{<:Sector}, S::Type{<:Sector}) = u_num(ComplexF64, P, S)
 function u_num(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
@@ -323,7 +323,7 @@ const nꜛ = u_num
 """
     d_num(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body operator that counts the number of spin-down electrons.
+Return the one-body operator that counts the number of spin-down particles.
 """
 d_num(P::Type{<:Sector}, S::Type{<:Sector}) = d_num(ComplexF64, P, S)
 function d_num(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
