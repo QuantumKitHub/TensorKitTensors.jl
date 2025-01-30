@@ -6,11 +6,12 @@ using .TensorKitTensorsTestSetup
 using TensorKitTensors.HubbardOperators
 using StableRNGs
 
-implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep), (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
+implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
+                          (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
 
 @testset "Compare symmetric with trivial tensors" begin
-    for particle_symmetry = [Trivial, U1Irrep, SU2Irrep], 
-        spin_symmetry = [Trivial, U1Irrep, SU2Irrep]
+    for particle_symmetry in [Trivial, U1Irrep, SU2Irrep],
+        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = hubbard_space(particle_symmetry, spin_symmetry)

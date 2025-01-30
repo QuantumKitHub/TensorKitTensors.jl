@@ -79,10 +79,10 @@ end
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{U1Irrep})
     t = two_site_operator(T, Trivial, U1Irrep)
     I = sectortype(t)
-    t[(I(1, 1//2), I(0,0), dual(I(0,0)), dual(I(1, 1//2)))][1, 1, 1, 1] = 1
-    t[(I(1, 1//2), I(1, -1//2), dual(I(0,0)), dual(I(0,0)))][1, 1, 1, 2] = 1
-    t[(I(0,0), I(0,0), dual(I(1, -1//2)), dual(I(1, 1//2)))][2, 1, 1, 1] = -1
-    t[(I(0,0), I(1, -1//2), dual(I(1, -1//2)), dual(I(0,0)))][2, 1, 1, 2] = -1
+    t[(I(1, 1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, 1 // 2)))][1, 1, 1, 1] = 1
+    t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 1, 2] = 1
+    t[(I(0, 0), I(0, 0), dual(I(1, -1 // 2)), dual(I(1, 1 // 2)))][2, 1, 1, 1] = -1
+    t[(I(0, 0), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(0, 0)))][2, 1, 1, 2] = -1
     return t
 end
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{SU2Irrep})
@@ -91,10 +91,10 @@ end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = two_site_operator(T, U1Irrep, Trivial)
     I = sectortype(t)
-    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][1,1,1,1] = 1
-    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][1,2,1,1] = 1
-    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1,1,2,1] = -1
-    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1,2,2,1] = -1
+    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][1, 1, 1, 1] = 1
+    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][1, 2, 1, 1] = 1
+    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1, 1, 2, 1] = -1
+    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1, 2, 2, 1] = -1
     return t
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{U1Irrep})
@@ -139,10 +139,10 @@ end
 function d_plus_d_min(T, ::Type{Trivial}, ::Type{U1Irrep})
     t = two_site_operator(T, Trivial, U1Irrep)
     I = sectortype(t)
-    t[(I(1,-1//2), I(0,0), dual(I(0,0)), dual(I(1,-1//2)))][1, 1, 1, 1] = 1
-    t[(I(1,-1//2), I(1,1//2), dual(I(0,0)), dual(I(0,0)))][1, 1, 1, 2] = -1
-    t[(I(0,0), I(0,0), dual(I(1,1//2)), dual(I(1,-1//2)))][2, 1, 1, 1] = 1
-    t[(I(0,0), I(1,1//2), dual(I(1,1//2)), dual(I(0,0)))][2, 1, 1, 2] = -1
+    t[(I(1, -1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, -1 // 2)))][1, 1, 1, 1] = 1
+    t[(I(1, -1 // 2), I(1, 1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 1, 2] = -1
+    t[(I(0, 0), I(0, 0), dual(I(1, 1 // 2)), dual(I(1, -1 // 2)))][2, 1, 1, 1] = 1
+    t[(I(0, 0), I(1, 1 // 2), dual(I(1, 1 // 2)), dual(I(0, 0)))][2, 1, 1, 2] = -1
     return t
 end
 function d_plus_d_min(T, ::Type{Trivial}, ::Type{SU2Irrep})
@@ -151,10 +151,10 @@ end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = two_site_operator(T, U1Irrep, Trivial)
     I = sectortype(t)
-    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][2,1,1,2] = 1
-    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][2,1,1,1] = -1
-    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1,1,1,2] = 1
-    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1,1,1,1] = -1
+    t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][2, 1, 1, 2] = 1
+    t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][2, 1, 1, 1] = -1
+    t[(I(0, 2), I(0, 0), dual(I(1, 1)), dual(I(1, 1)))][1, 1, 1, 2] = 1
+    t[(I(0, 2), I(1, 1), dual(I(1, 1)), dual(I(0, 2)))][1, 1, 1, 1] = -1
     return t
 end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{U1Irrep})
@@ -225,16 +225,16 @@ function c_plus_c_min(T, ::Type{Trivial}, ::Type{SU2Irrep})
     I = sectortype(t)
     f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
     f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
-    t[f1, f2][1,1,1,1] = 1
+    t[f1, f2][1, 1, 1, 1] = 1
     f3 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
     f4 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
-    t[f3, f4][1,2,2,1] = -1
+    t[f3, f4][1, 2, 2, 1] = -1
     f5 = only(fusiontrees((I(0, 0), I(0, 0)), I(0, 0)))
     f6 = only(fusiontrees((I(1, 1 // 2), I(1, 1 // 2)), I(0, 0)))
-    t[f5, f6][1,2,1,1] = sqrt(2)
+    t[f5, f6][1, 2, 1, 1] = sqrt(2)
     f7 = only(fusiontrees((I(1, 1 // 2), I(1, 1 // 2)), I(0, 0)))
     f8 = only(fusiontrees((I(0, 0), I(0, 0)), I(0, 0)))
-    t[f7, f8][1,1,2,1] = sqrt(2)
+    t[f7, f8][1, 1, 2, 1] = sqrt(2)
     return t
 end
 function c_plus_c_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
@@ -286,8 +286,8 @@ end
 function u_num(T, ::Type{Trivial}, ::Type{U1Irrep})
     t = single_site_operator(T, Trivial, U1Irrep)
     I = sectortype(t)
-    t[(I(1,1//2), dual(I(1,1//2)))][1, 1] = 1
-    t[(I(0,0), dual(I(0,0)))][2, 2] = 1
+    t[(I(1, 1 // 2), dual(I(1, 1 // 2)))][1, 1] = 1
+    t[(I(0, 0), dual(I(0, 0)))][2, 2] = 1
     return t
 end
 function u_num(T, ::Type{Trivial}, ::Type{SU2Irrep})
@@ -296,8 +296,8 @@ end
 function u_num(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = single_site_operator(T, U1Irrep, Trivial)
     I = sectortype(t)
-    block(t, I(1, 1))[1,1] = 1
-    block(t, I(0, 2))[1,1] = 1
+    block(t, I(1, 1))[1, 1] = 1
+    block(t, I(0, 2))[1, 1] = 1
     return t
 end
 function u_num(T, ::Type{U1Irrep}, ::Type{U1Irrep})
@@ -338,8 +338,8 @@ end
 function d_num(T, ::Type{Trivial}, ::Type{U1Irrep})
     t = single_site_operator(T, Trivial, U1Irrep)
     I = sectortype(t)
-    t[(I(1,-1//2), dual(I(1,-1//2)))][1, 1] = 1
-    t[(I(0,0), I(0,0))][2, 2] = 1
+    t[(I(1, -1 // 2), dual(I(1, -1 // 2)))][1, 1] = 1
+    t[(I(0, 0), I(0, 0))][2, 2] = 1
     return t
 end
 function d_num(T, ::Type{Trivial}, ::Type{SU2Irrep})
@@ -348,8 +348,8 @@ end
 function d_num(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = single_site_operator(T, U1Irrep, Trivial)
     I = sectortype(t)
-    block(t, I(1, 1))[2,2] = 1 # expected to be [1,2]
-    block(t, I(0, 2))[1,1] = 1
+    block(t, I(1, 1))[2, 2] = 1 # expected to be [1,2]
+    block(t, I(0, 2))[1, 1] = 1
     return t
 end
 function d_num(T, ::Type{U1Irrep}, ::Type{U1Irrep})
@@ -387,8 +387,8 @@ end
 function c_num(T, ::Type{Trivial}, ::Type{SU2Irrep})
     t = single_site_operator(T, Trivial, SU2Irrep)
     I = sectortype(t)
-    block(t, I(1, 1 // 2))[1,1] = 1
-    block(t, I(0, 0))[2,2] = 2
+    block(t, I(1, 1 // 2))[1, 1] = 1
+    block(t, I(0, 0))[2, 2] = 2
     return t
 end
 function c_num(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
@@ -408,14 +408,14 @@ Return the one-body operator that counts the number of doubly occupied sites.
 """ ud_num
 ud_num(P::Type{<:Sector}, S::Type{<:Sector}) = ud_num(ComplexF64, P, S)
 function ud_num(T, particle_symmetry::Type{<:Sector},
-                         spin_symmetry::Type{<:Sector})
+                spin_symmetry::Type{<:Sector})
     return u_num(T, particle_symmetry, spin_symmetry) *
            d_num(T, particle_symmetry, spin_symmetry)
 end
 function ud_num(T, ::Type{Trivial}, ::Type{SU2Irrep})
     t = single_site_operator(T, Trivial, SU2Irrep)
     I = sectortype(t)
-    block(t, I(0, 0))[2,2] = 1
+    block(t, I(0, 0))[2, 2] = 1
     return t
 end
 function ud_num(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
