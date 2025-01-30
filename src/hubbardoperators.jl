@@ -10,8 +10,7 @@ export c_min_c_plus, u_min_u_plus, d_min_d_plus
 export c_num, u_num, d_num, ud_num
 
 export c⁺c⁻, u⁺u⁻, d⁺d⁻, c⁻c⁺, u⁻u⁺, d⁻d⁺
-export nꜛ, nꜜ, nꜛnꜜ
-# not exported because namespace: export n
+export nꜛ, nꜜ, nꜛnꜜ, n
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -59,11 +58,6 @@ function two_site_operator(T, particle_symmetry::Type{<:Sector},
                            spin_symmetry::Type{<:Sector})
     V = hubbard_space(particle_symmetry, spin_symmetry)
     return zeros(T, V ⊗ V ← V ⊗ V)
-end
-
-function contract_two_site_operator(O₁, O₂)
-    @tensor two_site_operator[-1 -2; -3 -4] := O₁[-1; -3 1] * O₂[1 -2; -4]
-    return two_site_operator
 end
 
 """
