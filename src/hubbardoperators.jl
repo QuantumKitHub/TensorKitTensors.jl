@@ -10,8 +10,7 @@ export c_min_c_plus, u_min_u_plus, d_min_d_plus
 export c_num, u_num, d_num, ud_num
 
 export c⁺c⁻, u⁺u⁻, d⁺d⁻, c⁻c⁺, u⁻u⁺, d⁻d⁺
-export nꜛ, nꜜ, nꜛnꜜ
-# not exported because namespace: export n
+export nꜛ, nꜜ, nꜛnꜜ, n
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
