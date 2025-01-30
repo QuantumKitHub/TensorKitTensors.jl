@@ -31,6 +31,9 @@ jobs:
     uses: "QuantumKitHub/.github/.github/workflows/tests.yml@main"
     with:
       group: "${{ matrix.group }}"
+      nthreads: 4
       julia-version: "${{ matrix.version }}"
       os: "${{ matrix.os }}"
-      CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
+      timeout-minutes: 120
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
