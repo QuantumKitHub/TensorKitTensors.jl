@@ -60,11 +60,6 @@ function two_site_operator(T, particle_symmetry::Type{<:Sector},
     return zeros(T, V ⊗ V ← V ⊗ V)
 end
 
-function contract_two_site_operator(O₁, O₂)
-    @tensor two_site_operator[-1 -2; -3 -4] := O₁[-1; -3 1] * O₂[1 -2; -4]
-    return two_site_operator
-end
-
 """
     u_plus_u_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
