@@ -10,7 +10,7 @@ export c_min_c_plus, u_min_u_plus, d_min_d_plus
 export c_num, u_num, d_num, ud_num
 
 export c⁺c⁻, u⁺u⁻, d⁺d⁻, c⁻c⁺, u⁻u⁺, d⁻d⁺
-export nꜛ, nꜜ, nꜛnꜜ, n
+export n, nꜛ, nꜜ, nꜛꜜ
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -402,7 +402,7 @@ const n = c_num
 
 @doc """
     ud_num([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
-    nꜛnꜜ([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nꜛꜜ([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the one-body operator that counts the number of doubly occupied sites.
 """ ud_num
@@ -424,6 +424,6 @@ function ud_num(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
     block(t, I(0, 2, 0)) .= 1
     return t
 end
-const nꜛnꜜ = ud_num
+const nꜛꜜ = ud_num
 
 end
