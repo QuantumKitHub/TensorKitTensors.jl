@@ -69,8 +69,9 @@ end
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) *
                           u_num(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry; slave_fermion)) ≈
-                          c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) + 
+                    @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry;
+                                                slave_fermion)) ≈
+                          c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
                           c_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
                     @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
@@ -81,8 +82,9 @@ end
                 # test spin operator
                 if particle_symmetry == Trivial
                     @test c_singlet(particle_symmetry, spin_symmetry; slave_fermion) ≈
-                    (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                    d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) / sqrt(2)
+                          (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                           d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
+                          sqrt(2)
                 end
 
                 if spin_symmetry == Trivial
