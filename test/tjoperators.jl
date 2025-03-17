@@ -33,8 +33,8 @@ end
 
 @testset "basic properties" begin
     for slave_fermion in (false, true)
-        for particle_symmetry in (Trivial, U1Irrep, SU2Irrep),
-            spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
+        for particle_symmetry in [Trivial, U1Irrep],
+            spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 # test hermiticity
@@ -49,6 +49,15 @@ end
                           d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
                     @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
                           u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                else
+                    @test_broken d_plus_d_min(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken d_min_d_plus(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken u_plus_u_min(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken u_min_u_plus(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
                 end
 
                 # test number operator
@@ -60,6 +69,10 @@ end
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) *
                           u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                else
+                    @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
                 end
 
                 # test spin operator
@@ -90,8 +103,13 @@ end
                     end
                 end
             else
-                @test_broken c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion)
-                @test_broken c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
             end
         end
     end
