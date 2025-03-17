@@ -4,6 +4,10 @@ using SafeTestsets
     include("hubbardoperators.jl")
 end
 
+@time @safetestset "tj operators" begin
+    include("tjoperators.jl")
+end
+
 @time @safetestset "spin operators" begin
     include("spinoperators.jl")
 end
