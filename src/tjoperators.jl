@@ -1,10 +1,5 @@
 #= Operators that act on t-J-type models
 i.e. the local hilbert space consists of 
-
-- usual basis states: 
-    |∅⟩, |↑⟩, |↓⟩
-- slave-fermion basis states (c_σ = h† b_σ; holon h is fermionic, spinon b_σ is bosonic): 
-    |h⟩ = h†|∅⟩, |↑'⟩ = (b↑)†|∅⟩, |↓'⟩ = (b↓)†|∅⟩
 =#
 module TJOperators
 
@@ -34,6 +29,11 @@ The possible symmetries are
 - Spin: `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 Setting `slave_fermion = true` switches to the slave-fermion basis. 
+
+- basis states for `slave_fermion = false`: 
+    |∅⟩, |↑⟩, |↓⟩
+- basis states for `slave_fermion = true`: (c_σ = h† b_σ; holon h is fermionic, spinon b_σ is bosonic): 
+    |h⟩ = h†|∅⟩, |↑'⟩ = (b↑)†|∅⟩, |↓'⟩ = (b↓)†|∅⟩
 """
 function tj_space(::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial;
                   slave_fermion::Bool=false)
