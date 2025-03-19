@@ -24,7 +24,6 @@ export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺, u⁻d⁻, d⁻u⁻
 export c⁺c⁻, c⁻c⁺
 export S⁻⁺, S⁺⁻
-# not exported because namespace: export n
 
 """
     tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
