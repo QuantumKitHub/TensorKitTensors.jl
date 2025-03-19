@@ -19,7 +19,7 @@ export u_min_d_min, d_min_u_min
 export c_plus_c_min, c_min_c_plus, c_singlet
 export S_plusmin, S_minplus, S_exchange
 
-export nꜛ, nꜜ, nʰ
+export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺, u⁻d⁻, d⁻u⁻
 export c⁺c⁻, c⁻c⁺
