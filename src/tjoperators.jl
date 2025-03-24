@@ -33,7 +33,7 @@ Setting `slave_fermion = true` switches to the slave-fermion basis.
 - basis states for `slave_fermion = false`: 
     |0⟩ = |vac⟩ (vacuum), |↑⟩ = (c↑)†|vac⟩, |↓⟩ = (c↓)†|vac⟩
 - basis states for `slave_fermion = true`: (c_σ = h† b_σ; holon h is fermionic, spinon b_σ is bosonic): 
-    |h⟩ = h†|∅⟩, |↑'⟩ = (b↑)†|∅⟩, |↓'⟩ = (b↓)†|∅⟩
+    |0⟩ = h†|vac⟩, |↑⟩ = (b↑)†|vac⟩, |↓⟩ = (b↓)†|vac⟩
 """
 function tj_space(::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial;
                   slave_fermion::Bool=false)
