@@ -1,0 +1,193 @@
+using TensorKit
+using LinearAlgebra: tr, eigvals
+using Test
+include("testsetup.jl")
+using .TensorKitTensorsTestSetup
+using TensorKitTensors.TJOperators
+using StableRNGs
+
+implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep),
+                          (U1Irrep, Trivial), (U1Irrep, U1Irrep)]
+
+@testset "Compare symmetric with trivial tensors" begin
+    for particle_symmetry in [Trivial, U1Irrep],
+        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
+        if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            space = tj_space(particle_symmetry, spin_symmetry)
+
+            O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
+
+            O = c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = c_num(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
+
+        else
+            @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+        end
+    end
+end
+
+@testset "basic properties" begin
+    for slave_fermion in (false, true)
+        for particle_symmetry in [Trivial, U1Irrep],
+            spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
+            if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                # test hermiticity
+                @test c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                      c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                if spin_symmetry !== SU2Irrep
+                    @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                else
+                    @test_broken d_plus_d_min(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken d_min_d_plus(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken u_plus_u_min(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                    @test_broken u_min_u_plus(particle_symmetry, spin_symmetry;
+                                              slave_fermion)
+                end
+
+                # test number operator
+                if spin_symmetry !== SU2Irrep
+                    @test c_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          u_num(particle_symmetry, spin_symmetry; slave_fermion) +
+                          d_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test u_num(particle_symmetry, spin_symmetry; slave_fermion) *
+                          d_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          d_num(particle_symmetry, spin_symmetry; slave_fermion) *
+                          u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry;
+                                                slave_fermion)) ≈
+                          c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
+                          c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                else
+                    @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
+                end
+
+                # test spin operator
+                if particle_symmetry == Trivial
+                    @test c_singlet(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                           d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
+                          sqrt(2)
+                end
+
+                if spin_symmetry == Trivial
+                    ε = zeros(ComplexF64, 3, 3, 3)
+                    for i in 1:3
+                        ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
+                        ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
+                    end
+                    Svec = [S_x(particle_symmetry, spin_symmetry; slave_fermion),
+                            S_y(particle_symmetry, spin_symmetry; slave_fermion),
+                            S_z(particle_symmetry, spin_symmetry; slave_fermion)]
+                    # Hermiticity
+                    for s in Svec
+                        @test s' ≈ s
+                    end
+                    # operators should be normalized
+                    S = 1 / 2
+                    @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
+                    # test S_plus and S_min
+                    @test S_plusmin(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          S_plus(particle_symmetry, spin_symmetry; slave_fermion) ⊗
+                          S_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    # commutation relations
+                    for i in 1:3, j in 1:3
+                        @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
+                              sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                    end
+                end
+            else
+                @test_broken d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
+            end
+        end
+    end
+end
+
+function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
+    hopping = t * (c_plus_c_min(particle_symmetry, spin_symmetry) +
+                   c_min_c_plus(particle_symmetry, spin_symmetry))
+    chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
+    I = id(tj_space(particle_symmetry, spin_symmetry))
+    H = sum(1:(L - 1)) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
+    end +
+        sum(1:L) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
+    end
+    return H
+end
+
+function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion)
+    num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
+    hop_heis = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                       c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+               J *
+               (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
+                (1 / 4) * (num ⊗ num))
+    chemical_potential = (-mu) * num
+    I = id(tj_space(particle_symmetry, spin_symmetry; slave_fermion))
+    H = sum(1:(L - 1)) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hop_heis))
+    end + sum(1:L) do i
+          return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
+          end
+    return H
+end
+
+@testset "spectrum" begin
+    L = 4
+    t = randn()
+    J = randn()
+    mu = randn()
+
+    for slave_fermion in (false, true)
+        H_triv = tjhamiltonian(Trivial, Trivial; t, J, mu, L, slave_fermion)
+        vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
+            return repeat(real.(v), dim(c))
+        end
+        sort!(vals_triv)
+
+        for particle_symmetry in (Trivial, U1Irrep),
+            spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
+
+            if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                if (particle_symmetry, spin_symmetry) == (Trivial, Trivial)
+                    continue
+                end
+                H_symm = tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L,
+                                       slave_fermion)
+                vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
+                    return repeat(real.(v), dim(c))
+                end
+                sort!(vals_symm)
+                @test vals_triv ≈ vals_symm
+            else
+                @test_broken tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L,
+                                           slave_fermion)
+            end
+        end
+    end
+end
