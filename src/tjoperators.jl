@@ -48,7 +48,8 @@ function tj_space(::Type{Trivial}, ::Type{U1Irrep}; slave_fermion::Bool=false)
     end
 end
 function tj_space(::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    return slave_fermion ? Vect[FermionParity ⊠ SU2Irrep]((1, 0) => 1, (0, 1 // 2) => 1) :
+           Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 1, (1, 1 // 2) => 1)
 end
 function tj_space(::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool=false)
     return if slave_fermion
@@ -67,7 +68,11 @@ function tj_space(::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool=false)
     end
 end
 function tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    return if slave_fermion
+        Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((1, 0, 0) => 1, (0, 1, 1 // 2) => 1)
+    else
+        Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1)
+    end
 end
 
 # Single-site operators
@@ -180,6 +185,30 @@ function c_num(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Secto
                slave_fermion::Bool=false)
     return u_num(T, particle_symmetry, spin_symmetry; slave_fermion) +
            d_num(T, particle_symmetry, spin_symmetry; slave_fermion)
+end
+function c_num(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = single_site_operator(T, Trivial, SU2Irrep; slave_fermion)
+    I = sectortype(t)
+    if slave_fermion
+        block(t, I(0, 1 // 2))[1, 1] = 1
+        # block(t, I(0, 1 // 2))[2, 2] = 1
+    else
+        block(t, I(1, 1 // 2))[1, 1] = 1
+        # block(t, I(1, 1 // 2))[2, 2] = 1
+    end
+    return t
+end
+function c_num(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = single_site_operator(T, U1Irrep, SU2Irrep; slave_fermion)
+    I = sectortype(t)
+    if slave_fermion
+        block(t, I(0, 1, 1 // 2))[1, 1] = 1
+        # block(t, I(0, 1, 1 // 2))[2, 2] = 1
+    else
+        block(t, I(1, 1, 1 // 2))[1, 1] = 1
+        # block(t, I(1, 1, 1 // 2))[2, 2] = 1
+    end
+    return t
 end
 const n = c_num
 
@@ -364,7 +393,7 @@ function u_plus_u_min(T, ::Type{Trivial}, ::Type{U1Irrep}; slave_fermion::Bool=f
     return t
 end
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool=false)
     t = two_site_operator(T, U1Irrep, Trivial; slave_fermion)
@@ -381,7 +410,7 @@ function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool=f
     return t
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const u⁺u⁻ = u_plus_u_min
 
@@ -409,7 +438,7 @@ function d_plus_d_min(T, ::Type{Trivial}, ::Type{U1Irrep}; slave_fermion::Bool=f
     return t
 end
 function d_plus_d_min(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool=false)
     t = two_site_operator(T, U1Irrep, Trivial; slave_fermion)
@@ -426,7 +455,7 @@ function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool=f
     return t
 end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    return error("Not implemented")
+    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const d⁺d⁻ = d_plus_d_min
 
@@ -490,6 +519,12 @@ end
 function u_min_d_min(T, ::Type{U1Irrep}, ::Type{<:Sector}; slave_fermion::Bool=false)
     throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
+function u_min_d_min(T, ::Type{<:Sector}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function u_min_d_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
+end
 const u⁻d⁻ = u_min_d_min
 
 @doc """
@@ -518,6 +553,12 @@ end
 function d_min_u_min(T, ::Type{U1Irrep}, ::Type{<:Sector}; slave_fermion::Bool=false)
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
+function d_min_u_min(T, ::Type{<:Sector}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function d_min_u_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+end
 const d⁻u⁻ = d_min_u_min
 
 @doc """
@@ -534,6 +575,55 @@ function c_plus_c_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{
     return u_plus_u_min(T, particle_symmetry, spin_symmetry; slave_fermion) +
            d_plus_d_min(T, particle_symmetry, spin_symmetry; slave_fermion)
 end
+function c_plus_c_min(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = two_site_operator(T, Trivial, SU2Irrep; slave_fermion)
+    I = sectortype(t)
+    if slave_fermion
+        f1 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
+        f2 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
+        t[f1, f2][1, 1, 1, 1] = 1
+        # t[f1, f2][1, 2, 2, 1] = 1
+        # f3 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
+        # f4 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
+        # t[f3, f4][1, 1, 1, 1] = -1
+        # t[f3, f4][2, 1, 1, 2] = -1
+    else
+        f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
+        f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
+        t[f1, f2][1, 1, 1, 1] = 1
+        # t[f1, f2][1, 2, 2, 1] = 1
+        # f3 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
+        # f4 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
+        # t[f3, f4][1, 1, 1, 1] = -1
+        # t[f3, f4][2, 1, 1, 2] = -1
+    end
+    return t
+end
+function c_plus_c_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = two_site_operator(T, U1Irrep, SU2Irrep; slave_fermion)
+    I = sectortype(t)
+    if slave_fermion
+        f1 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
+        f2 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
+        t[f1, f2][1, 1, 1, 1] = 1
+        # t[f1, f2][1, 2, 2, 1] = 1
+        # f3 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
+        # f4 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
+        # t[f3, f4][1, 1, 1, 1] = -1
+        # t[f3, f4][2, 1, 1, 2] = -1
+    else
+        f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
+        f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
+        t[f1, f2][1, 1, 1, 1] = 1
+        # t[f1, f2][1, 2, 2, 1] = 1
+        # f3 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
+        # f4 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
+        # t[f3, f4][1, 1, 1, 1] = -1
+        # t[f3, f4][2, 1, 1, 2] = -1
+    end
+    return t
+end
+
 const c⁺c⁻ = c_plus_c_min
 
 @doc """
@@ -634,6 +724,28 @@ function S_exchange(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:
                       +
                       S_minplus(T, particle_symmetry, spin_symmetry; slave_fermion)) +
            Sz ⊗ Sz
+end
+function S_exchange(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = two_site_operator(T, Trivial, SU2Irrep; slave_fermion)
+
+    for (s, f) in fusiontrees(t)
+        l3 = f.uncoupled[1][2].j
+        l4 = f.uncoupled[2][2].j
+        k = f.coupled[2].j
+        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+    end
+    return t
+end
+function S_exchange(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
+    t = two_site_operator(T, U1Irrep, SU2Irrep; slave_fermion)
+
+    for (s, f) in fusiontrees(t)
+        l3 = f.uncoupled[1][3].j
+        l4 = f.uncoupled[2][3].j
+        k = f.coupled[3].j
+        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+    end
+    return t
 end
 
 end
