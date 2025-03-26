@@ -89,8 +89,10 @@ end
                           sqrt(2)
                 else
                     @test_broken c_singlet(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken u_min_d_min(particle_symmetry, spin_symmetry;
+                                             slave_fermion)
+                    @test_broken d_min_u_min(particle_symmetry, spin_symmetry;
+                                             slave_fermion)
                 end
 
                 if spin_symmetry == Trivial
