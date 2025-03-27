@@ -6,27 +6,30 @@ using .TensorKitTensorsTestSetup
 using TensorKitTensors.TJOperators
 using StableRNGs
 
-implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep),
-                          (U1Irrep, Trivial), (U1Irrep, U1Irrep)]
+implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
+                          (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
 
 @testset "Compare symmetric with trivial tensors" begin
     for particle_symmetry in [Trivial, U1Irrep],
         spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
-        if (particle_symmetry, spin_symmetry) in implemented_symmetries
-            space = tj_space(particle_symmetry, spin_symmetry)
+        for slave_fermion in (false, true)
+            if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                space = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
 
-            O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial)
-            test_operator(O, O_triv)
+                O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry;
+                                 slave_fermion)
+                O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial; slave_fermion)
+                test_operator(O, O_triv)
 
-            O = c_num(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = c_num(ComplexF64, Trivial, Trivial)
-            test_operator(O, O_triv)
+                O = c_num(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                O_triv = c_num(ComplexF64, Trivial, Trivial; slave_fermion)
+                test_operator(O, O_triv)
 
-        else
-            @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
-            @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            else
+                @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
+                @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            end
         end
     end
 end
@@ -74,17 +77,22 @@ end
                           c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
                           c_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
-                    @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
                     @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
                     @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
                 end
 
                 # test spin operator
-                if particle_symmetry == Trivial
+                if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
                     @test c_singlet(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
                            d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
                           sqrt(2)
+                else
+                    @test_broken c_singlet(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_broken u_min_d_min(particle_symmetry, spin_symmetry;
+                                             slave_fermion)
+                    @test_broken d_min_u_min(particle_symmetry, spin_symmetry;
+                                             slave_fermion)
                 end
 
                 if spin_symmetry == Trivial
