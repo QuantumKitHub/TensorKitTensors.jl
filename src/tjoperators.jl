@@ -389,7 +389,7 @@ function u_plus_u_min(T, ::Type{Trivial}, ::Type{U1Irrep}; slave_fermion::Bool=f
     return t
 end
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
-    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
+    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool=false)
     t = two_site_operator(T, U1Irrep, Trivial; slave_fermion)
