@@ -191,10 +191,8 @@ function c_num(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
     I = sectortype(t)
     if slave_fermion
         block(t, I(0, 1 // 2))[1, 1] = 1
-        # block(t, I(0, 1 // 2))[2, 2] = 1
     else
         block(t, I(1, 1 // 2))[1, 1] = 1
-        # block(t, I(1, 1 // 2))[2, 2] = 1
     end
     return t
 end
@@ -203,10 +201,8 @@ function c_num(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=false)
     I = sectortype(t)
     if slave_fermion
         block(t, I(0, 1, 1 // 2))[1, 1] = 1
-        # block(t, I(0, 1, 1 // 2))[2, 2] = 1
     else
         block(t, I(1, 1, 1 // 2))[1, 1] = 1
-        # block(t, I(1, 1, 1 // 2))[2, 2] = 1
     end
     return t
 end
@@ -582,20 +578,10 @@ function c_plus_c_min(T, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool=
         f1 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
         f2 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
         t[f1, f2][1, 1, 1, 1] = 1
-        # t[f1, f2][1, 2, 2, 1] = 1
-        # f3 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
-        # f4 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
-        # t[f3, f4][1, 1, 1, 1] = -1
-        # t[f3, f4][2, 1, 1, 2] = -1
     else
         f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
         f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
         t[f1, f2][1, 1, 1, 1] = 1
-        # t[f1, f2][1, 2, 2, 1] = 1
-        # f3 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
-        # f4 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
-        # t[f3, f4][1, 1, 1, 1] = -1
-        # t[f3, f4][2, 1, 1, 2] = -1
     end
     return t
 end
@@ -606,20 +592,10 @@ function c_plus_c_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool=
         f1 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
         f2 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
         t[f1, f2][1, 1, 1, 1] = 1
-        # t[f1, f2][1, 2, 2, 1] = 1
-        # f3 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
-        # f4 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        # t[f3, f4][1, 1, 1, 1] = -1
-        # t[f3, f4][2, 1, 1, 2] = -1
     else
         f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
         f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
         t[f1, f2][1, 1, 1, 1] = 1
-        # t[f1, f2][1, 2, 2, 1] = 1
-        # f3 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
-        # f4 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        # t[f3, f4][1, 1, 1, 1] = -1
-        # t[f3, f4][2, 1, 1, 2] = -1
     end
     return t
 end
