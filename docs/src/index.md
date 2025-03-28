@@ -10,5 +10,5 @@ Documentation for [TensorKitTensors](https://github.com/QuantumKitHub/TensorKitT
 ```
 
 ```@autodocs
-Modules = [TensorKitTensors, TensorKitTensors.SpinOperators, TensorKitTensors.BosonOperators, TensorKitTensors.HubbardOperators, TensorKitTensors.TJOperators]
+Modules = [TensorKitTensors, TensorKitTensors.SpinOperators, TensorKitTensors.BosonOperators, TensorKitTensors.HubbardOperators, TensorKitTensors.TJOperators, TensorKitTensors.FermionOperators]
 ```
