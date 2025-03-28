@@ -1,5 +1,13 @@
 using SafeTestsets
 
+@time @safetestset "spin operators" begin
+    include("spinoperators.jl")
+end
+
+@time @safetestset "boson operators" begin
+    include("bosonoperators.jl")
+end
+
 @time @safetestset "Hubbard operators" begin
     include("hubbardoperators.jl")
 end
@@ -8,12 +16,8 @@ end
     include("tjoperators.jl")
 end
 
-@time @safetestset "spin operators" begin
-    include("spinoperators.jl")
-end
-
-@time @safetestset "boson operators" begin
-    include("bosonoperators.jl")
+@time @safetestset "spinless fermion operators" begin
+    include("fermionoperators.jl")
 end
 
 @time @safetestset "Aqua" begin
