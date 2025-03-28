@@ -6,12 +6,10 @@ module FermionOperators
 
 using TensorKit
 
-export c_plus, c_min
-export c_plus_c_min, c_min_c_plus, c_plus_c_plus, c_min_c_min
 export c_num
-export c⁺, c⁻
-export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
+export c_plus_c_min, c_min_c_plus, c_plus_c_plus, c_min_c_min
 export n
+export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
 
 @doc """
     c_num([elt::Type{<:Number}=ComplexF64])
