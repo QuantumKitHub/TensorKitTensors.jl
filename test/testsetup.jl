@@ -1,6 +1,6 @@
 module TensorKitTensorsTestSetup
 
-export test_operator, operator_sum
+export test_operator, operator_sum, get_lowest_eigenvalues
 
 using Test
 using TensorKit
@@ -27,6 +27,18 @@ function test_operator(O1::AbstractTensorMap, O2::AbstractTensorMap; L::Int=4,
     end
     @test isapprox(sort!(eigenvals1; by=real), sort!(eigenvals2; by=real);
                    isapproxkwargs...)
+end
+
+function get_lowest_eigenvalues(O1::AbstractTensorMap, n::Int; L::Int=4)
+    H = operator_sum(O1; L)
+    eigenvals = mapreduce(vcat, eigvals(H)) do (c, vals)
+        return repeat(vals, dim(c))
+    end
+    sort!(eigenvals; by=real)
+    if n == -1
+        return eigenvals
+    end
+    return eigenvals[1:n]
 end
 
 end
