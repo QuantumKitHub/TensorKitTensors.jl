@@ -6,9 +6,6 @@ export HubbardOperators
 export TJOperators
 export FermionOperators
 
-export contract_onesite, contract_twosite, split_twosite
-
-include("utility.jl")
 include("spinoperators.jl")
 include("bosonoperators.jl")
 include("hubbardoperators.jl")
