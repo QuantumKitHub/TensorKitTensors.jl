@@ -131,9 +131,9 @@ end
 
             # Values based on https://arxiv.org/pdf/0807.4878. Introduction to Hubbard Model and Exact Diagonalization
             true_eigenvals = sort(vcat(repeat([-t], 2), [E⁻], repeat([0], 4),
-                                         repeat([t], 2),
-                                         repeat([U - t], 2), [U], [E⁺], repeat([U + t], 2),
-                                         [2 * U]))
+                                       repeat([t], 2),
+                                       repeat([U - t], 2), [U], [E⁺], repeat([U + t], 2),
+                                       [2 * U]))
             eigenvals = expanded_eigenvalues(H_triv; L)
             @test eigenvals ≈ true_eigenvals
         end

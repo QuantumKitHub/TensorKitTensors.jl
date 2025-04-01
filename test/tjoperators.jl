@@ -210,13 +210,15 @@ end
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 t, J = rand(rng, 2)
                 num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
-                H = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
-                                   c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
-                           J *
-                           (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
-                             (1 / 4) * (num ⊗ num))
-            
-                true_eigenvals = sort(vcat([-J], repeat([-t], 2), repeat([t], 2), repeat([0.0], 4)))
+                H = (-t) *
+                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                     c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+                    J *
+                    (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
+                     (1 / 4) * (num ⊗ num))
+
+                true_eigenvals = sort(vcat([-J], repeat([-t], 2), repeat([t], 2),
+                                           repeat([0.0], 4)))
                 eigenvals = expanded_eigenvalues(H; L)
                 @test eigenvals ≈ true_eigenvals
             end
