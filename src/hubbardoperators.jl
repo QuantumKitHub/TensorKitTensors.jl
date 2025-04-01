@@ -1,5 +1,3 @@
-# Operators that act on Hubbard-type models
-# i.e. the local hilbert space consists of |∅⟩, |↑⟩, |↓⟩, |↑↓⟩
 module HubbardOperators
 
 using TensorKit

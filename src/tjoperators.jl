@@ -1,6 +1,3 @@
-#= Operators that act on t-J-type models
-i.e. the local hilbert space consists of 
-=#
 module TJOperators
 
 using TensorKit

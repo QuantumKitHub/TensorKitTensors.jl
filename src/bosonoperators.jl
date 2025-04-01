@@ -1,6 +1,5 @@
 module BosonOperators
 
-using Core: Argument
 using TensorKit
 using LinearAlgebra: diagind
 

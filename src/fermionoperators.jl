@@ -1,7 +1,3 @@
-#===========================================================================================
-    Spinless fermions
-===========================================================================================#
-
 module FermionOperators
 
 using TensorKit
@@ -17,9 +13,7 @@ export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
 
 Return the local hilbert space for a model of spinless fermions.
 """
-function fermion_space()
-    return Vect[fℤ₂](0 => 1, 1 => 1)
-end
+fermion_space() = Vect[fℤ₂](0 => 1, 1 => 1)
 
 # Single-site operators
 # ---------------------
