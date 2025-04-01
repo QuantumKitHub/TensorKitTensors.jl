@@ -166,12 +166,11 @@ function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_ferm
 end
 
 @testset "spectrum" begin
+    rng = StableRNG(123)
     L = 4
-    t = randn()
-    J = randn()
-    mu = randn()
 
     for slave_fermion in (false, true)
+        t, J, mu = rand(rng, 3)
         H_triv = tjhamiltonian(Trivial, Trivial; t, J, mu, L, slave_fermion)
         vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
             return repeat(real.(v), dim(c))
@@ -195,6 +194,31 @@ end
             else
                 @test_broken tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L,
                                            slave_fermion)
+            end
+        end
+    end
+end
+
+@testset "Exact Diagonalisation" begin
+    rng = StableRNG(123)
+    L = 2
+
+    for particle_symmetry in [Trivial, U1Irrep],
+        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
+        for slave_fermion in (false, true)
+            if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                t, J = rand(rng, 2)
+                num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                H = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                                   c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+                           J *
+                           (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
+                             (1 / 4) * (num ⊗ num))
+            
+                true_eigenvals = sort(vcat([-J], repeat([-t], 2), repeat([t], 2), repeat([0.0], 4)))
+                eigenvals = expanded_eigenvalues(H; L)
+                @test eigenvals ≈ true_eigenvals
             end
         end
     end

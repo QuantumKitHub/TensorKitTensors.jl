@@ -128,14 +128,14 @@ end
             E⁻ = U / 2 - sqrt((U / 2)^2 + 4 * t^2)
             E⁺ = U / 2 + sqrt((U / 2)^2 + 4 * t^2)
             H_triv = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-            
+
             # Values based on https://arxiv.org/pdf/0807.4878. Introduction to Hubbard Model and Exact Diagonalization
-            true_eigenvalues = sort(vcat(repeat([-t], 2), [E⁻], repeat([0], 4),
+            true_eigenvals = sort(vcat(repeat([-t], 2), [E⁻], repeat([0], 4),
                                          repeat([t], 2),
                                          repeat([U - t], 2), [U], [E⁺], repeat([U + t], 2),
                                          [2 * U]))
             eigenvals = expanded_eigenvalues(H_triv; L)
-            @test eigenvals ≈ true_eigenvalues
+            @test eigenvals ≈ true_eigenvals
         end
     end
 end

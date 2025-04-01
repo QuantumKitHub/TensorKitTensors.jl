@@ -83,8 +83,8 @@ end
         a_pm, a_mp, a_n = rand(rng, 3)
         O = (N ⊗ id(V) + id(V) ⊗ N) * a_n + AA⁺ * a_mp + A⁺A * a_pm
     
-        true_eigenvalues = sort([0, 2*a_n, a_n + sqrt(a_mp*a_pm), a_n - sqrt(a_mp*a_pm)])
+        true_eigenvals = sort([0, 2*a_n, a_n + sqrt(a_mp*a_pm), a_n - sqrt(a_mp*a_pm)])
         eigenvals = expanded_eigenvalues(O; L)
-        @test eigenvals ≈ true_eigenvalues
+        @test eigenvals ≈ true_eigenvals
     end
 end
