@@ -6,9 +6,9 @@ using .TensorKitTensorsTestSetup
 using TensorKitTensors.BosonOperators
 using StableRNGs
 
-const cutoff = 4
-
 @testset "Non-symmetric bosonic operators" begin
+    cutoff = 4
+
     # inferrability
     A = @inferred a(; cutoff)
     A⁺ = @inferred a⁺(; cutoff)
@@ -42,6 +42,8 @@ const cutoff = 4
 end
 
 @testset "U1-symmetric bosonic operators" begin
+    cutoff = 4
+
     rng = StableRNG(123)
     # inferrability
     N = @inferred n(U1Irrep; cutoff)
@@ -65,4 +67,25 @@ end
              a⁺a(; cutoff) * a_pm + aa⁺(; cutoff) * a_mp
 
     test_operator(O_u1, O_triv; L)
+end
+
+@testset "Exact Diagonalization" begin
+    cutoff = 1
+    L = 2
+    for symmetry in [Trivial U1Irrep]
+        rng = StableRNG(123)
+        # inferrability
+        N = @inferred n(U1Irrep; cutoff)
+        A⁺A = @inferred a⁺a(U1Irrep; cutoff)
+        AA⁺ = @inferred aa⁺(U1Irrep; cutoff)
+        V = @inferred boson_space(U1Irrep; cutoff)
+
+        a_pm, a_mp, a_n = rand(rng, 3)
+        O = (N ⊗ id(V) + id(V) ⊗ N) * a_n + AA⁺ * a_mp + A⁺A * a_pm
+
+        true_eigenvals = sort([0, 2 * a_n, a_n + sqrt(a_mp * a_pm),
+                               a_n - sqrt(a_mp * a_pm)])
+        eigenvals = expanded_eigenvalues(O; L)
+        @test eigenvals ≈ true_eigenvals
+    end
 end
