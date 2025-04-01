@@ -125,3 +125,20 @@ end
              S_exchange(; spin) * a_exchange
     test_operator(O_u1, O_triv; L)
 end
+
+@testset "Exact diagonalisation for $sector symmetry" for sector in [Trivial U1Irrep]
+    spin = 1
+
+    ZZ = @inferred S_zz(sector; spin)
+    plusmin = @inferred S_plusmin(sector; spin)
+    minplus = @inferred S_minplus(sector; spin)
+    O = ZZ + 0.5 * (plusmin + minplus)
+
+    true_eigenvalues = vcat([-2.0], repeat([-1.0], 3), repeat([1.0], 5))
+    eigenvals = expanded_eigenvalues(O; L = 2)
+    @test eigenvals ≈ true_eigenvalues
+
+    # Value based on https://doi.org/10.1088/0953-8984/2/26/010. Exact diagonalisations of open spin-1 chains
+    eigenvals = expanded_eigenvalues(O; L = 4)
+    @test eigenvals[2] - eigenvals[1] ≈ 0.509170 atol = 1e-6
+end

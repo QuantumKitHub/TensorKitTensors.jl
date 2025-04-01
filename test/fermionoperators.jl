@@ -37,9 +37,9 @@ end
     H = -t * (c⁻c⁺() + c⁺c⁻()) +
         V * ((n() - 0.5 * id(pspace)) ⊗ (n() - 0.5 * id(pspace))) -
         0.5 * mu * (n() ⊗ id(pspace) + id(pspace) ⊗ n())
+
     # Values based on https://arxiv.org/abs/1610.05003v1. Half-Chain Entanglement Entropy in the One-Dimensional Spinless Fermion Model
     true_eigenvalues = sort([V / 4, V / 4 - mu, -V / 4 - mu / 2 + t, -V / 4 - mu / 2 - t])
-
     eigenvals = expanded_eigenvalues(H; L)
     @test eigenvals ≈ true_eigenvalues
 end
