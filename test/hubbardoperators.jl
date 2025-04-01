@@ -71,6 +71,8 @@ end
         else
             @test_broken c_plus_c_min(particle_symmetry, spin_symmetry)
             @test_broken c_min_c_plus(particle_symmetry, spin_symmetry)
+            @test_broken d_plus_d_min(particle_symmetry, spin_symmetry)
+            @test_broken u_plus_u_min(particle_symmetry, spin_symmetry)
         end
     end
 end
