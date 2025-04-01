@@ -32,7 +32,7 @@ end
 
     L = 2
     t, V, mu = rand(rng, 3)
-    pspace = Vect[fℤ₂](0 => 1, 1 => 1)
+    pspace = fermion_space()
 
     H = -t * (c⁻c⁺() + c⁺c⁻()) +
         V * ((n() - 0.5 * id(pspace)) ⊗ (n() - 0.5 * id(pspace))) -
@@ -40,6 +40,6 @@ end
     # Values based on https://arxiv.org/abs/1610.05003v1. Half-Chain Entanglement Entropy in the One-Dimensional Spinless Fermion Model
     true_eigenvalues = sort([V / 4, V / 4 - mu, -V / 4 - mu / 2 + t, -V / 4 - mu / 2 - t])
 
-    eigenvals = get_lowest_eigenvalues(H, -1; L)
+    eigenvals = expanded_eigenvalues(H; L)
     @test eigenvals ≈ true_eigenvalues
 end
