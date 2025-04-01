@@ -8,16 +8,16 @@ end
     include("bosonoperators.jl")
 end
 
-@time @safetestset "Hubbard operators" begin
-    include("hubbardoperators.jl")
+@time @safetestset "spinless fermion operators" begin
+    include("fermionoperators.jl")
 end
 
 @time @safetestset "tj operators" begin
     include("tjoperators.jl")
 end
 
-@time @safetestset "spinless fermion operators" begin
-    include("fermionoperators.jl")
+@time @safetestset "Hubbard operators" begin
+    include("hubbardoperators.jl")
 end
 
 @time @safetestset "Aqua" begin
