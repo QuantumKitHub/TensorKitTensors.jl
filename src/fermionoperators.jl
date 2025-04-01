@@ -6,10 +6,27 @@ module FermionOperators
 
 using TensorKit
 
+export fermion_space
 export c_num
 export c_plus_c_min, c_min_c_plus, c_plus_c_plus, c_min_c_min
 export n
 export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
+
+"""
+    fermion_space()
+
+Return the local hilbert space for a model of spinless fermions.
+"""
+function fermion_space()
+    return Vect[fℤ₂](0 => 1, 1 => 1)
+end
+
+# Single-site operators
+# ---------------------
+function single_site_operator(T)
+    V = fermion_space()
+    return zeros(T, V ← V)
+end
 
 @doc """
     c_num([elt::Type{<:Number}=ComplexF64])
@@ -18,17 +35,16 @@ export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
 Return the one-body operator that counts the nunber of particles.
 """ c_num
 function c_num(T::Type{<:Number}=ComplexF64)
-    pspace = Vect[fℤ₂](0 => 1, 1 => 1)
-    n = zeros(T, pspace ← pspace)
-    block(n, fℤ₂(1)) .= one(T)
-    return n
+    t = single_site_operator(T)
+    block(t, fℤ₂(1)) .= one(T)
+    return t
 end
 const n = c_num
 
 # Two site operators
 # ------------------
 function two_site_operator(T::Type{<:Number}=ComplexF64)
-    V = Vect[fℤ₂](0 => 1, 1 => 1)
+    V = fermion_space()
     return zeros(T, V ⊗ V ← V ⊗ V)
 end
 
