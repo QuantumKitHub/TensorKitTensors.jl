@@ -53,14 +53,18 @@ end
                     @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
                           u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 else
-                    @test_broken d_plus_d_min(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken d_min_d_plus(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken u_plus_u_min(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken u_min_u_plus(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
+                    @test_throws ArgumentError d_plus_d_min(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError d_min_d_plus(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError u_plus_u_min(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError u_min_u_plus(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
                 end
 
                 # test number operator
@@ -77,8 +81,10 @@ end
                           c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
                           c_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
-                    @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_throws ArgumentError u_num(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
+                    @test_throws ArgumentError d_num(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
                 end
 
                 # test spin operator
@@ -88,11 +94,12 @@ end
                            d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
                           sqrt(2)
                 else
-                    @test_broken c_singlet(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken u_min_d_min(particle_symmetry, spin_symmetry;
-                                             slave_fermion)
-                    @test_broken d_min_u_min(particle_symmetry, spin_symmetry;
-                                             slave_fermion)
+                    @test_throws ArgumentError c_singlet(particle_symmetry, spin_symmetry;
+                                                         slave_fermion)
+                    @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
+                    @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
                 end
 
                 if spin_symmetry == Trivial
@@ -166,12 +173,11 @@ function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_ferm
 end
 
 @testset "spectrum" begin
+    rng = StableRNG(123)
     L = 4
-    t = randn()
-    J = randn()
-    mu = randn()
 
     for slave_fermion in (false, true)
+        t, J, mu = rand(rng, 3)
         H_triv = tjhamiltonian(Trivial, Trivial; t, J, mu, L, slave_fermion)
         vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
             return repeat(real.(v), dim(c))
@@ -195,6 +201,33 @@ end
             else
                 @test_broken tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L,
                                            slave_fermion)
+            end
+        end
+    end
+end
+
+@testset "Exact Diagonalisation" begin
+    rng = StableRNG(123)
+    L = 2
+
+    for particle_symmetry in [Trivial, U1Irrep],
+        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
+        for slave_fermion in (false, true)
+            if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                t, J = rand(rng, 2)
+                num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                H = (-t) *
+                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                     c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+                    J *
+                    (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
+                     (1 / 4) * (num ⊗ num))
+
+                true_eigenvals = sort(vcat([-J], repeat([-t], 2), repeat([t], 2),
+                                           repeat([0.0], 4)))
+                eigenvals = expanded_eigenvalues(H; L)
+                @test eigenvals ≈ true_eigenvals
             end
         end
     end

@@ -245,7 +245,7 @@ function u_plus_u_min(T, ::Type{Trivial}, ::Type{U1Irrep})
     return t
 end
 function u_plus_u_min(T, ::Type{Trivial}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = two_site_operator(T, U1Irrep, Trivial)
@@ -266,7 +266,7 @@ function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     return t
 end
 function u_plus_u_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function u_plus_u_min(T, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
@@ -275,7 +275,7 @@ function u_plus_u_min(T, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
 function u_plus_u_min(T, ::Type{SU2Irrep}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const u⁺u⁻ = u_plus_u_min
 
@@ -305,7 +305,7 @@ function d_plus_d_min(T, ::Type{Trivial}, ::Type{U1Irrep})
     return t
 end
 function d_plus_d_min(T, ::Type{Trivial}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{Trivial})
     t = two_site_operator(T, U1Irrep, Trivial)
@@ -326,7 +326,7 @@ function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{U1Irrep})
     return t
 end
 function d_plus_d_min(T, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function d_plus_d_min(T, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
@@ -335,7 +335,7 @@ function d_plus_d_min(T, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
 function d_plus_d_min(T, ::Type{SU2Irrep}, ::Type{SU2Irrep})
-    return error("Not implemented")
+    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const d⁺d⁻ = d_plus_d_min
 
