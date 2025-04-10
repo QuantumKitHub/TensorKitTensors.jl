@@ -65,8 +65,8 @@ end
                       d_num(particle_symmetry, spin_symmetry) *
                       u_num(particle_symmetry, spin_symmetry)
             else
-                @test_broken u_plus_u_min(particle_symmetry, spin_symmetry)
-                @test_broken d_plus_d_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
             end
         else
             @test_broken c_plus_c_min(particle_symmetry, spin_symmetry)

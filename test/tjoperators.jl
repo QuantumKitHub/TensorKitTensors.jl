@@ -53,14 +53,18 @@ end
                     @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
                           u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 else
-                    @test_broken d_plus_d_min(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken d_min_d_plus(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken u_plus_u_min(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
-                    @test_broken u_min_u_plus(particle_symmetry, spin_symmetry;
-                                              slave_fermion)
+                    @test_throws ArgumentError d_plus_d_min(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError d_min_d_plus(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError u_plus_u_min(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
+                    @test_throws ArgumentError u_min_u_plus(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
                 end
 
                 # test number operator
@@ -77,8 +81,10 @@ end
                           c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
                           c_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
-                    @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test_throws ArgumentError u_num(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
+                    @test_throws ArgumentError d_num(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
                 end
 
                 # test spin operator
@@ -88,11 +94,12 @@ end
                            d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
                           sqrt(2)
                 else
-                    @test_broken c_singlet(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test_broken u_min_d_min(particle_symmetry, spin_symmetry;
-                                             slave_fermion)
-                    @test_broken d_min_u_min(particle_symmetry, spin_symmetry;
-                                             slave_fermion)
+                    @test_throws ArgumentError c_singlet(particle_symmetry, spin_symmetry;
+                                                         slave_fermion)
+                    @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
+                    @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
                 end
 
                 if spin_symmetry == Trivial
