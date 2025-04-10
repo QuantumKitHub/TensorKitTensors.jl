@@ -16,4 +16,6 @@ makedocs(;
                                 assets=String[],),
          pages=["Home" => "index.md", "Operators" => operatorpages],)
 
-deploydocs(; repo="github.com/QuantumKitHub/TensorKitTensors.jl", devbranch="main")
+deploydocs(; repo="github.com/QuantumKitHub/TensorKitTensors.jl",
+           devbranch="main",
+           push_preview=true)
