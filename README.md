@@ -8,10 +8,14 @@
 
 This is a small package that aims to provide several commonly used tensors for TensorKit, with various symmetries.
 For a full list of implemented tensors, see the [documentation](https://QuantumKitHub.github.io/TensorKitTensors.jl/stable/).
+If there are any tensors you would like to see added, feel free to open an issue or a pull request.
 
 ## Installation
 
+Installation is done via the Julia package manager.
+You can install it by running the following command in the Julia REPL:
+
 ```julia
-julia> import Pkg
-julia> Pkg.add("https://github.com/QuantumKitHub/TensorKitTensors.jl")
+julia> ]
+pkg> add TensorKitTensors
 ```
