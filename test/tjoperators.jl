@@ -67,6 +67,11 @@ end
                                                             slave_fermion)
                 end
 
+                # test hopping operator
+                @test c_hop(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                      c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                      c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
+
                 # test number operator
                 if spin_symmetry !== SU2Irrep
                     @test c_num(particle_symmetry, spin_symmetry; slave_fermion) ≈

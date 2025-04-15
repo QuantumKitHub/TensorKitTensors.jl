@@ -56,9 +56,9 @@ end
 
             # test hopping operator
             @test c_hop(particle_symmetry, spin_symmetry) ≈
-            c_plus_c_min(particle_symmetry, spin_symmetry) +
-            c_min_c_plus(particle_symmetry, spin_symmetry)
-      
+                  c_plus_c_min(particle_symmetry, spin_symmetry) +
+                  c_min_c_plus(particle_symmetry, spin_symmetry)
+
             # test number operator
             if spin_symmetry !== SU2Irrep
                 @test c_num(particle_symmetry, spin_symmetry) ≈

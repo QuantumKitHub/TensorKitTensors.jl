@@ -25,6 +25,7 @@ using StableRNGs
 
     @plansor c_number[-1; -2] := c⁺c⁻()[-1 1; 3 2] * τ[3 2; -2 1]
     @test c_number ≈ c_num()
+    @test c_hop() ≈ c_plus_c_min() + c_min_c_plus()
 end
 
 @testset "Exact Diagonalization" begin

@@ -4,11 +4,13 @@ authors = ["QuantumKitHub"]
 version = "0.1.0"
 
 [deps]
+JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 TensorKit = "07d1fe3e-3e46-537d-9eac-e9e13d0d4cec"
 
 [compat]
 Aqua = "0.8.9"
+JuliaFormatter = "1.0.62"
 LinearAlgebra = "1"
 SafeTestsets = "0.1"
 StableRNGs = "1"
