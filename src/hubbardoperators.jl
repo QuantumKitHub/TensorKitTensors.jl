@@ -62,7 +62,7 @@ end
 Return the one-body operator that counts the number of spin-up particles.
 """ u_num
 u_num(P::Type{<:Sector}, S::Type{<:Sector}) = u_num(ComplexF64, P, S)
-function u_num(T::Type{<:Number}, (::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
+function u_num(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
     t = single_site_operator(T, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][1, 1] = 1
