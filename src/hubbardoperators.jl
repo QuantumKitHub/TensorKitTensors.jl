@@ -114,7 +114,7 @@ const nꜛ = u_num
 Return the one-body operator that counts the number of spin-down particles.
 """ d_num
 d_num(P::Type{<:Sector}, S::Type{<:Sector}) = d_num(ComplexF64, P, S)
-function d_num(T::Type{<:Number}, (::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
+function d_num(T::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
     t = single_site_operator(T, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][2, 2] = 1
