@@ -17,7 +17,7 @@ export n, nꜛ, nꜜ, nꜛꜜ
 Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries.
 The possible symmetries are `Trivial`, `U1Irrep`, and `SU2Irrep`, for both particle number and spin.
 """
-function hubbard_space((::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
+function hubbard_space(::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
     return Vect[FermionParity](0 => 2, 1 => 2)
 end
 function hubbard_space(::Type{Trivial}, ::Type{U1Irrep})
