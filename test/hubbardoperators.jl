@@ -42,7 +42,7 @@ end
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             # test hermiticity
             @test c_plus_c_min(particle_symmetry, spin_symmetry)' ≈
-                  c_min_c_plus(particle_symmetry, spin_symmetry)
+                  -c_min_c_plus(particle_symmetry, spin_symmetry)
             if spin_symmetry !== SU2Irrep
                 @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
                       d_min_d_plus(particle_symmetry, spin_symmetry)
@@ -56,7 +56,7 @@ end
 
             # test hopping operator
             @test c_hop(particle_symmetry, spin_symmetry) ≈
-                  c_plus_c_min(particle_symmetry, spin_symmetry) +
+                  c_plus_c_min(particle_symmetry, spin_symmetry) -
                   c_min_c_plus(particle_symmetry, spin_symmetry)
 
             # test number operator
@@ -83,8 +83,7 @@ end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = t * (c_plus_c_min(particle_symmetry, spin_symmetry) +
-                   c_min_c_plus(particle_symmetry, spin_symmetry))
+    hopping = -t * c_hop(particle_symmetry, spin_symmetry)
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
     chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))

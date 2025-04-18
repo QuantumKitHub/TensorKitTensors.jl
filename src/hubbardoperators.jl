@@ -425,7 +425,7 @@ This is the sum of `u_min_u_plus` and `d_min_d_plus`.
 """ c_min_c_plus
 c_min_c_plus(P::Type{<:Sector}, S::Type{<:Sector}) = c_min_c_plus(ComplexF64, P, S)
 function c_min_c_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    return copy(adjoint(c_plus_c_min(T, particle_symmetry, spin_symmetry)))
+    return -copy(adjoint(c_plus_c_min(T, particle_symmetry, spin_symmetry)))
 end
 const c⁻c⁺ = c_min_c_plus
 
@@ -437,7 +437,7 @@ This is the sum of `c_plus_c_min` and `c_min_c_plus`.
 """ c_hop
 c_hop(P::Type{<:Sector}, S::Type{<:Sector}) = c_hop(ComplexF64, P, S)
 function c_hop(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    return c_plus_c_min(T, particle_symmetry, spin_symmetry) +
+    return c_plus_c_min(T, particle_symmetry, spin_symmetry) -
            c_min_c_plus(T, particle_symmetry, spin_symmetry)
 end
 
