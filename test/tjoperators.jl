@@ -67,11 +67,6 @@ end
                                                             slave_fermion)
                 end
 
-                # test hopping operator
-                @test c_hop(particle_symmetry, spin_symmetry; slave_fermion) ≈
-                      c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                      c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
-
                 # test number operator
                 if spin_symmetry !== SU2Irrep
                     @test c_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
@@ -146,25 +141,13 @@ end
     end
 end
 
-function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = t * c_hop(particle_symmetry, spin_symmetry)
-    chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
-    I = id(tj_space(particle_symmetry, spin_symmetry))
-    H = sum(1:(L - 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
-    end +
-        sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
-    end
-    return H
-end
-
 function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion)
     num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
-    hop_heis = (-t) * c_hop(particle_symmetry, spin_symmetry; slave_fermion)
-    J *
-    (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
-     (1 / 4) * (num ⊗ num))
+    hop_heis = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                       c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+               J *
+               (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
+                (1 / 4) * (num ⊗ num))
     chemical_potential = (-mu) * num
     I = id(tj_space(particle_symmetry, spin_symmetry; slave_fermion))
     H = sum(1:(L - 1)) do i
@@ -220,7 +203,9 @@ end
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 t, J = rand(rng, 2)
                 num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
-                H = (-t) * c_hop(particle_symmetry, spin_symmetry; slave_fermion) +
+                H = (-t) *
+                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                     c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
                     J *
                     (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
                      (1 / 4) * (num ⊗ num))

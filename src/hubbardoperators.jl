@@ -5,7 +5,6 @@ using TensorKit
 export hubbard_space
 export c_plus_c_min, u_plus_u_min, d_plus_d_min
 export c_min_c_plus, u_min_u_plus, d_min_d_plus
-export c_hop
 export c_num, u_num, d_num, ud_num
 
 export c⁺c⁻, u⁺u⁻, d⁺d⁻, c⁻c⁺, u⁻u⁺, d⁻d⁺
@@ -428,17 +427,5 @@ function c_min_c_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{
     return -copy(adjoint(c_plus_c_min(T, particle_symmetry, spin_symmetry)))
 end
 const c⁻c⁺ = c_min_c_plus
-
-@doc """
-    c_hop([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
-
-Return the two-body operator that describes a particle that hops between the first and the second site.
-This is the sum of `c_plus_c_min` and `c_min_c_plus`.
-""" c_hop
-c_hop(P::Type{<:Sector}, S::Type{<:Sector}) = c_hop(ComplexF64, P, S)
-function c_hop(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    return c_plus_c_min(T, particle_symmetry, spin_symmetry) -
-           c_min_c_plus(T, particle_symmetry, spin_symmetry)
-end
 
 end

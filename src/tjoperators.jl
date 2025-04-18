@@ -8,7 +8,7 @@ export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
 export u_min_d_min, d_min_u_min
-export c_plus_c_min, c_min_c_plus, c_singlet, c_hop
+export c_plus_c_min, c_min_c_plus, c_singlet
 export S_plusmin, S_minplus, S_exchange
 
 export nꜛ, nꜜ, nʰ, n
@@ -626,21 +626,6 @@ function c_singlet(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:S
                    slave_fermion::Bool=false)
     return (u_min_d_min(T, particle_symmetry, spin_symmetry; slave_fermion) -
             d_min_u_min(T, particle_symmetry, spin_symmetry; slave_fermion)) / sqrt(2)
-end
-
-@doc """
-    c_hop([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator that describes a particle that hops between the first and the second site.
-This is the sum of `c_plus_c_min` and `c_min_c_plus`.
-""" c_hop
-function c_hop(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
-    return c_hop(ComplexF64, P, S; slave_fermion)
-end
-function c_hop(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
-               slave_fermion::Bool=false)
-    return c_plus_c_min(T, particle_symmetry, spin_symmetry; slave_fermion) -
-           c_min_c_plus(T, particle_symmetry, spin_symmetry; slave_fermion)
 end
 
 @doc """

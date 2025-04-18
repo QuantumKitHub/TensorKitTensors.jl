@@ -54,11 +54,6 @@ end
                       u_min_u_plus(particle_symmetry, spin_symmetry)
             end
 
-            # test hopping operator
-            @test c_hop(particle_symmetry, spin_symmetry) ≈
-                  c_plus_c_min(particle_symmetry, spin_symmetry) -
-                  c_min_c_plus(particle_symmetry, spin_symmetry)
-
             # test number operator
             if spin_symmetry !== SU2Irrep
                 @test c_num(particle_symmetry, spin_symmetry) ≈
@@ -83,7 +78,8 @@ end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = -t * c_hop(particle_symmetry, spin_symmetry)
+    hopping = -t * (c_plus_c_min(particle_symmetry, spin_symmetry) -
+                    c_min_c_plus(particle_symmetry, spin_symmetry))
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
     chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))

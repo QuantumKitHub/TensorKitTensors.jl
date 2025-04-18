@@ -5,7 +5,6 @@ using TensorKit
 export fermion_space
 export c_num
 export c_plus_c_min, c_min_c_plus, c_plus_c_plus, c_min_c_min
-export c_hop
 export n
 export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
 
@@ -98,15 +97,5 @@ function c_min_c_min(T::Type{<:Number}=ComplexF64)
     return t
 end
 const c⁻c⁻ = c_min_c_min
-
-@doc """
-    c_hop([T], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
-
-Return the two-body operator that describes a particle that hops between the first and the second site.
-This is the sum of `c_plus_c_min` and `c_min_c_plus`.
-""" c_hop
-function c_hop(T::Type{<:Number}=ComplexF64)
-    return c_plus_c_min(T) - c_min_c_plus(T)
-end
 
 end
