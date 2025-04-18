@@ -610,7 +610,7 @@ function c_min_c_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=
 end
 function c_min_c_plus(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
                       slave_fermion::Bool=false)
-    return copy(adjoint(c_plus_c_min(T, particle_symmetry, spin_symmetry; slave_fermion)))
+    return -copy(adjoint(c_plus_c_min(T, particle_symmetry, spin_symmetry; slave_fermion)))
 end
 const c⁻c⁺ = c_min_c_plus
 

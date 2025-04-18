@@ -65,7 +65,7 @@ Return the two-body operator that annihilates a particle at the first site and c
 function c_min_c_plus(T::Type{<:Number}=ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
-    t[(I(0), I(1), dual(I(1)), dual(I(0)))] .= 1
+    t[(I(0), I(1), dual(I(1)), dual(I(0)))] .= -1
     return t
 end
 const c⁻c⁺ = c_min_c_plus

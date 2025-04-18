@@ -42,7 +42,7 @@ end
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 # test hermiticity
                 @test c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                      c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                      -c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 if spin_symmetry !== SU2Irrep
                     @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
                           d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
@@ -141,23 +141,9 @@ end
     end
 end
 
-function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = t * (c_plus_c_min(particle_symmetry, spin_symmetry) +
-                   c_min_c_plus(particle_symmetry, spin_symmetry))
-    chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
-    I = id(tj_space(particle_symmetry, spin_symmetry))
-    H = sum(1:(L - 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
-    end +
-        sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
-    end
-    return H
-end
-
 function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion)
     num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
-    hop_heis = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+    hop_heis = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
                        c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
                J *
                (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
@@ -218,7 +204,7 @@ end
                 t, J = rand(rng, 2)
                 num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
                 H = (-t) *
-                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) +
+                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
                      c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
                     J *
                     (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -

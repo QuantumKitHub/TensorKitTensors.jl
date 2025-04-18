@@ -18,10 +18,10 @@ using StableRNGs
     # I don't think I can get all of these to hold simultaneously?
     # @test cc⁺ ≈ -permute(c⁺c, (2, 1), (4, 3))
 
-    @test c⁻c⁺()' ≈ c⁺c⁻()
+    @test c⁻c⁺()' ≈ -c⁺c⁻()
     @test c⁻c⁻()' ≈ c⁺c⁺()
-    @test (c⁺c⁻() + c⁻c⁺())' ≈ c⁻c⁺() + c⁺c⁻()
-    @test (c⁺c⁻() - c⁻c⁺())' ≈ c⁻c⁺() - c⁺c⁻()
+    @test (c⁺c⁻() - c⁻c⁺())' ≈ c⁺c⁻() - c⁻c⁺()
+    @test (c⁺c⁻() + c⁻c⁺())' ≈ -(c⁻c⁺() + c⁺c⁻())
 
     @plansor c_number[-1; -2] := c⁺c⁻()[-1 1; 3 2] * τ[3 2; -2 1]
     @test c_number ≈ c_num()
@@ -34,7 +34,7 @@ end
     t, V, mu = rand(rng, 3)
     pspace = fermion_space()
 
-    H = -t * (c⁻c⁺() + c⁺c⁻()) +
+    H = -t * (c⁺c⁻() - c⁻c⁺()) +
         V * ((n() - 0.5 * id(pspace)) ⊗ (n() - 0.5 * id(pspace))) -
         0.5 * mu * (n() ⊗ id(pspace) + id(pspace) ⊗ n())
 
