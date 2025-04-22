@@ -75,7 +75,7 @@ const b⁺ = b_plus
     n([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic number operator, with a maximum of `cutoff` bosons per site.
-""" number
+""" b_num
 b_num(; kwargs...) = b_num(ComplexF64, Trivial; kwargs...)
 b_num(elt::Type{<:Number}; kwargs...) = b_num(elt, Trivial; kwargs...)
 b_num(symm::Type{<:Sector}; kwargs...) = b_num(ComplexF64, symm; kwargs...)
