@@ -3,10 +3,12 @@ module FermionOperators
 using TensorKit
 
 export fermion_space
-export c_num
-export c_plus_c_min, c_min_c_plus, c_plus_c_plus, c_min_c_min
+export f_num
+export f_plus_f_min, f_min_f_plus, f_plus_f_plus, f_min_f_min
+export f_hopping
 export n
-export c⁺c⁻, c⁻c⁺, c⁺c⁺, c⁻c⁻
+export f⁺f⁻, f⁻f⁺, f⁺f⁺, f⁻f⁻
+export f_hop
 
 """
     fermion_space()
@@ -23,17 +25,17 @@ function single_site_operator(T)
 end
 
 @doc """
-    c_num([elt::Type{<:Number}=ComplexF64])
+    f_num([elt::Type{<:Number}=ComplexF64])
     n([elt::Type{<:Number}=ComplexF64])
 
 Return the one-body operator that counts the nunber of particles.
-""" c_num
-function c_num(T::Type{<:Number}=ComplexF64)
+""" f_num
+function f_num(T::Type{<:Number}=ComplexF64)
     t = single_site_operator(T)
     block(t, fℤ₂(1)) .= one(T)
     return t
 end
-const n = c_num
+const n = f_num
 
 # Two site operators
 # ------------------
@@ -43,59 +45,70 @@ function two_site_operator(T::Type{<:Number}=ComplexF64)
 end
 
 @doc """
-    c_plus_c_min([elt::Type{<:Number}=ComplexF64])
-    c⁺c⁻([elt::Type{<:Number}=ComplexF64])
+    f_plus_f_min([elt::Type{<:Number}=ComplexF64])
+    f⁺f⁻([elt::Type{<:Number}=ComplexF64])
 
 Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
-""" c_plus_c_min
-function c_plus_c_min(T::Type{<:Number}=ComplexF64)
+""" f_plus_f_min
+function f_plus_f_min(T::Type{<:Number}=ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))] .= 1
     return t
 end
-const c⁺c⁻ = c_plus_c_min
+const f⁺f⁻ = f_plus_f_min
 
 @doc """
-    c_min_c_plus([elt::Type{<:Number}=ComplexF64])
-    c⁻c⁺([elt::Type{<:Number}=ComplexF64])
+    f_min_f_plus([elt::Type{<:Number}=ComplexF64])
+    f⁻f⁺([elt::Type{<:Number}=ComplexF64])
 
 Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
-""" c_min_c_plus
-function c_min_c_plus(T::Type{<:Number}=ComplexF64)
+""" f_min_f_plus
+function f_min_f_plus(T::Type{<:Number}=ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
     t[(I(0), I(1), dual(I(1)), dual(I(0)))] .= -1
     return t
 end
-const c⁻c⁺ = c_min_c_plus
+const f⁻f⁺ = f_min_f_plus
 
 @doc """
-    c_plus_c_plus([elt::Type{<:Number}=ComplexF64])
-    c⁺c⁺([elt::Type{<:Number}=ComplexF64])
+    f_plus_f_plus([elt::Type{<:Number}=ComplexF64])
+    f⁺f⁺([elt::Type{<:Number}=ComplexF64])
 
 Return the two-body operator that creates a particle at the first and at the second site.
-""" c_plus_c_plus
-function c_plus_c_plus(T::Type{<:Number}=ComplexF64)
+""" f_plus_f_plus
+function f_plus_f_plus(T::Type{<:Number}=ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
     t[(I(1), I(1), dual(I(0)), dual(I(0)))] .= 1
     return t
 end
-const c⁺c⁺ = c_plus_c_plus
+const f⁺f⁺ = f_plus_f_plus
 
 @doc """
-    c_min_c_min([elt::Type{<:Number}=ComplexF64])
-    c⁻c⁻([elt::Type{<:Number}=ComplexF64])
+    f_min_f_min([elt::Type{<:Number}=ComplexF64])
+    f⁻f⁻([elt::Type{<:Number}=ComplexF64])
 
 Return the two-body operator that annihilates a particle at the first and at the second site.
-""" c_min_c_min
-function c_min_c_min(T::Type{<:Number}=ComplexF64)
+""" f_min_f_min
+function f_min_f_min(T::Type{<:Number}=ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= 1
     return t
 end
-const c⁻c⁻ = c_min_c_min
+const f⁻f⁻ = f_min_f_min
+
+@doc """
+    f_hopping([elt::Type{<:Number}=ComplexF64])
+    f_hop([elt::Type{<:Number}=ComplexF64])
+
+Return the two-body operator that describes a particle that hops between the first and the second site.
+""" f_hopping
+function f_hopping(elt::Type{<:Number}=ComplexF64)
+    return f_plus_f_min(elt) - f_min_f_plus(elt)
+end
+const f_hop = f_hopping
 
 end

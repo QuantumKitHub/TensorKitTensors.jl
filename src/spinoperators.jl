@@ -5,10 +5,10 @@ using LinearAlgebra: diagind
 
 export spin_space, casimir
 export S_x, S_y, S_z, S_plus, S_min
-export S_xx, S_yy, S_zz, S_plusmin, S_minplus, S_exchange
+export S_x_S_x, S_y_S_y, S_z_S_z, S_plus_S_min, S_min_S_plus, S_exchange
 export σˣ, σʸ, σᶻ, σ⁺, σ⁻
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
-export Sˣˣ, Sʸʸ, Sᶻᶻ, S⁺⁻, S⁻⁺, SS
+export SˣSˣ, SʸSʸ, SᶻSᶻ, S⁺S⁻, S⁻S⁺, SS
 
 """
     spin_space([symmetry::Type{<:Sector}]; spin=1 // 2)
@@ -217,15 +217,15 @@ const S⁻ = S_min
 # Two site operators
 # ------------------
 @doc """
-    S_xx([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
-    Sˣˣ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S_x_S_x([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    SˣSˣ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin x exchange operator.
-""" S_xx
-S_xx(; kwargs...) = S_xx(ComplexF64, Trivial; kwargs...)
-S_xx(elt::Type{<:Number}; kwargs...) = S_xx(elt, Trivial; kwargs...)
-S_xx(symm::Type{<:Sector}; kwargs...) = S_xx(ComplexF64, symm; kwargs...)
-function S_xx(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
+""" S_x_S_x
+S_x_S_x(; kwargs...) = S_x_S_x(ComplexF64, Trivial; kwargs...)
+S_x_S_x(elt::Type{<:Number}; kwargs...) = S_x_S_x(elt, Trivial; kwargs...)
+S_x_S_x(symm::Type{<:Sector}; kwargs...) = S_x_S_x(ComplexF64, symm; kwargs...)
+function S_x_S_x(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial || symmetry === Z2Irrep
         XX = S_x(elt, symmetry; spin) ⊗ S_x(elt, symmetry; spin)
     else
@@ -233,18 +233,18 @@ function S_xx(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     end
     return XX
 end
-const Sˣˣ = S_xx
+const SˣSˣ = S_x_S_x
 
 @doc """
-    S_yy([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
-    Sʸʸ([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S_y_S_y([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    SʸSʸ([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin y exchange operator.
-""" S_yy
-S_yy(; kwargs...) = S_yy(ComplexF64, Trivial; kwargs...)
-S_yy(elt::Type{<:Complex}; kwargs...) = S_yy(elt, Trivial; kwargs...)
-S_yy(symm::Type{<:Sector}; kwargs...) = S_yy(ComplexF64, symm; kwargs...)
-function S_yy(elt::Type{<:Complex}, symmetry::Type{<:Sector}; spin=1 // 2)
+""" S_y_S_y
+S_y_S_y(; kwargs...) = S_y_S_y(ComplexF64, Trivial; kwargs...)
+S_y_S_y(elt::Type{<:Complex}; kwargs...) = S_y_S_y(elt, Trivial; kwargs...)
+S_y_S_y(symm::Type{<:Sector}; kwargs...) = S_y_S_y(ComplexF64, symm; kwargs...)
+function S_y_S_y(elt::Type{<:Complex}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial
         YY = S_y(elt, Trivial; spin) ⊗ S_y(elt, Trivial; spin)
     else
@@ -252,18 +252,18 @@ function S_yy(elt::Type{<:Complex}, symmetry::Type{<:Sector}; spin=1 // 2)
     end
     return YY
 end
-const Sʸʸ = S_yy
+const SʸSʸ = S_y_S_y
 
 @doc """
-    S_zz([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
-    Sᶻᶻ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S_z_S_z([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    SᶻSᶻ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin z exchange operator.
-""" S_zz
-S_zz(; kwargs...) = S_zz(ComplexF64, Trivial; kwargs...)
-S_zz(elt::Type{<:Number}; kwargs...) = S_zz(elt, Trivial; kwargs...)
-S_zz(symm::Type{<:Sector}; kwargs...) = S_zz(ComplexF64, symm; kwargs...)
-function S_zz(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
+""" S_z_S_z
+S_z_S_z(; kwargs...) = S_z_S_z(ComplexF64, Trivial; kwargs...)
+S_z_S_z(elt::Type{<:Number}; kwargs...) = S_z_S_z(elt, Trivial; kwargs...)
+S_z_S_z(symm::Type{<:Sector}; kwargs...) = S_z_S_z(ComplexF64, symm; kwargs...)
+function S_z_S_z(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial || symmetry === U1Irrep
         ZZ = S_z(elt, symmetry; spin) ⊗ S_z(elt, symmetry; spin)
     elseif symmetry === Z2Irrep
@@ -279,67 +279,67 @@ function S_zz(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     end
     return ZZ
 end
-const Sᶻᶻ = S_zz
+const SᶻSᶻ = S_z_S_z
 
 @doc """
-    S_plusmin([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
-    S⁺⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S_plus_S_min([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S⁺S⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin raising-lowering operator.
-""" S_plusmin
-S_plusmin(; kwargs...) = S_plusmin(ComplexF64, Trivial; kwargs...)
-S_plusmin(elt::Type{<:Number}; kwargs...) = S_plusmin(elt, Trivial; kwargs...)
-S_plusmin(symm::Type{<:Sector}; kwargs...) = S_plusmin(ComplexF64, symm; kwargs...)
-function S_plusmin(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
+""" S_plus_S_min
+S_plus_S_min(; kwargs...) = S_plus_S_min(ComplexF64, Trivial; kwargs...)
+S_plus_S_min(elt::Type{<:Number}; kwargs...) = S_plus_S_min(elt, Trivial; kwargs...)
+S_plus_S_min(symm::Type{<:Sector}; kwargs...) = S_plus_S_min(ComplexF64, symm; kwargs...)
+function S_plus_S_min(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial
-        S⁺⁻ = S_plus(elt, symmetry; spin) ⊗ S_min(elt, symmetry; spin)
+        S⁺S⁻ = S_plus(elt, symmetry; spin) ⊗ S_min(elt, symmetry; spin)
     elseif symmetry === U1Irrep
         pspace = spin_space(U1Irrep; spin)
-        S⁺⁻ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
-        for (f₁, f₂) in fusiontrees(S⁺⁻)
+        S⁺S⁻ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
+        for (f₁, f₂) in fusiontrees(S⁺S⁻)
             if f₁.uncoupled[1].charge == f₂.uncoupled[1].charge + 1 &&
                f₁.uncoupled[2].charge == f₂.uncoupled[2].charge - 1
                 m₁, m₂ = getproperty.(f₂.uncoupled, :charge)
-                S⁺⁻[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ + 1)) *
+                S⁺S⁻[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ + 1)) *
                                sqrt(casimir(spin) - m₂ * (m₂ - 1))
             end
         end
     else
         throw(ArgumentError("invalid symmetry `$symmetry`"))
     end
-    return S⁺⁻
+    return S⁺S⁻
 end
-const S⁺⁻ = S_plusmin
+const S⁺S⁻ = S_plus_S_min
 
 @doc """
-    S_minplus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
-    S⁻⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S_min_S_plus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+    S⁻S⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin lowering-raising operator.
-""" S_minplus
-S_minplus(; kwargs...) = S_minplus(ComplexF64, Trivial; kwargs...)
-S_minplus(elt::Type{<:Number}; kwargs...) = S_minplus(elt, Trivial; kwargs...)
-S_minplus(symm::Type{<:Sector}; kwargs...) = S_minplus(ComplexF64, symm; kwargs...)
-function S_minplus(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
+""" S_min_S_plus
+S_min_S_plus(; kwargs...) = S_min_S_plus(ComplexF64, Trivial; kwargs...)
+S_min_S_plus(elt::Type{<:Number}; kwargs...) = S_min_S_plus(elt, Trivial; kwargs...)
+S_min_S_plus(symm::Type{<:Sector}; kwargs...) = S_min_S_plus(ComplexF64, symm; kwargs...)
+function S_min_S_plus(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial
-        S⁻⁺ = S_min(elt, symmetry; spin) ⊗ S_plus(elt, symmetry; spin)
+        S⁻S⁺ = S_min(elt, symmetry; spin) ⊗ S_plus(elt, symmetry; spin)
     elseif symmetry === U1Irrep
         pspace = spin_space(U1Irrep; spin)
-        S⁻⁺ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
-        for (f₁, f₂) in fusiontrees(S⁻⁺)
+        S⁻S⁺ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
+        for (f₁, f₂) in fusiontrees(S⁻S⁺)
             if f₁.uncoupled[1].charge == f₂.uncoupled[1].charge - 1 &&
                f₁.uncoupled[2].charge == f₂.uncoupled[2].charge + 1
                 m₁, m₂ = getproperty.(f₂.uncoupled, :charge)
-                S⁻⁺[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ - 1)) *
+                S⁻S⁺[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ - 1)) *
                                sqrt(casimir(spin) - m₂ * (m₂ + 1))
             end
         end
     else
         throw(ArgumentError("invalid symmetry `$symmetry`"))
     end
-    return S⁻⁺
+    return S⁻S⁺
 end
-const S⁻⁺ = S_minplus
+const S⁻S⁺ = S_min_S_plus
 
 @doc """
     S_exchange([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
@@ -354,8 +354,8 @@ function S_exchange(symmetry::Type{<:Sector}; kwargs...)
 end
 function S_exchange(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2)
     if symmetry === Trivial || symmetry === U1Irrep
-        SS = (S_plusmin(elt, symmetry; spin) + S_minplus(elt, symmetry; spin)) / 2 +
-             S_zz(elt, symmetry; spin)
+        SS = (S_plus_S_min(elt, symmetry; spin) + S_min_S_plus(elt, symmetry; spin)) / 2 +
+             S_z_S_z(elt, symmetry; spin)
     elseif symmetry === SU2Irrep
         pspace = spin_space(SU2Irrep; spin)
         SS = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
