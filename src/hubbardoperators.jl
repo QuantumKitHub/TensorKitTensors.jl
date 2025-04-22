@@ -18,7 +18,7 @@ export e_hop
 Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries.
 The possible symmetries are `Trivial`, `U1Irrep`, and `SU2Irrep`, for both particle number and spin.
 """
-function hubbard_space(::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
+function hubbard_space((::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
     return Vect[FermionParity](0 => 2, 1 => 2)
 end
 function hubbard_space(::Type{Trivial}, ::Type{U1Irrep})
@@ -63,7 +63,7 @@ end
 Return the one-body operator that counts the number of spin-up particles.
 """ u_num
 u_num(P::Type{<:Sector}, S::Type{<:Sector}) = u_num(ComplexF64, P, S)
-function u_num(elt::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
+function u_num(elt::Type{<:Number}, (::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
     t = single_site_operator(elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][1, 1] = 1
@@ -115,7 +115,7 @@ const nꜛ = u_num
 Return the one-body operator that counts the number of spin-down particles.
 """ d_num
 d_num(P::Type{<:Sector}, S::Type{<:Sector}) = d_num(ComplexF64, P, S)
-function d_num(elt::Type{<:Number}, ::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial)
+function d_num(elt::Type{<:Number}, (::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
     t = single_site_operator(elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][2, 2] = 1
