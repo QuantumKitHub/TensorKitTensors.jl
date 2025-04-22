@@ -301,7 +301,7 @@ function S_plus_S_min(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2
                f₁.uncoupled[2].charge == f₂.uncoupled[2].charge - 1
                 m₁, m₂ = getproperty.(f₂.uncoupled, :charge)
                 S⁺S⁻[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ + 1)) *
-                               sqrt(casimir(spin) - m₂ * (m₂ - 1))
+                                sqrt(casimir(spin) - m₂ * (m₂ - 1))
             end
         end
     else
@@ -331,7 +331,7 @@ function S_min_S_plus(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin=1 // 2
                f₁.uncoupled[2].charge == f₂.uncoupled[2].charge + 1
                 m₁, m₂ = getproperty.(f₂.uncoupled, :charge)
                 S⁻S⁺[f₁, f₂] .= sqrt(casimir(spin) - m₁ * (m₁ - 1)) *
-                               sqrt(casimir(spin) - m₂ * (m₂ + 1))
+                                sqrt(casimir(spin) - m₂ * (m₂ + 1))
             end
         end
     else

@@ -167,7 +167,8 @@ const nꜜ = d_num
 Return the one-body operator that counts the number of particles.
 """ e_num
 e_num(P::Type{<:Sector}, S::Type{<:Sector}) = e_num(ComplexF64, P, S)
-function e_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function e_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+               spin_symmetry::Type{<:Sector})
     return u_num(elt, particle_symmetry, spin_symmetry) +
            d_num(elt, particle_symmetry, spin_symmetry)
 end
@@ -350,7 +351,8 @@ Return the Hermitian conjugate of `u_plus_u_min`, i.e.
 It annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
 """ u_min_u_plus
 u_min_u_plus(P::Type{<:Sector}, S::Type{<:Sector}) = u_min_u_plus(ComplexF64, P, S)
-function u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
     return copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry)))
 end
 const u⁻u⁺ = u_min_u_plus
@@ -364,7 +366,8 @@ Return the Hermitian conjugate of `d_plus_d_min`, i.e.
 It annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
 """ d_min_d_plus
 d_min_d_plus(P::Type{<:Sector}, S::Type{<:Sector}) = d_min_d_plus(ComplexF64, P, S)
-function d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
     return copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry)))
 end
 const d⁻d⁺ = d_min_d_plus
@@ -377,7 +380,8 @@ Return the two-body operator that creates a particle at the first site and annih
 This is the sum of `u_plus_u_min` and `d_plus_d_min`.
 """ e_plus_e_min
 e_plus_e_min(P::Type{<:Sector}, S::Type{<:Sector}) = e_plus_e_min(ComplexF64, P, S)
-function e_plus_e_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function e_plus_e_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
     return u_plus_u_min(elt, particle_symmetry, spin_symmetry) +
            d_plus_d_min(elt, particle_symmetry, spin_symmetry)
 end
@@ -425,7 +429,8 @@ Return the two-body operator that annihilates a particle at the first site and c
 This is the sum of `u_min_u_plus` and `d_min_d_plus`.
 """ e_min_e_plus
 e_min_e_plus(P::Type{<:Sector}, S::Type{<:Sector}) = e_min_e_plus(ComplexF64, P, S)
-function e_min_e_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function e_min_e_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
     return -copy(adjoint(e_plus_e_min(elt, particle_symmetry, spin_symmetry)))
 end
 const e⁻e⁺ = e_min_e_plus
@@ -437,7 +442,8 @@ const e⁻e⁺ = e_min_e_plus
 Return the two-body operator that describes a particle that hops between the first and the second site.
 """ e_hop
 e_hopping(P::Type{<:Sector}, S::Type{<:Sector}) = e_hopping(ComplexF64, P, S)
-function e_hopping(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function e_hopping(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                   spin_symmetry::Type{<:Sector})
     return e_plus_e_min(elt, particle_symmetry, spin_symmetry) -
            e_min_e_plus(elt, particle_symmetry, spin_symmetry)
 end

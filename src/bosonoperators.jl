@@ -141,7 +141,7 @@ function b_plus_b_min(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
         c_out, c_in = f1.uncoupled, f2.uncoupled
         if c_in[1].charge + 1 == c_out[1].charge &&
            c_in[2].charge - 1 == c_out[2].charge
-           b⁺b⁻[f1, f2] .= sqrt(c_out[1].charge) * sqrt(c_in[2].charge)
+            b⁺b⁻[f1, f2] .= sqrt(c_out[1].charge) * sqrt(c_in[2].charge)
         end
     end
     return b⁺b⁻
@@ -170,7 +170,7 @@ function b_min_b_plus(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
         c_out, c_in = f1.uncoupled, f2.uncoupled
         if c_in[1].charge - 1 == c_out[1].charge &&
            c_in[2].charge + 1 == c_out[2].charge
-           b⁻b⁺[f1, f2] .= sqrt(c_in[1].charge) * sqrt(c_out[2].charge)
+            b⁻b⁺[f1, f2] .= sqrt(c_in[1].charge) * sqrt(c_out[2].charge)
         end
     end
     return b⁻b⁺
@@ -209,6 +209,5 @@ function b_hopping(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Intege
     return b_plus_b_min(elt, symmetry; cutoff) + b_min_b_plus(elt, symmetry; cutoff)
 end
 const b_hop = b_hopping
-
 
 end

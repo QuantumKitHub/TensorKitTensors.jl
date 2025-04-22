@@ -12,7 +12,6 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
 @testset "Compare symmetric with trivial tensors" begin
     for particle_symmetry in [Trivial, U1Irrep],
         spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
-
         for slave_fermion in (false, true)
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 space = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
@@ -38,7 +37,6 @@ end
     for slave_fermion in (false, true)
         for particle_symmetry in [Trivial, U1Irrep],
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
-
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 # test hermiticity
                 @test e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
@@ -95,7 +93,7 @@ end
                           sqrt(2)
                 else
                     @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
-                                                         slave_fermion)
+                                                           slave_fermion)
                     @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                     @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
@@ -180,7 +178,6 @@ end
 
         for particle_symmetry in (Trivial, U1Irrep),
             spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
-
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 if (particle_symmetry, spin_symmetry) == (Trivial, Trivial)
                     continue
@@ -206,7 +203,6 @@ end
 
     for particle_symmetry in [Trivial, U1Irrep],
         spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
-
         for slave_fermion in (false, true)
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 t, J = rand(rng, 2)
