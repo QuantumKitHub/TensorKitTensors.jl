@@ -12,6 +12,7 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
 @testset "Compare symmetric with trivial tensors" begin
     for particle_symmetry in [Trivial, U1Irrep, SU2Irrep],
         spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = hubbard_space(particle_symmetry, spin_symmetry)
 
@@ -37,6 +38,7 @@ end
 @testset "basic properties" begin
     for particle_symmetry in (Trivial, U1Irrep, SU2Irrep),
         spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
+
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             # test hermiticity
             @test e_plus_e_min(particle_symmetry, spin_symmetry)' ≈
@@ -127,6 +129,7 @@ end
 @testset "Exact diagonalisation" begin
     for particle_symmetry in [Trivial, U1Irrep, SU2Irrep],
         spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             rng = StableRNG(123)
 
