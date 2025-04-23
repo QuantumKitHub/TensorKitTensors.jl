@@ -24,7 +24,7 @@ boson_space(::Type{U1Irrep}; cutoff::Integer) = U1Space(n => 1 for n in 0:cutoff
 # ---------------------
 @doc """
     b_min([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    a([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic annihilation operator, with a maximum of `cutoff` bosons per site.
 """ b_min
@@ -48,7 +48,7 @@ const b⁻ = b_min
 
 @doc """
     b_plus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    a⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic creation operator, with a maximum of `cutoff` bosons per site.
 """ b_plus
@@ -102,7 +102,7 @@ const n = b_num
 # ------------------
 @doc """
     b_plus_b_plus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    a⁺a⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁺b⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic pair-creation operator, with a maximum of `cutoff` bosons per site.
 """ b_plus_b_plus
@@ -122,7 +122,7 @@ const b⁺b⁺ = b_plus_b_plus
 
 @doc """
     b_plus_b_min([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    a⁺a([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁺b⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic left-hopping operator, with a maximum of `cutoff` bosons per site.
 """ b_plus_b_min
@@ -151,7 +151,7 @@ const b⁺b⁻ = b_plus_b_min
 
 @doc """
     b_min_b_plus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    aa⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁻b⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic right-hopping operator, with a maximum of `cutoff` bosons per site.
 """ b_min_b_plus
@@ -180,7 +180,7 @@ const b⁻b⁺ = b_min_b_plus
 
 @doc """
     b_min_b_min([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
-    aa([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b⁻b⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic pair-annihilation operator, with a maximum of `cutoff` bosons per site.
 """ b_min_b_min

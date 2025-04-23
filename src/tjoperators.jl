@@ -82,6 +82,7 @@ end
 
 @doc """
     u_num(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    nꜛ(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the one-body operator that counts the number of spin-up electrons.
 """ u_num
@@ -132,6 +133,7 @@ const nꜛ = u_num
 
 @doc """
     d_num(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    nꜜ(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body operator that counts the number of spin-down electrons.
 """ d_num
@@ -182,6 +184,7 @@ const nꜜ = d_num
 
 @doc """
     e_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    n(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body operator that counts the number of particles.
 """ e_num
@@ -220,6 +223,7 @@ const n = e_num
 
 @doc """
     h_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    nʰ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body operator that counts the number of holes.
 """ h_num
@@ -236,6 +240,7 @@ const nʰ = h_num
 
 @doc """
     S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body spin-1/2 x-operator on the electrons.
 """ S_x
@@ -265,6 +270,7 @@ const Sˣ = S_x
 
 @doc """
     S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    Sʸ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry). 
 """ S_y
@@ -294,6 +300,7 @@ const Sʸ = S_y
 
 @doc """
     S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    Sᶻ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the one-body spin-1/2 z-operator on the electrons. 
 """ S_z
@@ -341,6 +348,7 @@ const Sᶻ = S_z
 
 @doc """
     S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the spin-plus operator.
 """ S_plus
@@ -357,6 +365,7 @@ const S⁺ = S_plus
 
 @doc """
     S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
 Return the spin-minus operator.
 """ S_min
@@ -381,6 +390,7 @@ end
 
 @doc """
     u_plus_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    u⁺u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e†_{1,↑}, e_{2,↑}`` that creates a spin-up electron at the first site and annihilates a spin-up electron at the second.
 The only nonzero matrix element corresponds to `|↑0⟩ <-- |0↑⟩`.
@@ -439,6 +449,7 @@ const u⁺u⁻ = u_plus_u_min
 
 @doc """
     d_plus_d_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁺d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e†_{1,↓}, e_{2,↓}`` that creates a spin-down electron at the first site and annihilates a spin-down electron at the second.
 The only nonzero matrix element corresponds to `|↓0⟩ <-- |0↓⟩`.
@@ -490,6 +501,7 @@ const d⁺d⁻ = d_plus_d_min
 
 @doc """
     u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    u⁻u⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the Hermitian conjugate of `u_plus_u_min`, i.e.
 ``(e†_{1,↑}, e_{2,↑})† = -e_{1,↑}, e†_{2,↑}`` (note the extra minus sign). 
@@ -508,6 +520,7 @@ const u⁻u⁺ = u_min_u_plus
 
 @doc """
     d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁻d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the Hermitian conjugate of `d_plus_d_min`, i.e.
 ``(e†_{1,↓}, e_{2,↓})† = -e_{1,↓}, e†_{2,↓}`` (note the extra minus sign). 
@@ -526,6 +539,7 @@ const d⁻d⁺ = d_min_d_plus
 
 @doc """
     u_min_d_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    u⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
 The only nonzero matrix element corresponds to `|00⟩ <-- |↑↓⟩`.
@@ -565,6 +579,7 @@ const u⁻d⁻ = u_min_d_min
 
 @doc """
     d_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
 The only nonzero matrix element corresponds to `|00⟩ <-- |↓↑⟩`.
@@ -604,6 +619,7 @@ const d⁻u⁻ = d_min_u_min
 
 @doc """
     e_plus_e_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    e⁺e⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
 This is the sum of `u_plus_u_min` and `d_plus_d_min`.
@@ -652,6 +668,7 @@ const e⁺e⁻ = e_plus_e_min
 
 @doc """
     e_min_e_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    e⁻e⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
 This is the sum of `u_min_u_plus` and `d_min_d_plus`.
@@ -668,6 +685,7 @@ const e⁻e⁺ = e_min_e_plus
 
 @doc """
     singlet_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    singlet⁻(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body singlet operator ``(e_{1,↓} e_{2,↑} - e_{1,↓} e_{2,↑}) / sqrt(2)``.
 """ singlet_min
@@ -701,6 +719,7 @@ const e_hop = e_hopping
 
 @doc """
     S_plus_S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    S⁺S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁺S⁻.
 The only nonzero matrix element corresponds to `|↑↓⟩ <-- |↓↑⟩`.
@@ -744,6 +763,7 @@ const S⁺S⁻ = S_plus_S_min
 
 @doc """
     S_min_S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    S⁻S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁻S⁺.
 The only nonzero matrix element corresponds to `|↓↑⟩ <-- |↑↓⟩`.
