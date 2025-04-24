@@ -684,8 +684,8 @@ end
 const e⁻e⁺ = e_min_e_plus
 
 @doc """
-    singlet_min(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
-    singlet⁻(T, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    singlet_min(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    singlet⁻(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body singlet operator ``(e_{1,↓} e_{2,↑} - e_{1,↓} e_{2,↑}) / sqrt(2)``.
 """ singlet_min
