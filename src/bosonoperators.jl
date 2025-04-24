@@ -203,7 +203,7 @@ const b⁻b⁻ = b_min_b_min
     b_hop([elt::Type{<:Number}])
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
-""" b_hop
+""" b_hopping
 b_hopping(; kwargs...) = b_hopping(ComplexF64, Trivial; kwargs...)
 function b_hopping(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
     return b_plus_b_min(elt, symmetry; cutoff) + b_min_b_plus(elt, symmetry; cutoff)
