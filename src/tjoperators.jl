@@ -514,7 +514,7 @@ end
 function u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector};
                       slave_fermion::Bool=false)
-    return copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+    return -copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
 end
 const u⁻u⁺ = u_min_u_plus
 
@@ -533,7 +533,7 @@ end
 function d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector};
                       slave_fermion::Bool=false)
-    return copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+    return -copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
 end
 const d⁻d⁺ = d_min_d_plus
 
