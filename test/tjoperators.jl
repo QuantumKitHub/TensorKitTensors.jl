@@ -45,13 +45,9 @@ end
                       -e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 if spin_symmetry !== SU2Irrep
                     @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                          -d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
                     @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                          -u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 else
                     @test_throws ArgumentError d_plus_d_min(particle_symmetry,
                                                             spin_symmetry;
