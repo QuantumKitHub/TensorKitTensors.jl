@@ -32,7 +32,7 @@ Setting `slave_fermion = true` switches to the slave-fermion basis.
 - basis states for `slave_fermion = true`: (c_σ = h† b_σ; holon h is fermionic, spinon b_σ is bosonic): 
     |0⟩ = h†|vac⟩, |↑⟩ = (b↑)†|vac⟩, |↓⟩ = (b↓)†|vac⟩
 """
-function tj_space((::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial;
+function tj_space(::Type{Trivial}=Trivial, ::Type{Trivial}=Trivial;
                   slave_fermion::Bool=false)
     return slave_fermion ? Vect[FermionParity](0 => 2, 1 => 1) :
            Vect[FermionParity](0 => 1, 1 => 2)
