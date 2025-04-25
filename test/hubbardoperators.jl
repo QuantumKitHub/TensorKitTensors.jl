@@ -16,20 +16,20 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = hubbard_space(particle_symmetry, spin_symmetry)
 
-            O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial)
+            O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
 
-            O = c_num(ComplexF64, particle_symmetry, spin_symmetry)
-            O_triv = c_num(ComplexF64, Trivial, Trivial)
+            O = e_num(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = e_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
 
             O = ud_num(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = ud_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
         else
-            @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
-            @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry)
             @test_broken ud_num(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
@@ -41,8 +41,8 @@ end
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             # test hermiticity
-            @test c_plus_c_min(particle_symmetry, spin_symmetry)' ≈
-                  -c_min_c_plus(particle_symmetry, spin_symmetry)
+            @test e_plus_e_min(particle_symmetry, spin_symmetry)' ≈
+                  -e_min_e_plus(particle_symmetry, spin_symmetry)
             if spin_symmetry !== SU2Irrep
                 @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
                       d_min_d_plus(particle_symmetry, spin_symmetry)
@@ -56,7 +56,7 @@ end
 
             # test number operator
             if spin_symmetry !== SU2Irrep
-                @test c_num(particle_symmetry, spin_symmetry) ≈
+                @test e_num(particle_symmetry, spin_symmetry) ≈
                       u_num(particle_symmetry, spin_symmetry) +
                       d_num(particle_symmetry, spin_symmetry)
                 @test ud_num(particle_symmetry, spin_symmetry) ≈
@@ -68,9 +68,15 @@ end
                 @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
             end
+
+            # test hopping operator
+            @test e_hop(particle_symmetry, spin_symmetry) ≈
+                  e_plus_e_min(particle_symmetry, spin_symmetry) -
+                  e_min_e_plus(particle_symmetry, spin_symmetry)
+
         else
-            @test_broken c_plus_c_min(particle_symmetry, spin_symmetry)
-            @test_broken c_min_c_plus(particle_symmetry, spin_symmetry)
+            @test_broken e_plus_e_min(particle_symmetry, spin_symmetry)
+            @test_broken e_min_e_plus(particle_symmetry, spin_symmetry)
             @test_broken d_plus_d_min(particle_symmetry, spin_symmetry)
             @test_broken u_plus_u_min(particle_symmetry, spin_symmetry)
         end
@@ -78,10 +84,10 @@ end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = -t * (c_plus_c_min(particle_symmetry, spin_symmetry) -
-                    c_min_c_plus(particle_symmetry, spin_symmetry))
+    hopping = -t * (e_plus_e_min(particle_symmetry, spin_symmetry) -
+                    e_min_e_plus(particle_symmetry, spin_symmetry))
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
-    chemical_potential = mu * c_num(particle_symmetry, spin_symmetry)
+    chemical_potential = mu * e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
             return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))

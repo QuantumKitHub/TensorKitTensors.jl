@@ -7,24 +7,26 @@ using TensorKitTensors.FermionOperators
 using StableRNGs
 
 # anticommutation relations
-# {cᵢ†, cⱼ†} = 0 = {cᵢ, cⱼ}
-# {cᵢ, cⱼ†} = δᵢⱼ
+# {fᵢ†, fⱼ†} = 0 = {fᵢ, fⱼ}
+# {fᵢ, fⱼ†} = δᵢⱼ
 
 @testset "simple fermions" begin
-    @test c⁻c⁻() ≈ -permute(c⁻c⁻(), ((2, 1), (4, 3)))
-    @test c⁺c⁺() ≈ -permute(c⁺c⁺(), ((2, 1), (4, 3)))
+    @test f⁻f⁻() ≈ -permute(f⁻f⁻(), ((2, 1), (4, 3)))
+    @test f⁺f⁺() ≈ -permute(f⁺f⁺(), ((2, 1), (4, 3)))
 
     # the following doesn't hold
     # I don't think I can get all of these to hold simultaneously?
-    # @test cc⁺ ≈ -permute(c⁺c, (2, 1), (4, 3))
+    # @test ff⁺ ≈ -permute(f⁺f, (2, 1), (4, 3))
 
-    @test c⁻c⁺()' ≈ -c⁺c⁻()
-    @test c⁻c⁻()' ≈ c⁺c⁺()
-    @test (c⁺c⁻() - c⁻c⁺())' ≈ c⁺c⁻() - c⁻c⁺()
-    @test (c⁺c⁻() + c⁻c⁺())' ≈ -(c⁻c⁺() + c⁺c⁻())
+    @test f⁻f⁺()' ≈ -f⁺f⁻()
+    @test f⁻f⁻()' ≈ f⁺f⁺()
+    @test (f⁺f⁻() - f⁻f⁺())' ≈ f⁺f⁻() - f⁻f⁺()
+    @test (f⁺f⁻() + f⁻f⁺())' ≈ -(f⁻f⁺() + f⁺f⁻())
 
-    @plansor c_number[-1; -2] := c⁺c⁻()[-1 1; 3 2] * τ[3 2; -2 1]
-    @test c_number ≈ c_num()
+    @plansor f_number[-1; -2] := f⁺f⁻()[-1 1; 3 2] * τ[3 2; -2 1]
+    @test f_number ≈ f_num()
+
+    @test f_hop() ≈ f_plus_f_min() - f_min_f_plus()
 end
 
 @testset "Exact Diagonalization" begin
@@ -34,7 +36,7 @@ end
     t, V, mu = rand(rng, 3)
     pspace = fermion_space()
 
-    H = -t * (c⁺c⁻() - c⁻c⁺()) +
+    H = -t * (f⁺f⁻() - f⁻f⁺()) +
         V * ((n() - 0.5 * id(pspace)) ⊗ (n() - 0.5 * id(pspace))) -
         0.5 * mu * (n() ⊗ id(pspace) + id(pspace) ⊗ n())
 

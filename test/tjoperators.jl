@@ -17,18 +17,18 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 space = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
 
-                O = c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry;
+                O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry;
                                  slave_fermion)
-                O_triv = c_plus_c_min(ComplexF64, Trivial, Trivial; slave_fermion)
+                O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial; slave_fermion)
                 test_operator(O, O_triv)
 
-                O = c_num(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
-                O_triv = c_num(ComplexF64, Trivial, Trivial; slave_fermion)
+                O = e_num(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                O_triv = e_num(ComplexF64, Trivial, Trivial; slave_fermion)
                 test_operator(O, O_triv)
 
             else
-                @test_broken c_plus_c_min(ComplexF64, particle_symmetry, spin_symmetry)
-                @test_broken c_num(ComplexF64, particle_symmetry, spin_symmetry)
+                @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
+                @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry)
             end
         end
     end
@@ -41,17 +41,13 @@ end
 
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 # test hermiticity
-                @test c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                      -c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
+                      -e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 if spin_symmetry !== SU2Irrep
                     @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                          -d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
                     @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                          -u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 else
                     @test_throws ArgumentError d_plus_d_min(particle_symmetry,
                                                             spin_symmetry;
@@ -69,7 +65,7 @@ end
 
                 # test number operator
                 if spin_symmetry !== SU2Irrep
-                    @test c_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                    @test e_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           u_num(particle_symmetry, spin_symmetry; slave_fermion) +
                           d_num(particle_symmetry, spin_symmetry; slave_fermion)
                     @test u_num(particle_symmetry, spin_symmetry; slave_fermion) *
@@ -78,8 +74,8 @@ end
                           u_num(particle_symmetry, spin_symmetry; slave_fermion)
                     @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry;
                                                 slave_fermion)) ≈
-                          c_num_hole(particle_symmetry, spin_symmetry; slave_fermion) +
-                          c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                          h_num(particle_symmetry, spin_symmetry; slave_fermion) +
+                          e_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
                     @test_throws ArgumentError u_num(particle_symmetry, spin_symmetry;
                                                      slave_fermion)
@@ -89,18 +85,23 @@ end
 
                 # test spin operator
                 if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
-                    @test c_singlet(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                    @test singlet_min(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
                            d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
                           sqrt(2)
                 else
-                    @test_throws ArgumentError c_singlet(particle_symmetry, spin_symmetry;
-                                                         slave_fermion)
+                    @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
                     @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                     @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                 end
+
+                # test hopping operator
+                @test e_hopping(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                      e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                      e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
 
                 if spin_symmetry == Trivial
                     ε = zeros(ComplexF64, 3, 3, 3)
@@ -119,9 +120,12 @@ end
                     S = 1 / 2
                     @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
                     # test S_plus and S_min
-                    @test S_plusmin(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                    @test S_plus_S_min(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           S_plus(particle_symmetry, spin_symmetry; slave_fermion) ⊗
                           S_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test S_min_S_plus(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          S_min(particle_symmetry, spin_symmetry; slave_fermion) ⊗
+                          S_plus(particle_symmetry, spin_symmetry; slave_fermion)
                     # commutation relations
                     for i in 1:3, j in 1:3
                         @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
@@ -133,7 +137,7 @@ end
                 @test_broken d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
                 @test_broken u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)
                 @test_broken u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                @test_broken c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                @test_broken e_num(particle_symmetry, spin_symmetry; slave_fermion)
                 @test_broken u_num(particle_symmetry, spin_symmetry; slave_fermion)
                 @test_broken d_num(particle_symmetry, spin_symmetry; slave_fermion)
             end
@@ -142,9 +146,9 @@ end
 end
 
 function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion)
-    num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
-    hop_heis = (-t) * (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                       c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+    num = e_num(particle_symmetry, spin_symmetry; slave_fermion)
+    hop_heis = (-t) * (e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                       e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
                J *
                (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
                 (1 / 4) * (num ⊗ num))
@@ -202,10 +206,10 @@ end
         for slave_fermion in (false, true)
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 t, J = rand(rng, 2)
-                num = c_num(particle_symmetry, spin_symmetry; slave_fermion)
+                num = e_num(particle_symmetry, spin_symmetry; slave_fermion)
                 H = (-t) *
-                    (c_plus_c_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                     c_min_c_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
+                    (e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
+                     e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)) +
                     J *
                     (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
                      (1 / 4) * (num ⊗ num))
