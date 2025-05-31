@@ -242,7 +242,7 @@ const nʰ = h_num
     S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
     Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
-Return the one-body spin-1/2 x-operator on the electrons.
+Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` spin symmetry).
 """ S_x
 function S_x(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial;
              slave_fermion::Bool=false)
@@ -272,7 +272,7 @@ const Sˣ = S_x
     S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
     Sʸ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
-Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry). 
+Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` spin symmetry). 
 """ S_y
 function S_y(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial;
              slave_fermion::Bool=false)
