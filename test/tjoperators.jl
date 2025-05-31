@@ -83,7 +83,7 @@ end
                                                      slave_fermion)
                 end
 
-                # test spin operator
+                # test singlet operator
                 if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
                     @test singlet_min(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
@@ -103,6 +103,7 @@ end
                       e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
                       e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
 
+                # test spin operator
                 if spin_symmetry == Trivial
                     ε = zeros(ComplexF64, 3, 3, 3)
                     for i in 1:3
