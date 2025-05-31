@@ -239,6 +239,49 @@ end
 const nʰ = h_num
 
 @doc """
+    S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+
+Return the spin-plus operator (only defined for `Trivial` spin symmetry).
+""" S_plus
+function S_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return S_plus(ComplexF64, P, S; slave_fermion)
+end
+function S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+                slave_fermion::Bool=false)
+    t = single_site_operator(elt, Trivial, Trivial; slave_fermion)
+    I = sectortype(t)
+    b = slave_fermion ? 0 : 1
+    t[(I(b), dual(I(b)))][1, 2] = 1.0
+    return t
+end
+function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
+                slave_fermion::Bool=false)
+    t = single_site_operator(elt, U1Irrep, Trivial; slave_fermion)
+    I = sectortype(t)
+    b = slave_fermion ? 0 : 1
+    t[(I(b, 1), dual(I(b, 1)))][1, 2] = 1.0
+    return t
+end
+const S⁺ = S_plus
+
+@doc """
+    S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+    S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
+
+Return the spin-minus operator (only defined for `Trivial` spin symmetry).
+""" S_min
+function S_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return S_min(ComplexF64, P, S; slave_fermion)
+end
+function S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+               spin_symmetry::Type{<:Sector};
+               slave_fermion::Bool=false)
+    return copy(adjoint(S_plus(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+end
+const S⁻ = S_min
+
+@doc """
     S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
     Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
 
@@ -248,23 +291,12 @@ function S_x(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial;
              slave_fermion::Bool=false)
     return S_x(ComplexF64, P, S; slave_fermion)
 end
-function S_x(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+function S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector};
              slave_fermion::Bool=false)
-    t = single_site_operator(elt, Trivial, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b), dual(I(b)))][1, 2] = 0.5
-    t[(I(b), dual(I(b)))][2, 1] = 0.5
-    return t
-end
-function S_x(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
-             slave_fermion::Bool=false)
-    t = single_site_operator(elt, U1Irrep, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b, 1), dual(I(b, 1)))][1, 2] = 0.5
-    t[(I(b, 1), dual(I(b, 1)))][2, 1] = 0.5
-    return t
+    return (S_plus(elt, particle_symmetry, spin_symmetry; slave_fermion)
+            +
+            S_min(elt, particle_symmetry, spin_symmetry; slave_fermion)) / 2
 end
 const Sˣ = S_x
 
@@ -278,23 +310,12 @@ function S_y(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial;
              slave_fermion::Bool=false)
     return S_y(ComplexF64, P, S; slave_fermion)
 end
-function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+function S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector};
              slave_fermion::Bool=false)
-    t = single_site_operator(elt, Trivial, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b), dual(I(b)))][1, 2] = -0.5im
-    t[(I(b), dual(I(b)))][2, 1] = 0.5im
-    return t
-end
-function S_y(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
-             slave_fermion::Bool=false)
-    t = single_site_operator(elt, U1Irrep, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b, 1), dual(I(b, 1)))][1, 2] = -0.5im
-    t[(I(b, 1), dual(I(b, 1)))][2, 1] = 0.5im
-    return t
+    return (S_plus(elt, particle_symmetry, spin_symmetry; slave_fermion)
+            -
+            S_min(elt, particle_symmetry, spin_symmetry; slave_fermion)) / (2im)
 end
 const Sʸ = S_y
 
@@ -308,77 +329,13 @@ function S_z(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial;
              slave_fermion::Bool=false)
     return S_z(ComplexF64, P, S; slave_fermion)
 end
-function S_z(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+function S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector};
              slave_fermion::Bool=false)
-    t = single_site_operator(elt, Trivial, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b), dual(I(b)))][1, 1] = 0.5
-    t[(I(b), dual(I(b)))][2, 2] = -0.5
-    return t
-end
-function S_z(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep};
-             slave_fermion::Bool=false)
-    t = single_site_operator(elt, Trivial, U1Irrep; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b, 1 // 2), dual(I(b, 1 // 2)))] .= 0.5
-    t[(I(b, -1 // 2), dual(I(b, -1 // 2)))] .= -0.5
-    return t
-end
-function S_z(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
-             slave_fermion::Bool=false)
-    t = single_site_operator(elt, U1Irrep, Trivial; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b, 1), dual(I(b, 1)))][1, 1] = 0.5
-    t[(I(b, 1), dual(I(b, 1)))][2, 2] = -0.5
-    return t
-end
-function S_z(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep};
-             slave_fermion::Bool=false)
-    t = single_site_operator(elt, U1Irrep, U1Irrep; slave_fermion)
-    I = sectortype(t)
-    b = slave_fermion ? 0 : 1
-    t[(I(b, 1, 1 // 2), dual(I(b, 1, 1 // 2)))] .= 0.5
-    t[(I(b, 1, -1 // 2), dual(I(b, 1, -1 // 2)))] .= -0.5
-    return t
+    return (u_num(elt, particle_symmetry, spin_symmetry; slave_fermion) -
+            d_num(elt, particle_symmetry, spin_symmetry; slave_fermion)) / 2
 end
 const Sᶻ = S_z
-
-@doc """
-    S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-    S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-
-Return the spin-plus operator.
-""" S_plus
-function S_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
-    return S_plus(ComplexF64, P, S; slave_fermion)
-end
-function S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-                spin_symmetry::Type{<:Sector};
-                slave_fermion::Bool=false)
-    return S_x(elt::Type{<:Number}, particle_symmetry, spin_symmetry; slave_fermion) +
-           1im * S_y(elt, particle_symmetry, spin_symmetry; slave_fermion)
-end
-const S⁺ = S_plus
-
-@doc """
-    S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-    S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-
-Return the spin-minus operator.
-""" S_min
-function S_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
-    return S_min(ComplexF64, P, S; slave_fermion)
-end
-function S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-               spin_symmetry::Type{<:Sector};
-               slave_fermion::Bool=false)
-    return S_x(elt, particle_symmetry, spin_symmetry; slave_fermion) -
-           1im * S_y(elt, particle_symmetry, spin_symmetry; slave_fermion)
-end
-const S⁻ = S_min
 
 # Two site operators
 # ------------------
@@ -798,7 +755,6 @@ end
 function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep};
                     slave_fermion::Bool=false)
     t = two_site_operator(elt, Trivial, SU2Irrep; slave_fermion)
-
     for (s, f) in fusiontrees(t)
         l3 = f.uncoupled[1][2].j
         l4 = f.uncoupled[2][2].j
@@ -810,7 +766,6 @@ end
 function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
                     slave_fermion::Bool=false)
     t = two_site_operator(elt, U1Irrep, SU2Irrep; slave_fermion)
-
     for (s, f) in fusiontrees(t)
         l3 = f.uncoupled[1][3].j
         l4 = f.uncoupled[2][3].j
