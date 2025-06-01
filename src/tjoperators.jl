@@ -460,9 +460,7 @@ const d⁺d⁻ = d_plus_d_min
     u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
     u⁻u⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
-Return the Hermitian conjugate of `u_plus_u_min`, i.e.
-``(e†_{1,↑}, e_{2,↑})† = -e_{1,↑}, e†_{2,↑}`` (note the extra minus sign). 
-It annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
+Return the two-body operator ``e_{1,↑}, e†_{2,↑}`` that annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
 The only nonzero matrix element corresponds to `|0↑⟩ <-- |↑0⟩`.
 """ u_min_u_plus
 function u_min_u_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
@@ -479,9 +477,7 @@ const u⁻u⁺ = u_min_u_plus
     d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
     d⁻d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
-Return the Hermitian conjugate of `d_plus_d_min`, i.e.
-``(e†_{1,↓}, e_{2,↓})† = -e_{1,↓}, e†_{2,↓}`` (note the extra minus sign). 
-It annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
+Return the two-body operator ``e_{1,↓}, e†_{2,↓}`` that annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
 The only nonzero matrix element corresponds to `|0↓⟩ <-- |↓0⟩`.
 """ d_min_d_plus
 function d_min_d_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
