@@ -524,10 +524,6 @@ function u_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
                      slave_fermion::Bool=false)
     throw(ArgumentError("`u_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
-function u_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
-                     slave_fermion::Bool=false)
-    throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
-end
 const u⁻d⁻ = u_min_d_min
 
 @doc """
@@ -563,10 +559,6 @@ end
 function d_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
                      slave_fermion::Bool=false)
     throw(ArgumentError("`d_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
-end
-function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
-                     slave_fermion::Bool=false)
-    throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
 end
 const d⁻u⁻ = d_min_u_min
 
