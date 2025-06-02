@@ -89,6 +89,9 @@ end
                           (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
                            d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
                           sqrt(2)
+                    @test permute(u_min_d_min(particle_symmetry, spin_symmetry;
+                                              slave_fermion), ((2, 1), (4, 3))) ≈
+                          -d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
                 else
                     @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
