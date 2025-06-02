@@ -131,7 +131,7 @@ function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
     hopping = -t * (e_plus_e_min(particle_symmetry, spin_symmetry) -
                     e_min_e_plus(particle_symmetry, spin_symmetry))
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
-    chemical_potential = mu * e_num(particle_symmetry, spin_symmetry)
+    chemical_potential = -mu * e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
             return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
