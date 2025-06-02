@@ -85,13 +85,14 @@ end
 
                 # test singlet operator
                 if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
-                    @test singlet_min(particle_symmetry, spin_symmetry; slave_fermion) ≈
-                          (u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                           d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)) /
-                          sqrt(2)
-                    @test permute(u_min_d_min(particle_symmetry, spin_symmetry;
-                                              slave_fermion), ((2, 1), (4, 3))) ≈
-                          -d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    sing = singlet_min(particle_symmetry, spin_symmetry;
+                                       slave_fermion)
+                    ud = u_min_d_min(particle_symmetry, spin_symmetry;
+                                     slave_fermion)
+                    du = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test permute(ud, ((2, 1), (4, 3))) ≈ -du
+                    @test permute(sing, ((2, 1), (4, 3))) ≈ sing
+                    @test sing ≈ (ud - du) / sqrt(2)
                 else
                     @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
