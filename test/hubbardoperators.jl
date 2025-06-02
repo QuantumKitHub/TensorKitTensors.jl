@@ -69,11 +69,55 @@ end
                 @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
             end
 
+            # test singlet operator
+            if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
+                sing = singlet_min(particle_symmetry, spin_symmetry)
+                ud = u_min_d_min(particle_symmetry, spin_symmetry)
+                du = d_min_u_min(particle_symmetry, spin_symmetry)
+                @test permute(ud, ((2, 1), (4, 3))) ≈ -du
+                @test permute(sing, ((2, 1), (4, 3))) ≈ sing
+                @test sing ≈ (ud - du) / sqrt(2)
+            else
+                @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry)
+            end
+
             # test hopping operator
             @test e_hop(particle_symmetry, spin_symmetry) ≈
                   e_plus_e_min(particle_symmetry, spin_symmetry) -
                   e_min_e_plus(particle_symmetry, spin_symmetry)
 
+            # test spin operator
+            if spin_symmetry == Trivial
+                ε = zeros(ComplexF64, 3, 3, 3)
+                for i in 1:3
+                    ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
+                    ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
+                end
+                Svec = [S_x(particle_symmetry, spin_symmetry),
+                        S_y(particle_symmetry, spin_symmetry),
+                        S_z(particle_symmetry, spin_symmetry)]
+                # Hermiticity
+                for s in Svec
+                    @test s' ≈ s
+                end
+                # operators should be normalized
+                S = 1 / 2
+                @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
+                # test S_plus and S_min
+                @test S_plus_S_min(particle_symmetry, spin_symmetry) ≈
+                      S_plus(particle_symmetry, spin_symmetry) ⊗
+                      S_min(particle_symmetry, spin_symmetry)
+                @test S_min_S_plus(particle_symmetry, spin_symmetry) ≈
+                      S_min(particle_symmetry, spin_symmetry) ⊗
+                      S_plus(particle_symmetry, spin_symmetry)
+                # commutation relations
+                for i in 1:3, j in 1:3
+                    @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
+                          sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                end
+            end
         else
             @test_broken e_plus_e_min(particle_symmetry, spin_symmetry)
             @test_broken e_min_e_plus(particle_symmetry, spin_symmetry)
