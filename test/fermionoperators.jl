@@ -11,12 +11,12 @@ using StableRNGs
 # {fᵢ, fⱼ†} = δᵢⱼ
 
 @testset "simple fermions" begin
-    @test f⁻f⁻() ≈ -permute(f⁻f⁻(), ((2, 1), (4, 3)))
-    @test f⁺f⁺() ≈ -permute(f⁺f⁺(), ((2, 1), (4, 3)))
+    @test f⁻f⁻() ≈ -swap_2sites(f⁻f⁻())
+    @test f⁺f⁺() ≈ -swap_2sites(f⁺f⁺())
 
     # the following doesn't hold
     # I don't think I can get all of these to hold simultaneously?
-    # @test ff⁺ ≈ -permute(f⁺f, (2, 1), (4, 3))
+    # @test ff⁺ ≈ -swap_2sites(f⁺f)
 
     @test f⁻f⁺()' ≈ -f⁺f⁻()
     @test f⁻f⁻()' ≈ f⁺f⁺()

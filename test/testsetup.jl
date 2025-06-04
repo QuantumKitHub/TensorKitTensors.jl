@@ -1,6 +1,6 @@
 module TensorKitTensorsTestSetup
 
-export test_operator, operator_sum, expanded_eigenvalues
+export test_operator, operator_sum, swap_2sites, expanded_eigenvalues
 
 using Test
 using TensorKit
@@ -13,6 +13,10 @@ function operator_sum(O::AbstractTensorMap; L::Int=4)
     return sum(1:(L - n + 1)) do i
         return reduce(⊗, insert!(collect(Any, fill(I, L - n)), i, O))
     end
+end
+
+function swap_2sites(op::AbstractTensorMap{T,S,2,2}) where {T,S}
+    return permute(op, ((2, 1), (4, 3)))
 end
 
 function test_operator(O1::AbstractTensorMap, O2::AbstractTensorMap; L::Int=4,

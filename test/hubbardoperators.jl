@@ -27,10 +27,15 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
             O = ud_num(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = ud_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
+
+            O = S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = S_exchange(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
         else
             @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry)
             @test_broken ud_num(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
 end
@@ -40,18 +45,17 @@ end
         spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
-            # test hermiticity
-            @test e_plus_e_min(particle_symmetry, spin_symmetry)' ≈
-                  -e_min_e_plus(particle_symmetry, spin_symmetry)
+            # test hopping operator
+            epem = e_plus_e_min(particle_symmetry, spin_symmetry)
+            emep = e_min_e_plus(particle_symmetry, spin_symmetry)
+            @test epem' ≈ -emep ≈ swap_2sites(epem)
             if spin_symmetry !== SU2Irrep
-                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
-                      d_min_d_plus(particle_symmetry, spin_symmetry)
-                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
-                      u_min_u_plus(particle_symmetry, spin_symmetry)
-                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
-                      d_min_d_plus(particle_symmetry, spin_symmetry)
-                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
-                      u_min_u_plus(particle_symmetry, spin_symmetry)
+                dpdm = d_plus_d_min(particle_symmetry, spin_symmetry)
+                dmdp = d_min_d_plus(particle_symmetry, spin_symmetry)
+                @test dpdm' ≈ -dmdp ≈ swap_2sites(dpdm)
+                upum = u_plus_u_min(particle_symmetry, spin_symmetry)
+                umup = u_min_u_plus(particle_symmetry, spin_symmetry)
+                @test upum' ≈ -umup ≈ swap_2sites(upum)
             else
                 @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError u_min_u_plus(particle_symmetry, spin_symmetry)
@@ -76,19 +80,14 @@ end
                 sing = singlet_min(particle_symmetry, spin_symmetry)
                 ud = u_min_d_min(particle_symmetry, spin_symmetry)
                 du = d_min_u_min(particle_symmetry, spin_symmetry)
-                @test permute(ud, ((2, 1), (4, 3))) ≈ -du
-                @test permute(sing, ((2, 1), (4, 3))) ≈ sing
+                @test swap_2sites(ud) ≈ -du
+                @test swap_2sites(sing) ≈ sing
                 @test sing ≈ (ud - du) / sqrt(2)
             else
                 @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry)
             end
-
-            # test hopping operator
-            @test e_hop(particle_symmetry, spin_symmetry) ≈
-                  e_plus_e_min(particle_symmetry, spin_symmetry) -
-                  e_min_e_plus(particle_symmetry, spin_symmetry)
 
             # test spin operator
             if spin_symmetry == Trivial
@@ -132,14 +131,15 @@ end
             @test_broken e_plus_e_min(particle_symmetry, spin_symmetry)
             @test_broken e_min_e_plus(particle_symmetry, spin_symmetry)
             @test_broken d_plus_d_min(particle_symmetry, spin_symmetry)
+            @test_broken d_min_d_plus(particle_symmetry, spin_symmetry)
             @test_broken u_plus_u_min(particle_symmetry, spin_symmetry)
+            @test_broken u_min_u_plus(particle_symmetry, spin_symmetry)
         end
     end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = -t * (e_plus_e_min(particle_symmetry, spin_symmetry) -
-                    e_min_e_plus(particle_symmetry, spin_symmetry))
+    hopping = -t * e_hopping(particle_symmetry, spin_symmetry)
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
     chemical_potential = -mu * e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
