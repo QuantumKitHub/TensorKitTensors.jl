@@ -688,7 +688,7 @@ const S⁺S⁻ = S_plus_S_min
     S⁻S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the two-body operator S⁻S⁺.
-The only nonzero matrix element corresponds to `|↓↑⟩ <-- |↑↓⟩`.
+The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
 """ S_min_S_plus
 function S_min_S_plus(P::Type{<:Sector}, S::Type{<:Sector})
     return S_min_S_plus(ComplexF64, P, S)

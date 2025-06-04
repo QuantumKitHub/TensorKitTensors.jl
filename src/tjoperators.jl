@@ -495,7 +495,7 @@ const d⁻d⁺ = d_min_d_plus
     u⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
-The only nonzero matrix element corresponds to `|00⟩ <-- |↑↓⟩`.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↑,↓⟩`.
 """ u_min_d_min
 function u_min_d_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return u_min_d_min(ComplexF64, P, S; slave_fermion)
@@ -535,7 +535,7 @@ const u⁻d⁻ = u_min_d_min
     d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
-The only nonzero matrix element corresponds to `|00⟩ <-- |↓↑⟩`.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↓,↑⟩`.
 """ d_min_u_min
 function d_min_u_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return d_min_u_min(ComplexF64, P, S; slave_fermion)
@@ -675,7 +675,7 @@ const e_hop = e_hopping
     S⁺S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁺S⁻.
-The only nonzero matrix element corresponds to `|↑↓⟩ <-- |↓↑⟩`.
+The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
 """ S_plus_S_min
 function S_plus_S_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return S_plus_S_min(ComplexF64, P, S; slave_fermion)
@@ -719,7 +719,7 @@ const S⁺S⁻ = S_plus_S_min
     S⁻S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁻S⁺.
-The only nonzero matrix element corresponds to `|↓↑⟩ <-- |↑↓⟩`.
+The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
 """ S_min_S_plus
 function S_min_S_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return S_min_S_plus(ComplexF64, P, S; slave_fermion)
