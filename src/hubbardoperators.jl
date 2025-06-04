@@ -22,7 +22,7 @@ export S⁻S⁺, S⁺S⁻
 
 Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries. The four basis states are
 ```
-    |0⟩ (vacuum), |↑⟩ = (c↑)†|0⟩, |↓⟩ = (c↓)†|0⟩, |2⟩ = (c↑)†(c↓)†|0⟩.
+    |0⟩ (vacuum), |↑⟩ = (c↑)†|0⟩, |↓⟩ = (c↓)†|0⟩, |↑↓⟩ = (c↑)†(c↓)†|0⟩.
 ```
 The possible symmetries are `Trivial`, `U1Irrep`, and `SU2Irrep`, for both particle number and spin.
 """
@@ -554,8 +554,8 @@ const e_hop = e_hopping
 Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
 The nonzero matrix elements are
 ```
-    -|0,0⟩ ↤ |↑,↓⟩,     +|0,↑⟩ ↤ |↑,2⟩,
-    +|↓,0⟩ ↤ |2,↓⟩,     -|↓,↑⟩ ↤ |2,2⟩
+    -|0,0⟩ ↤ |↑,↓⟩,     +|0,↑⟩ ↤ |↑,↑↓⟩,
+    +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
 ```
 """ u_min_d_min
 function u_min_d_min(P::Type{<:Sector}, S::Type{<:Sector})
@@ -597,8 +597,8 @@ const u⁻d⁻ = u_min_d_min
 Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
 The nonzero matrix elements are
 ```
-    -|0,0⟩ ↤ |↓,↑⟩,     -|0,↓⟩ ↤ |↓,2⟩
-    -|↑,0⟩ ↤ |2,↑⟩,     -|↑,↓⟩ ↤ |2,2⟩
+    -|0,0⟩ ↤ |↓,↑⟩,     -|0,↓⟩ ↤ |↓,↑↓⟩
+    -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
 ```
 """ d_min_u_min
 function d_min_u_min(P::Type{<:Sector}, S::Type{<:Sector})
