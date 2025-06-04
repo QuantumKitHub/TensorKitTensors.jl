@@ -448,14 +448,12 @@ const d⁺d⁻ = d_plus_d_min
     u_min_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     u⁻u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the Hermitian conjugate of `u_plus_u_min`, i.e.
-``(e†_{1,↑}, e_{2,↑})† = -e_{1,↑}, e†_{2,↑}`` (note the extra minus sign). 
-It annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
+Return the two-body operator ``e_{1,↑}, e†_{2,↑}`` that annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
 """ u_min_u_plus
 u_min_u_plus(P::Type{<:Sector}, S::Type{<:Sector}) = u_min_u_plus(ComplexF64, P, S)
 function u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector})
-    return copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry)))
+    return -copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry)))
 end
 const u⁻u⁺ = u_min_u_plus
 
@@ -463,14 +461,12 @@ const u⁻u⁺ = u_min_u_plus
     d_min_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     d⁻d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the Hermitian conjugate of `d_plus_d_min`, i.e.
-``(e†_{1,↓}, e_{2,↓})† = -e_{1,↓}, e†_{2,↓}`` (note the extra minus sign). 
-It annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
+Return the two-body operator ``e_{1,↓}, e†_{2,↓}`` that annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
 """ d_min_d_plus
 d_min_d_plus(P::Type{<:Sector}, S::Type{<:Sector}) = d_min_d_plus(ComplexF64, P, S)
 function d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector})
-    return copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry)))
+    return -copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry)))
 end
 const d⁻d⁺ = d_min_d_plus
 
