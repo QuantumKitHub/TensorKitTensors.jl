@@ -598,30 +598,20 @@ function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep};
                       slave_fermion::Bool=false)
     t = two_site_operator(elt, Trivial, SU2Irrep; slave_fermion)
     I = sectortype(t)
-    if slave_fermion
-        f1 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
-        f2 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    else
-        f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
-        f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    end
+    (h, b) = slave_fermion ? (1, 0) : (0, 1)
+    f1 = only(fusiontrees((I(h, 0), I(b, 1 // 2)), I(1, 1 // 2)))
+    f2 = only(fusiontrees((I(b, 1 // 2), I(h, 0)), I(1, 1 // 2)))
+    t[f1, f2][1, 1, 1, 1] = 1
     return t
 end
 function e_plus_e_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
                       slave_fermion::Bool=false)
     t = two_site_operator(elt, U1Irrep, SU2Irrep; slave_fermion)
     I = sectortype(t)
-    if slave_fermion
-        f1 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        f2 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    else
-        f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    end
+    (h, b) = slave_fermion ? (1, 0) : (0, 1)
+    f1 = only(fusiontrees((I(h, 0, 0), I(b, 1, 1 // 2)), I(1, 1, 1 // 2)))
+    f2 = only(fusiontrees((I(b, 1, 1 // 2), I(h, 0, 0)), I(1, 1, 1 // 2)))
+    t[f1, f2][1, 1, 1, 1] = 1
     return t
 end
 
