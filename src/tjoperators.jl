@@ -265,7 +265,7 @@ function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
 end
 function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep};
                 slave_fermion::Bool=false)
-    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Ireep` spin symmetry"))
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Irrep` spin symmetry"))
 end
 function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
                 slave_fermion::Bool=false)
