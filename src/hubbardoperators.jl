@@ -3,18 +3,18 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export S_x, S_y, S_z, S_plus, S_min
-export e_plus_e_min, u_plus_u_min, d_plus_d_min
-export e_min_e_plus, u_min_u_plus, d_min_d_plus
-export u_min_d_min, d_min_u_min
 export e_num, u_num, d_num, ud_num
-export e_hopping, singlet_min
+export S_x, S_y, S_z, S_plus, S_min
+export u_plus_u_min, d_plus_d_min
+export u_min_u_plus, d_min_d_plus
+export u_min_d_min, d_min_u_min
+export e_plus_e_min, e_min_e_plus, singlet_min, e_hopping
 export S_plus_S_min, S_min_S_plus, S_exchange
 
+export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
-export e⁺e⁻, u⁺u⁻, d⁺d⁻, e⁻e⁺, u⁻u⁺, d⁻d⁺
-export n, nꜛ, nꜜ, nꜛꜜ
-export e_hop, singlet⁻
+export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺, u⁻d⁻, d⁻u⁻
+export e⁺e⁻, e⁻e⁺, singlet⁻, e_hop
 export S⁻S⁺, S⁺S⁻
 
 """
@@ -242,6 +242,12 @@ function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     I = sectortype(t)
     t[(I(1, 1), dual(I(1, 1)))][1, 2] = 1.0
     return t
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Ireep` spin symmetry"))
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `SU2Irrep` spin symmetry"))
 end
 const S⁺ = S_plus
 

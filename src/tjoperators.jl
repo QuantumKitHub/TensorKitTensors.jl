@@ -263,6 +263,14 @@ function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
     t[(I(b, 1), dual(I(b, 1)))][1, 2] = 1.0
     return t
 end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep};
+                slave_fermion::Bool=false)
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Ireep` spin symmetry"))
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
+                slave_fermion::Bool=false)
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `SU2Irrep` spin symmetry"))
+end
 const S⁺ = S_plus
 
 @doc """
