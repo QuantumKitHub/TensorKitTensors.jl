@@ -52,6 +52,11 @@ end
                       d_min_d_plus(particle_symmetry, spin_symmetry)
                 @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
                       u_min_u_plus(particle_symmetry, spin_symmetry)
+            else
+                @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_min_u_plus(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_min_d_plus(particle_symmetry, spin_symmetry)
             end
 
             # test number operator
@@ -64,9 +69,6 @@ end
                       d_num(particle_symmetry, spin_symmetry) ≈
                       d_num(particle_symmetry, spin_symmetry) *
                       u_num(particle_symmetry, spin_symmetry)
-            else
-                @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
-                @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
             end
 
             # test singlet operator
@@ -116,6 +118,14 @@ end
                 for i in 1:3, j in 1:3
                     @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
                           sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                end
+            else
+                @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_x(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_y(particle_symmetry, spin_symmetry)
+                if spin_symmetry != U1Irrep
+                    @test_throws ArgumentError S_z(particle_symmetry, spin_symmetry)
                 end
             end
         else

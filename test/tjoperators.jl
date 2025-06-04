@@ -40,6 +40,7 @@ end
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
+                pspace = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
                 # test hermiticity
                 @test e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
                       -e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
@@ -71,9 +72,9 @@ end
                     @test u_num(particle_symmetry, spin_symmetry; slave_fermion) *
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) *
-                          u_num(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry;
-                                                slave_fermion)) ≈
+                          u_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          zeros(pspace ← pspace)
+                    @test TensorKit.id(pspace) ≈
                           h_num(particle_symmetry, spin_symmetry; slave_fermion) +
                           e_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
@@ -135,6 +136,19 @@ end
                     for i in 1:3, j in 1:3
                         @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
                               sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                    end
+                else
+                    @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry;
+                                                      slave_fermion)
+                    @test_throws ArgumentError S_min(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
+                    @test_throws ArgumentError S_x(particle_symmetry, spin_symmetry;
+                                                   slave_fermion)
+                    @test_throws ArgumentError S_y(particle_symmetry, spin_symmetry;
+                                                   slave_fermion)
+                    if spin_symmetry != U1Irrep
+                        @test_throws ArgumentError S_z(particle_symmetry, spin_symmetry;
+                                                       slave_fermion)
                     end
                 end
             else
