@@ -263,6 +263,14 @@ function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial};
     t[(I(b, 1), dual(I(b, 1)))][1, 2] = 1.0
     return t
 end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep};
+                slave_fermion::Bool=false)
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Irrep` spin symmetry"))
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
+                slave_fermion::Bool=false)
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `SU2Irrep` spin symmetry"))
+end
 const S⁺ = S_plus
 
 @doc """
@@ -495,7 +503,7 @@ const d⁻d⁺ = d_min_d_plus
     u⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
-The only nonzero matrix element corresponds to `|00⟩ <-- |↑↓⟩`.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↑,↓⟩`.
 """ u_min_d_min
 function u_min_d_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return u_min_d_min(ComplexF64, P, S; slave_fermion)
@@ -535,7 +543,7 @@ const u⁻d⁻ = u_min_d_min
     d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
-The only nonzero matrix element corresponds to `|00⟩ <-- |↓↑⟩`.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↓,↑⟩`.
 """ d_min_u_min
 function d_min_u_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return d_min_u_min(ComplexF64, P, S; slave_fermion)
@@ -590,30 +598,20 @@ function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep};
                       slave_fermion::Bool=false)
     t = two_site_operator(elt, Trivial, SU2Irrep; slave_fermion)
     I = sectortype(t)
-    if slave_fermion
-        f1 = only(fusiontrees((I(1, 0), I(0, 1 // 2)), I(1, 1 // 2)))
-        f2 = only(fusiontrees((I(0, 1 // 2), I(1, 0)), I(1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    else
-        f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
-        f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    end
+    (h, b) = slave_fermion ? (1, 0) : (0, 1)
+    f1 = only(fusiontrees((I(h, 0), I(b, 1 // 2)), I(1, 1 // 2)))
+    f2 = only(fusiontrees((I(b, 1 // 2), I(h, 0)), I(1, 1 // 2)))
+    t[f1, f2][1, 1, 1, 1] = 1
     return t
 end
 function e_plus_e_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
                       slave_fermion::Bool=false)
     t = two_site_operator(elt, U1Irrep, SU2Irrep; slave_fermion)
     I = sectortype(t)
-    if slave_fermion
-        f1 = only(fusiontrees((I(1, 0, 0), I(0, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        f2 = only(fusiontrees((I(0, 1, 1 // 2), I(1, 0, 0)), I(1, 1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    else
-        f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
-        f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
-        t[f1, f2][1, 1, 1, 1] = 1
-    end
+    (h, b) = slave_fermion ? (1, 0) : (0, 1)
+    f1 = only(fusiontrees((I(h, 0, 0), I(b, 1, 1 // 2)), I(1, 1, 1 // 2)))
+    f2 = only(fusiontrees((I(b, 1, 1 // 2), I(h, 0, 0)), I(1, 1, 1 // 2)))
+    t[f1, f2][1, 1, 1, 1] = 1
     return t
 end
 
@@ -675,7 +673,7 @@ const e_hop = e_hopping
     S⁺S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁺S⁻.
-The only nonzero matrix element corresponds to `|↑↓⟩ <-- |↓↑⟩`.
+The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
 """ S_plus_S_min
 function S_plus_S_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return S_plus_S_min(ComplexF64, P, S; slave_fermion)
@@ -719,7 +717,7 @@ const S⁺S⁻ = S_plus_S_min
     S⁻S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the two-body operator S⁻S⁺.
-The only nonzero matrix element corresponds to `|↓↑⟩ <-- |↑↓⟩`.
+The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
 """ S_min_S_plus
 function S_min_S_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
     return S_min_S_plus(ComplexF64, P, S; slave_fermion)

@@ -27,10 +27,15 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
             O = ud_num(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = ud_num(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
+
+            O = S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
+            O_triv = S_exchange(ComplexF64, Trivial, Trivial)
+            test_operator(O, O_triv)
         else
             @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry)
             @test_broken ud_num(ComplexF64, particle_symmetry, spin_symmetry)
+            @test_broken S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
 end
@@ -40,18 +45,22 @@ end
         spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
-            # test hermiticity
-            @test e_plus_e_min(particle_symmetry, spin_symmetry)' ≈
-                  -e_min_e_plus(particle_symmetry, spin_symmetry)
+            # test hopping operator
+            epem = e_plus_e_min(particle_symmetry, spin_symmetry)
+            emep = e_min_e_plus(particle_symmetry, spin_symmetry)
+            @test epem' ≈ -emep ≈ swap_2sites(epem)
             if spin_symmetry !== SU2Irrep
-                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
-                      d_min_d_plus(particle_symmetry, spin_symmetry)
-                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
-                      u_min_u_plus(particle_symmetry, spin_symmetry)
-                @test d_plus_d_min(particle_symmetry, spin_symmetry)' ≈
-                      d_min_d_plus(particle_symmetry, spin_symmetry)
-                @test u_plus_u_min(particle_symmetry, spin_symmetry)' ≈
-                      u_min_u_plus(particle_symmetry, spin_symmetry)
+                dpdm = d_plus_d_min(particle_symmetry, spin_symmetry)
+                dmdp = d_min_d_plus(particle_symmetry, spin_symmetry)
+                @test dpdm' ≈ -dmdp ≈ swap_2sites(dpdm)
+                upum = u_plus_u_min(particle_symmetry, spin_symmetry)
+                umup = u_min_u_plus(particle_symmetry, spin_symmetry)
+                @test upum' ≈ -umup ≈ swap_2sites(upum)
+            else
+                @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_min_u_plus(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_min_d_plus(particle_symmetry, spin_symmetry)
             end
 
             # test number operator
@@ -64,30 +73,75 @@ end
                       d_num(particle_symmetry, spin_symmetry) ≈
                       d_num(particle_symmetry, spin_symmetry) *
                       u_num(particle_symmetry, spin_symmetry)
-            else
-                @test_throws ArgumentError u_plus_u_min(particle_symmetry, spin_symmetry)
-                @test_throws ArgumentError d_plus_d_min(particle_symmetry, spin_symmetry)
             end
 
-            # test hopping operator
-            @test e_hop(particle_symmetry, spin_symmetry) ≈
-                  e_plus_e_min(particle_symmetry, spin_symmetry) -
-                  e_min_e_plus(particle_symmetry, spin_symmetry)
+            # test singlet operator
+            if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
+                sing = singlet_min(particle_symmetry, spin_symmetry)
+                ud = u_min_d_min(particle_symmetry, spin_symmetry)
+                du = d_min_u_min(particle_symmetry, spin_symmetry)
+                @test swap_2sites(ud) ≈ -du
+                @test swap_2sites(sing) ≈ sing
+                @test sing ≈ (ud - du) / sqrt(2)
+            else
+                @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry)
+            end
 
+            # test spin operator
+            if spin_symmetry == Trivial
+                ε = zeros(ComplexF64, 3, 3, 3)
+                for i in 1:3
+                    ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
+                    ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
+                end
+                Svec = [S_x(particle_symmetry, spin_symmetry),
+                        S_y(particle_symmetry, spin_symmetry),
+                        S_z(particle_symmetry, spin_symmetry)]
+                # Hermiticity
+                for s in Svec
+                    @test s' ≈ s
+                end
+                # operators should be normalized
+                S = 1 / 2
+                @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
+                # test S_plus and S_min
+                @test S_plus_S_min(particle_symmetry, spin_symmetry) ≈
+                      S_plus(particle_symmetry, spin_symmetry) ⊗
+                      S_min(particle_symmetry, spin_symmetry)
+                @test S_min_S_plus(particle_symmetry, spin_symmetry) ≈
+                      S_min(particle_symmetry, spin_symmetry) ⊗
+                      S_plus(particle_symmetry, spin_symmetry)
+                # commutation relations
+                for i in 1:3, j in 1:3
+                    @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
+                          sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                end
+            else
+                @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_x(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError S_y(particle_symmetry, spin_symmetry)
+                if spin_symmetry != U1Irrep
+                    @test_throws ArgumentError S_z(particle_symmetry, spin_symmetry)
+                end
+            end
         else
             @test_broken e_plus_e_min(particle_symmetry, spin_symmetry)
             @test_broken e_min_e_plus(particle_symmetry, spin_symmetry)
             @test_broken d_plus_d_min(particle_symmetry, spin_symmetry)
+            @test_broken d_min_d_plus(particle_symmetry, spin_symmetry)
             @test_broken u_plus_u_min(particle_symmetry, spin_symmetry)
+            @test_broken u_min_u_plus(particle_symmetry, spin_symmetry)
         end
     end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = -t * (e_plus_e_min(particle_symmetry, spin_symmetry) -
-                    e_min_e_plus(particle_symmetry, spin_symmetry))
+    hopping = -t * e_hopping(particle_symmetry, spin_symmetry)
     interaction = U * ud_num(particle_symmetry, spin_symmetry)
-    chemical_potential = mu * e_num(particle_symmetry, spin_symmetry)
+    chemical_potential = -mu * e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
             return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))

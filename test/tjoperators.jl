@@ -10,10 +10,10 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
                           (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
 
 @testset "Compare symmetric with trivial tensors" begin
-    for particle_symmetry in [Trivial, U1Irrep],
-        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+    for slave_fermion in (false, true)
+        for particle_symmetry in [Trivial, U1Irrep],
+            spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
-        for slave_fermion in (false, true)
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 space = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
 
@@ -26,9 +26,16 @@ implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2I
                 O_triv = e_num(ComplexF64, Trivial, Trivial; slave_fermion)
                 test_operator(O, O_triv)
 
+                O = S_exchange(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                O_triv = S_exchange(ComplexF64, Trivial, Trivial; slave_fermion)
+                test_operator(O, O_triv)
             else
-                @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
-                @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry)
+                @test_broken e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry;
+                                          slave_fermion)
+                @test_broken e_num(ComplexF64, particle_symmetry, spin_symmetry;
+                                   slave_fermion)
+                @test_broken S_exchange(ComplexF64, particle_symmetry, spin_symmetry;
+                                        slave_fermion)
             end
         end
     end
@@ -40,14 +47,17 @@ end
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
-                # test hermiticity
-                @test e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                      -e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                # test hopping operator
+                epem = e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion)
+                emep = e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                @test epem' ≈ -emep ≈ swap_2sites(epem)
                 if spin_symmetry !== SU2Irrep
-                    @test d_plus_d_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          -d_min_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test u_plus_u_min(particle_symmetry, spin_symmetry; slave_fermion)' ≈
-                          -u_min_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    dpdm = d_plus_d_min(particle_symmetry, spin_symmetry)
+                    dmdp = d_min_d_plus(particle_symmetry, spin_symmetry)
+                    @test dpdm' ≈ -dmdp ≈ swap_2sites(dpdm)
+                    upum = u_plus_u_min(particle_symmetry, spin_symmetry)
+                    umup = u_min_u_plus(particle_symmetry, spin_symmetry)
+                    @test upum' ≈ -umup ≈ swap_2sites(upum)
                 else
                     @test_throws ArgumentError d_plus_d_min(particle_symmetry,
                                                             spin_symmetry;
@@ -65,15 +75,16 @@ end
 
                 # test number operator
                 if spin_symmetry !== SU2Irrep
+                    pspace = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
                     @test e_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           u_num(particle_symmetry, spin_symmetry; slave_fermion) +
                           d_num(particle_symmetry, spin_symmetry; slave_fermion)
                     @test u_num(particle_symmetry, spin_symmetry; slave_fermion) *
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
                           d_num(particle_symmetry, spin_symmetry; slave_fermion) *
-                          u_num(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test TensorKit.id(tj_space(particle_symmetry, spin_symmetry;
-                                                slave_fermion)) ≈
+                          u_num(particle_symmetry, spin_symmetry; slave_fermion) ≈
+                          zeros(pspace ← pspace)
+                    @test TensorKit.id(pspace) ≈
                           h_num(particle_symmetry, spin_symmetry; slave_fermion) +
                           e_num(particle_symmetry, spin_symmetry; slave_fermion)
                 else
@@ -90,8 +101,8 @@ end
                     ud = u_min_d_min(particle_symmetry, spin_symmetry;
                                      slave_fermion)
                     du = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test permute(ud, ((2, 1), (4, 3))) ≈ -du
-                    @test permute(sing, ((2, 1), (4, 3))) ≈ sing
+                    @test swap_2sites(ud) ≈ -du
+                    @test swap_2sites(sing) ≈ sing
                     @test sing ≈ (ud - du) / sqrt(2)
                 else
                     @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
@@ -101,11 +112,6 @@ end
                     @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                 end
-
-                # test hopping operator
-                @test e_hopping(particle_symmetry, spin_symmetry; slave_fermion) ≈
-                      e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                      e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
 
                 # test spin operator
                 if spin_symmetry == Trivial
@@ -135,6 +141,19 @@ end
                     for i in 1:3, j in 1:3
                         @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
                               sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                    end
+                else
+                    @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry;
+                                                      slave_fermion)
+                    @test_throws ArgumentError S_min(particle_symmetry, spin_symmetry;
+                                                     slave_fermion)
+                    @test_throws ArgumentError S_x(particle_symmetry, spin_symmetry;
+                                                   slave_fermion)
+                    @test_throws ArgumentError S_y(particle_symmetry, spin_symmetry;
+                                                   slave_fermion)
+                    if spin_symmetry != U1Irrep
+                        @test_throws ArgumentError S_z(particle_symmetry, spin_symmetry;
+                                                       slave_fermion)
                     end
                 end
             else

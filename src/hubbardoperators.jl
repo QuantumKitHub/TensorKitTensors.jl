@@ -3,19 +3,27 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export e_plus_e_min, u_plus_u_min, d_plus_d_min
-export e_min_e_plus, u_min_u_plus, d_min_d_plus
 export e_num, u_num, d_num, ud_num
-export e_hopping
+export S_x, S_y, S_z, S_plus, S_min
+export u_plus_u_min, d_plus_d_min
+export u_min_u_plus, d_min_d_plus
+export u_min_d_min, d_min_u_min
+export e_plus_e_min, e_min_e_plus, singlet_min, e_hopping
+export S_plus_S_min, S_min_S_plus, S_exchange
 
-export e⁺e⁻, u⁺u⁻, d⁺d⁻, e⁻e⁺, u⁻u⁺, d⁻d⁺
 export n, nꜛ, nꜜ, nꜛꜜ
-export e_hop
+export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
+export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺, u⁻d⁻, d⁻u⁻
+export e⁺e⁻, e⁻e⁺, singlet⁻, e_hop
+export S⁻S⁺, S⁺S⁻
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries.
+Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries. The four basis states are
+```
+    |0⟩ (vacuum), |↑⟩ = (c↑)†|0⟩, |↓⟩ = (c↓)†|0⟩, |↑↓⟩ = (c↑)†(c↓)†|0⟩.
+```
 The possible symmetries are `Trivial`, `U1Irrep`, and `SU2Irrep`, for both particle number and spin.
 """
 function hubbard_space((::Type{Trivial})=Trivial, (::Type{Trivial})=Trivial)
@@ -214,6 +222,100 @@ function ud_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
 end
 const nꜛꜜ = ud_num
 
+@doc """
+    S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the spin-plus operator `S⁺ = e†_↑ e_↓` (only defined for `Trivial` spin symmetry).
+""" S_plus
+function S_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return S_plus(ComplexF64, P, S)
+end
+function S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    t = single_site_operator(elt, Trivial, Trivial)
+    I = sectortype(t)
+    t[(I(1), dual(I(1)))][1, 2] = 1.0
+    return t
+end
+function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
+    t = single_site_operator(elt, U1Irrep, Trivial)
+    I = sectortype(t)
+    t[(I(1, 1), dual(I(1, 1)))][1, 2] = 1.0
+    return t
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Irrep` spin symmetry"))
+end
+function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+    throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `SU2Irrep` spin symmetry"))
+end
+const S⁺ = S_plus
+
+@doc """
+    S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the spin-minus operator (only defined for `Trivial` spin symmetry).
+""" S_min
+function S_min(P::Type{<:Sector}, S::Type{<:Sector})
+    return S_min(ComplexF64, P, S)
+end
+function S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+               spin_symmetry::Type{<:Sector})
+    return copy(adjoint(S_plus(elt, particle_symmetry, spin_symmetry)))
+end
+const S⁻ = S_min
+
+@doc """
+    S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry). .
+""" S_x
+function S_x(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial)
+    return S_x(ComplexF64, P, S)
+end
+function S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector})
+    return (S_plus(elt, particle_symmetry, spin_symmetry)
+            +
+            S_min(elt, particle_symmetry, spin_symmetry)) / 2
+end
+const Sˣ = S_x
+
+@doc """
+    S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    Sʸ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` symmetry). 
+""" S_y
+function S_y(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial)
+    return S_y(ComplexF64, P, S)
+end
+function S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector})
+    return (S_plus(elt, particle_symmetry, spin_symmetry)
+            -
+            S_min(elt, particle_symmetry, spin_symmetry)) / (2im)
+end
+const Sʸ = S_y
+
+@doc """
+    S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    Sᶻ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the one-body spin-1/2 z-operator on the electrons. 
+""" S_z
+function S_z(P::Type{<:Sector}=Trivial, S::Type{<:Sector}=Trivial)
+    return S_z(ComplexF64, P, S)
+end
+function S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+             spin_symmetry::Type{<:Sector})
+    return (u_num(elt, particle_symmetry, spin_symmetry) -
+            d_num(elt, particle_symmetry, spin_symmetry)) / 2
+end
+const Sᶻ = S_z
+
 # Two site operators
 # ------------------
 function two_site_operator(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
@@ -346,14 +448,12 @@ const d⁺d⁻ = d_plus_d_min
     u_min_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     u⁻u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the Hermitian conjugate of `u_plus_u_min`, i.e.
-``(e†_{1,↑}, e_{2,↑})† = -e_{1,↑}, e†_{2,↑}`` (note the extra minus sign). 
-It annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
+Return the two-body operator ``e_{1,↑}, e†_{2,↑}`` that annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
 """ u_min_u_plus
 u_min_u_plus(P::Type{<:Sector}, S::Type{<:Sector}) = u_min_u_plus(ComplexF64, P, S)
 function u_min_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector})
-    return copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry)))
+    return -copy(adjoint(u_plus_u_min(elt, particle_symmetry, spin_symmetry)))
 end
 const u⁻u⁺ = u_min_u_plus
 
@@ -361,14 +461,12 @@ const u⁻u⁺ = u_min_u_plus
     d_min_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     d⁻d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the Hermitian conjugate of `d_plus_d_min`, i.e.
-``(e†_{1,↓}, e_{2,↓})† = -e_{1,↓}, e†_{2,↓}`` (note the extra minus sign). 
-It annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
+Return the two-body operator ``e_{1,↓}, e†_{2,↓}`` that annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
 """ d_min_d_plus
 d_min_d_plus(P::Type{<:Sector}, S::Type{<:Sector}) = d_min_d_plus(ComplexF64, P, S)
 function d_min_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                       spin_symmetry::Type{<:Sector})
-    return copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry)))
+    return -copy(adjoint(d_plus_d_min(elt, particle_symmetry, spin_symmetry)))
 end
 const d⁻d⁺ = d_min_d_plus
 
@@ -448,5 +546,196 @@ function e_hopping(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
            e_min_e_plus(elt, particle_symmetry, spin_symmetry)
 end
 const e_hop = e_hopping
+
+@doc """
+    u_min_d_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    u⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
+The nonzero matrix elements are
+```
+    -|0,0⟩ ↤ |↑,↓⟩,     +|0,↑⟩ ↤ |↑,↑↓⟩,
+    +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
+```
+""" u_min_d_min
+function u_min_d_min(P::Type{<:Sector}, S::Type{<:Sector})
+    return u_min_d_min(ComplexF64, P, S)
+end
+function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    t = two_site_operator(elt, Trivial, Trivial)
+    I = sectortype(t)
+    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 2] = -1
+    t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 1, 1, 2] = 1
+    t[(I(1), I(0), dual(I(0)), dual(I(1)))][2, 1, 2, 2] = 1
+    t[(I(1), I(1), dual(I(0)), dual(I(0)))][2, 1, 2, 2] = -1
+    return t
+end
+function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
+    t = two_site_operator(elt, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(0, 0), I(0, 0), dual(I(1, 1 // 2)), dual(I(1, -1 // 2)))][1, 1, 1, 1] = -1
+    t[(I(0, 0), I(1, 1 // 2), dual(I(1, 1 // 2)), dual(I(0, 0)))][1, 1, 1, 2] = 1
+    t[(I(1, -1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, -1 // 2)))][1, 1, 2, 1] = 1
+    t[(I(1, -1 // 2), I(1, 1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 2, 2] = -1
+    return t
+end
+function u_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+    throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry"))
+end
+function u_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+    throw(ArgumentError("`u_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function u_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
+end
+const u⁻d⁻ = u_min_d_min
+
+@doc """
+    d_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
+The nonzero matrix elements are
+```
+    -|0,0⟩ ↤ |↓,↑⟩,     -|0,↓⟩ ↤ |↓,↑↓⟩
+    -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
+```
+""" d_min_u_min
+function d_min_u_min(P::Type{<:Sector}, S::Type{<:Sector})
+    return d_min_u_min(ComplexF64, P, S)
+end
+function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    t = two_site_operator(elt, Trivial, Trivial)
+    I = sectortype(t)
+    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 1] = -1
+    t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 2, 2, 2] = -1
+    t[(I(1), I(0), dual(I(0)), dual(I(1)))][1, 1, 2, 1] = -1
+    t[(I(1), I(1), dual(I(0)), dual(I(0)))][1, 2, 2, 2] = -1
+    return t
+end
+function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
+    t = two_site_operator(elt, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(0, 0), I(0, 0), dual(I(1, -1 // 2)), dual(I(1, 1 // 2)))][1, 1, 1, 1] = -1
+    t[(I(0, 0), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(0, 0)))][1, 1, 1, 2] = -1
+    t[(I(1, 1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, 1 // 2)))][1, 1, 2, 1] = -1
+    t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 2, 2] = -1
+    return t
+end
+function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+    throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
+end
+function d_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+    throw(ArgumentError("`d_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+end
+const d⁻u⁻ = d_min_u_min
+
+@doc """
+    singlet_min(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    singlet⁻(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body singlet operator ``(e_{1,↓} e_{2,↑} - e_{1,↓} e_{2,↑}) / sqrt(2)``.
+""" singlet_min
+function singlet_min(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_min(ComplexF64, P, S)
+end
+function singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                     spin_symmetry::Type{<:Sector})
+    return (u_min_d_min(elt, particle_symmetry, spin_symmetry) -
+            d_min_u_min(elt, particle_symmetry, spin_symmetry)) / sqrt(2)
+end
+const singlet⁻ = singlet_min
+
+@doc """
+    S_plus_S_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    S⁺S⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator S⁺S⁻.
+The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
+""" S_plus_S_min
+function S_plus_S_min(P::Type{<:Sector}, S::Type{<:Sector})
+    return S_plus_S_min(ComplexF64, P, S)
+end
+function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    t = two_site_operator(elt, Trivial, Trivial)
+    I = sectortype(t)
+    t[(I(1), I(1), dual(I(1)), dual(I(1)))][1, 2, 2, 1] = 1
+    return t
+end
+function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
+    t = two_site_operator(elt, Trivial, U1Irrep)
+    I = sectortype(t)
+    t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(1, 1 // 2)))] .= 1
+    return t
+end
+function S_plus_S_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
+    t = two_site_operator(elt, U1Irrep, Trivial)
+    I = sectortype(t)
+    t[(I(1, 1), I(1, 1), dual(I(1, 1)), dual(I(1, 1)))][1, 2, 2, 1] = 1
+    return t
+end
+function S_plus_S_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
+    t = two_site_operator(elt, U1Irrep, U1Irrep)
+    I = sectortype(t)
+    t[(I(1, 1, 1 // 2), I(1, 1, -1 // 2), dual(I(1, 1, -1 // 2)), dual(I(1, 1, 1 // 2)))] .= 1
+    return t
+end
+const S⁺S⁻ = S_plus_S_min
+
+@doc """
+    S_min_S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    S⁻S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator S⁻S⁺.
+The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
+""" S_min_S_plus
+function S_min_S_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return S_min_S_plus(ComplexF64, P, S)
+end
+function S_min_S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
+    return copy(adjoint(S_plus_S_min(elt, particle_symmetry, spin_symmetry)))
+end
+const S⁻S⁺ = S_min_S_plus
+
+@doc """
+    S_exchange(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the spin exchange operator S⋅S.
+""" S_exchange
+function S_exchange(P::Type{<:Sector}, S::Type{<:Sector})
+    return S_exchange(ComplexF64, P, S)
+end
+function S_exchange(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                    spin_symmetry::Type{<:Sector})
+    Sz = S_z(elt, particle_symmetry, spin_symmetry)
+    return (S_plus_S_min(elt, particle_symmetry, spin_symmetry)
+            +
+            S_min_S_plus(elt, particle_symmetry, spin_symmetry)) / 2 +
+           Sz ⊗ Sz
+end
+function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = two_site_operator(elt, Trivial, SU2Irrep)
+    for (s, f) in fusiontrees(t)
+        l3 = f.uncoupled[1][2].j
+        l4 = f.uncoupled[2][2].j
+        k = f.coupled[2].j
+        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+    end
+    return t
+end
+function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = two_site_operator(elt, U1Irrep, SU2Irrep)
+    for (s, f) in fusiontrees(t)
+        l3 = f.uncoupled[1][3].j
+        l4 = f.uncoupled[2][3].j
+        k = f.coupled[3].j
+        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+    end
+    return t
+end
 
 end
