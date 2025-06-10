@@ -8,13 +8,17 @@ export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
 export u_min_d_min, d_min_u_min
-export e_plus_e_min, e_min_e_plus, singlet_min, e_hopping
+export u_min_u_min, d_min_d_min
+export e_plus_e_min, e_min_e_plus, e_hopping
+export singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
-export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺, u⁻d⁻, d⁻u⁻
-export e⁺e⁻, e⁻e⁺, singlet⁻, e_hop
+export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
+export u⁻d⁻, d⁻u⁻, u⁻u⁻, d⁻d⁻
+export e⁺e⁻, e⁻e⁺, e_hop
+export singlet⁻
 export S⁻S⁺, S⁺S⁻
 
 """
@@ -577,6 +581,86 @@ function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
 end
 const d⁻u⁻ = d_min_u_min
+
+@doc """
+    u_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    u⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up particle at both sites.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↑,↑⟩`.
+""" u_min_u_min
+function u_min_u_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return u_min_u_min(ComplexF64, P, S; slave_fermion)
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+                     slave_fermion::Bool=false)
+    t = two_site_operator(elt, Trivial, Trivial; slave_fermion)
+    I = sectortype(t)
+    (h, b, sgn) = slave_fermion ? (1, 0, -1) : (0, 1, 1)
+    t[(I(h), I(h), dual(I(b)), dual(I(b)))][1, 1, 1, 1] = -sgn * 1
+    return t
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` spin symmetry"))
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` particle symmetry"))
+end
+function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+end
+const u⁻u⁻ = u_min_u_min
+
+@doc """
+    d_min_d_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down particle at both sites.
+The only nonzero matrix element corresponds to `|0,0⟩ <-- |↓,↓⟩`.
+""" d_min_d_min
+function d_min_d_min(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return d_min_d_min(ComplexF64, P, S; slave_fermion)
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+                     slave_fermion::Bool=false)
+    t = two_site_operator(elt, Trivial, Trivial; slave_fermion)
+    I = sectortype(t)
+    (h, b, sgn) = slave_fermion ? (1, 0, -1) : (0, 1, 1)
+    t[(I(h), I(h), dual(I(b)), dual(I(b)))][1, 1, 2, 2] = -sgn * 1
+    return t
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry"))
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` spin symmetry"))
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` particle symmetry"))
+end
+function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
+                     slave_fermion::Bool=false)
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+end
+const d⁻d⁻ = d_min_d_min
 
 @doc """
     e_plus_e_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
