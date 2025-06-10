@@ -92,9 +92,9 @@ end
             # test triplet operators
             if particle_symmetry == Trivial && spin_symmetry == Trivial
                 uu = u_min_u_min(particle_symmetry, spin_symmetry)
-                    dd = d_min_d_min(particle_symmetry, spin_symmetry)
-                    @test swap_2sites(uu) ≈ -uu
-                    @test swap_2sites(dd) ≈ -dd
+                dd = d_min_d_min(particle_symmetry, spin_symmetry)
+                @test swap_2sites(uu) ≈ -uu
+                @test swap_2sites(dd) ≈ -dd
             else
                 @test_throws ArgumentError u_min_u_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_min_d_min(particle_symmetry, spin_symmetry)
