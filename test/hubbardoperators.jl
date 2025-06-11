@@ -97,6 +97,7 @@ end
                 dpdp = d_plus_d_plus(particle_symmetry, spin_symmetry)
                 updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
                 dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
+
                 @test swap_2sites(umum) ≈ -umum
                 @test swap_2sites(dmdm) ≈ -dmdm
                 @test swap_2sites(upup) ≈ -upup

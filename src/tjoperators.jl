@@ -8,6 +8,7 @@ export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
 export u_min_d_min, d_min_u_min
+export u_plus_d_plus, d_plus_u_plus
 export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
@@ -17,7 +18,7 @@ export S_plus_S_min, S_min_S_plus, S_exchange
 export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
-export u⁻d⁻, d⁻u⁻
+export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁻
