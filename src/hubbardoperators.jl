@@ -678,6 +678,21 @@ end
 const u⁻u⁻ = u_min_u_min
 
 @doc """
+    u_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    u⁺u⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up particle at both sites.
+""" u_plus_u_plus
+function u_plus_u_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return u_plus_u_plus(ComplexF64, P, S)
+end
+function u_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
+    return -copy(adjoint(u_min_u_min(elt, particle_symmetry, spin_symmetry)))
+end
+const u⁺u⁺ = u_plus_u_plus
+
+@doc """
     d_min_d_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     d⁻d⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
