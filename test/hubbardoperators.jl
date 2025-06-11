@@ -75,18 +75,23 @@ end
                       u_num(particle_symmetry, spin_symmetry)
             end
 
-            # test singlet operator
+            # test singlet operators
             if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
                 sing = singlet_min(particle_symmetry, spin_symmetry)
-                ud = u_min_d_min(particle_symmetry, spin_symmetry)
-                du = d_min_u_min(particle_symmetry, spin_symmetry)
-                @test swap_2sites(ud) ≈ -du
+                umdm = u_min_d_min(particle_symmetry, spin_symmetry)
+                dmum = d_min_u_min(particle_symmetry, spin_symmetry)
+                @test swap_2sites(umdm) ≈ -dmum
                 @test swap_2sites(sing) ≈ sing
-                @test sing ≈ (ud - du) / sqrt(2)
+                @test sing ≈ (umdm - dmum) / sqrt(2)
+                updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
+                dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
+                @test swap_2sites(updp) ≈ -dpup
             else
                 @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError u_plus_d_plus(particle_symmetry, spin_symmetry)
+                @test_throws ArgumentError d_plus_u_plus(particle_symmetry, spin_symmetry)
             end
 
             # test triplet operators
@@ -95,14 +100,10 @@ end
                 dmdm = d_min_d_min(particle_symmetry, spin_symmetry)
                 upup = u_plus_u_plus(particle_symmetry, spin_symmetry)
                 dpdp = d_plus_d_plus(particle_symmetry, spin_symmetry)
-                updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
-                dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
-
                 @test swap_2sites(umum) ≈ -umum
                 @test swap_2sites(dmdm) ≈ -dmdm
                 @test swap_2sites(upup) ≈ -upup
                 @test swap_2sites(dpdp) ≈ -dpdp
-                @test swap_2sites(updp) ≈ -dpup
             else
                 @test_throws ArgumentError u_min_u_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_min_d_min(particle_symmetry, spin_symmetry)
