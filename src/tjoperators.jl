@@ -665,6 +665,22 @@ end
 const d⁻d⁻ = d_min_d_min
 
 @doc """
+    d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁺d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that annihilates a spin-down particle at both sites.
+""" d_plus_d_plus
+function d_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return d_plus_d_plus(ComplexF64, P, S; slave_fermion)
+end
+function d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector};
+                      slave_fermion::Bool=false)
+    return -copy(adjoint(d_min_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+end
+const d⁺d⁺ = d_plus_d_plus
+
+@doc """
     e_plus_e_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
     e⁺e⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
