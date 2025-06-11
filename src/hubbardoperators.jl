@@ -8,6 +8,7 @@ export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
 export u_min_d_min, d_min_u_min
+export u_plus_d_plus, d_plus_u_plus
 export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
@@ -17,7 +18,7 @@ export S_plus_S_min, S_min_S_plus, S_exchange
 export n, nꜛ, nꜜ, nꜛꜜ
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
-export u⁻d⁻, d⁻u⁻
+export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁻
@@ -597,6 +598,21 @@ end
 const u⁻d⁻ = u_min_d_min
 
 @doc """
+    u_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    u⁺d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
+""" u_plus_d_plus
+function u_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return u_plus_d_plus(ComplexF64, P, S)
+end
+function u_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                       spin_symmetry::Type{<:Sector})
+    return -copy(adjoint(u_min_d_min(elt, particle_symmetry, spin_symmetry)))
+end
+const u⁺d⁺ = u_plus_d_plus
+
+@doc """
     d_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
@@ -638,6 +654,21 @@ function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
 end
 const d⁻u⁻ = d_min_u_min
+
+@doc """
+    d_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    d⁺u⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down particle at the first site and a spin-up particle at the second site.
+""" d_plus_u_plus
+function d_plus_u_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return d_plus_u_plus(ComplexF64, P, S)
+end
+function d_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                       spin_symmetry::Type{<:Sector})
+    return -copy(adjoint(d_min_u_min(elt, particle_symmetry, spin_symmetry)))
+end
+const d⁺u⁺ = d_plus_u_plus
 
 @doc """
     u_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})

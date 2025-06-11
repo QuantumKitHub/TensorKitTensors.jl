@@ -119,14 +119,18 @@ end
 
                 # test triplet operators
                 if particle_symmetry == Trivial && spin_symmetry == Trivial
-                    uu = u_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
-                    dd = d_min_d_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    umum = u_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    dmdm = d_min_d_min(particle_symmetry, spin_symmetry; slave_fermion)
                     upup = u_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
                     dpdp = d_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test swap_2sites(uu) ≈ -uu
-                    @test swap_2sites(dd) ≈ -dd
+                    updp = u_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    dpup = d_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+
+                    @test swap_2sites(umum) ≈ -umum
+                    @test swap_2sites(dmdm) ≈ -dmdm
                     @test swap_2sites(upup) ≈ -upup
                     @test swap_2sites(dpdp) ≈ -dpdp
+                    @test swap_2sites(updp) ≈ -dpup
                 else
                     @test_throws ArgumentError u_min_u_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)

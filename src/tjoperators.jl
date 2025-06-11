@@ -545,6 +545,22 @@ end
 const u⁻d⁻ = u_min_d_min
 
 @doc """
+    u_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    u⁺d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
+""" u_plus_d_plus
+function u_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return u_plus_d_plus(ComplexF64, P, S; slave_fermion)
+end
+function u_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                       spin_symmetry::Type{<:Sector};
+                       slave_fermion::Bool=false)
+    return -copy(adjoint(u_min_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+end
+const u⁺d⁺ = u_plus_d_plus
+
+@doc """
     d_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
     d⁻u⁻(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
@@ -583,6 +599,22 @@ function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep};
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
 end
 const d⁻u⁻ = d_min_u_min
+
+@doc """
+    d_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    d⁺u⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
+""" d_plus_u_plus
+function d_plus_u_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool=false)
+    return d_plus_u_plus(ComplexF64, P, S; slave_fermion)
+end
+function d_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                       spin_symmetry::Type{<:Sector};
+                       slave_fermion::Bool=false)
+    return -copy(adjoint(d_min_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
+end
+const d⁺u⁺ = d_plus_u_plus
 
 @doc """
     u_min_u_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
