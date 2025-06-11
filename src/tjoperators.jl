@@ -634,8 +634,8 @@ function u_plus_u_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool
     return u_plus_u_plus(ComplexF64, P, S; slave_fermion)
 end
 function u_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-                      spin_symmetry::Type{<:Sector};
-                      slave_fermion::Bool=false)
+                       spin_symmetry::Type{<:Sector};
+                       slave_fermion::Bool=false)
     return -copy(adjoint(u_min_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
 end
 const u⁺u⁺ = u_plus_u_plus
@@ -690,8 +690,8 @@ function d_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool
     return d_plus_d_plus(ComplexF64, P, S; slave_fermion)
 end
 function d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-                      spin_symmetry::Type{<:Sector};
-                      slave_fermion::Bool=false)
+                       spin_symmetry::Type{<:Sector};
+                       slave_fermion::Bool=false)
     return -copy(adjoint(d_min_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)))
 end
 const d⁺d⁺ = d_plus_d_plus

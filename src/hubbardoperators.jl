@@ -689,7 +689,7 @@ function u_plus_u_plus(P::Type{<:Sector}, S::Type{<:Sector})
     return u_plus_u_plus(ComplexF64, P, S)
 end
 function u_plus_u_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-                      spin_symmetry::Type{<:Sector})
+                       spin_symmetry::Type{<:Sector})
     return -copy(adjoint(u_min_u_min(elt, particle_symmetry, spin_symmetry)))
 end
 const u⁺u⁺ = u_plus_u_plus
@@ -745,7 +745,7 @@ function d_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector})
     return d_plus_d_plus(ComplexF64, P, S)
 end
 function d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-                      spin_symmetry::Type{<:Sector})
+                       spin_symmetry::Type{<:Sector})
     return -copy(adjoint(d_min_d_min(elt, particle_symmetry, spin_symmetry)))
 end
 const d⁺d⁺ = d_plus_d_plus
