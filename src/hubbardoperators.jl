@@ -17,7 +17,8 @@ export S_plus_S_min, S_min_S_plus, S_exchange
 export n, nꜛ, nꜜ, nꜛꜜ
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
-export u⁻d⁻, d⁻u⁻, u⁻u⁻, d⁻d⁻
+export u⁻d⁻, d⁻u⁻
+export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁻
 export S⁻S⁺, S⁺S⁻
