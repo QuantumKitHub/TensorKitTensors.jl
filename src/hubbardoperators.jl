@@ -734,6 +734,22 @@ end
 const d⁻d⁻ = d_min_d_min
 
 @doc """
+    d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    d⁺d⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down particle at both sites.
+The nonzero matrix elements are
+""" d_plus_d_plus
+function d_plus_d_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return d_plus_d_plus(ComplexF64, P, S)
+end
+function d_plus_d_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
+    return -copy(adjoint(d_min_d_min(elt, particle_symmetry, spin_symmetry)))
+end
+const d⁺d⁺ = d_plus_d_plus
+
+@doc """
     singlet_min(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     singlet⁻(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
