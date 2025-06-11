@@ -9,6 +9,7 @@ export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
 export u_min_d_min, d_min_u_min
 export u_min_u_min, d_min_d_min
+export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
