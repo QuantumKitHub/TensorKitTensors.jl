@@ -94,23 +94,56 @@ end
                                                      slave_fermion)
                 end
 
-                # test singlet operator
+                # test singlet operators
                 if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
-                    sing = singlet_min(particle_symmetry, spin_symmetry;
+                    singm = singlet_min(particle_symmetry, spin_symmetry;
+                                        slave_fermion)
+                    umdm = u_min_d_min(particle_symmetry, spin_symmetry;
                                        slave_fermion)
-                    ud = u_min_d_min(particle_symmetry, spin_symmetry;
-                                     slave_fermion)
-                    du = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test swap_2sites(ud) ≈ -du
-                    @test swap_2sites(sing) ≈ sing
-                    @test sing ≈ (ud - du) / sqrt(2)
+                    dmum = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test swap_2sites(umdm) ≈ -dmum
+                    @test swap_2sites(singm) ≈ singm
+                    @test singm ≈ (-umdm + dmum) / sqrt(2)
+                    updp = u_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    dpup = d_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test swap_2sites(updp) ≈ -dpup
                 else
+                    @test_throws ArgumentError singlet_plus(particle_symmetry,
+                                                            spin_symmetry;
+                                                            slave_fermion)
                     @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                     @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
                     @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry;
                                                            slave_fermion)
+                    @test_throws ArgumentError u_plus_d_plus(particle_symmetry,
+                                                             spin_symmetry;
+                                                             slave_fermion)
+                    @test_throws ArgumentError d_plus_u_plus(particle_symmetry,
+                                                             spin_symmetry;
+                                                             slave_fermion)
+                end
+
+                # test triplet operators
+                if particle_symmetry == Trivial && spin_symmetry == Trivial
+                    umum = u_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    dmdm = d_min_d_min(particle_symmetry, spin_symmetry; slave_fermion)
+                    upup = u_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    dpdp = d_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                    @test swap_2sites(umum) ≈ -umum
+                    @test swap_2sites(dmdm) ≈ -dmdm
+                    @test swap_2sites(upup) ≈ -upup
+                    @test swap_2sites(dpdp) ≈ -dpdp
+                else
+                    @test_throws ArgumentError u_min_u_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
+                    @test_throws ArgumentError d_min_d_min(particle_symmetry, spin_symmetry;
+                                                           slave_fermion)
+                    @test_throws ArgumentError u_plus_u_plus(particle_symmetry,
+                                                             spin_symmetry; slave_fermion)
+                    @test_throws ArgumentError d_plus_d_plus(particle_symmetry,
+                                                             spin_symmetry; slave_fermion)
                 end
 
                 # test spin operator
