@@ -77,16 +77,17 @@ end
 
             # test singlet operators
             if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
-                sing = singlet_min(particle_symmetry, spin_symmetry)
+                singm = singlet_min(particle_symmetry, spin_symmetry)
                 umdm = u_min_d_min(particle_symmetry, spin_symmetry)
                 dmum = d_min_u_min(particle_symmetry, spin_symmetry)
                 @test swap_2sites(umdm) ≈ -dmum
-                @test swap_2sites(sing) ≈ sing
-                @test sing ≈ (umdm - dmum) / sqrt(2)
+                @test swap_2sites(singm) ≈ singm
+                @test singm ≈ (-umdm + dmum) / sqrt(2)
                 updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
                 dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
                 @test swap_2sites(updp) ≈ -dpup
             else
+                @test_throws ArgumentError singlet_plus(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError u_min_d_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_min_u_min(particle_symmetry, spin_symmetry)

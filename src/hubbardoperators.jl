@@ -12,7 +12,7 @@ export u_plus_d_plus, d_plus_u_plus
 export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
-export singlet_min
+export singlet_plus, singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ
@@ -21,7 +21,7 @@ export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
 export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
-export singlet⁻
+export singlet⁺, singlet⁻
 export S⁻S⁺, S⁺S⁻
 
 """
@@ -782,18 +782,35 @@ end
 const d⁺d⁺ = d_plus_d_plus
 
 @doc """
+    singlet_plus(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    singlet⁺(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / sqrt(2)``,
+which creates the singlet state when acting on vaccum.
+""" singlet_plus
+function singlet_plus(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus(ComplexF64, P, S)
+end
+function singlet_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+                      spin_symmetry::Type{<:Sector})
+    return (u_plus_d_plus(elt, particle_symmetry, spin_symmetry) -
+            d_plus_u_plus(elt, particle_symmetry, spin_symmetry)) / sqrt(2)
+end
+const singlet⁺ = singlet_plus
+
+@doc """
     singlet_min(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     singlet⁻(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the two-body singlet operator ``(e_{1,↓} e_{2,↑} - e_{1,↓} e_{2,↑}) / sqrt(2)``.
+Return the adjoint of `singlet_plus` operator, which is 
+``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / sqrt(2)``
 """ singlet_min
 function singlet_min(P::Type{<:Sector}, S::Type{<:Sector})
     return singlet_min(ComplexF64, P, S)
 end
 function singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                      spin_symmetry::Type{<:Sector})
-    return (u_min_d_min(elt, particle_symmetry, spin_symmetry) -
-            d_min_u_min(elt, particle_symmetry, spin_symmetry)) / sqrt(2)
+    return copy(adjoint(singlet_plus(elt, particle_symmetry, spin_symmetry)))
 end
 const singlet⁻ = singlet_min
 
