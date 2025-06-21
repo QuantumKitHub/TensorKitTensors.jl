@@ -44,6 +44,9 @@ end
     for particle_symmetry in (Trivial, U1Irrep, SU2Irrep),
         spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
 
+        space = hubbard_space(particle_symmetry, spin_symmetry)
+        @test dim(space) == 4
+
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             # test hopping operator
             epem = e_plus_e_min(particle_symmetry, spin_symmetry)

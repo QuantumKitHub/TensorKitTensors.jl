@@ -57,7 +57,8 @@ function hubbard_space(::Type{SU2Irrep}, ::Type{Trivial})
     return Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 2, (1, 1 // 2) => 1)
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{U1Irrep})
-    return Vect[FermionParity ⊠ SU2Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1 // 2, 1) => 1)
+    return Vect[FermionParity ⊠ SU2Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1 // 2, 1) => 1,
+                                                    (0, 0, 2) => 1)
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{SU2Irrep})
     return Vect[FermionParity ⊠ SU2Irrep ⊠ SU2Irrep]((1, 1 // 2, 1 // 2) => 1)
