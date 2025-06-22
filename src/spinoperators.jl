@@ -37,9 +37,8 @@ function _pauliterm(spin, i::U1Irrep, j::U1Irrep)
     return sqrt((spin + 1) * (i.charge + j.charge + 2 * spin + 1) -
                 (i.charge + spin + 1) * (j.charge + spin + 1)) / 2.0
 end
-function casimir(spin)
-    return spin * (spin + 1)
-end
+casimir(spin::Real) = spin * (spin + 1)
+casimir(c::SU2Irrep) = casimir(c.j)
 
 """
     spinmatrices(spin [, eltype])
