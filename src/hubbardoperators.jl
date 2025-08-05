@@ -3,7 +3,7 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export e_num, u_num, d_num, ud_num
+export e_num, u_num, d_num, ud_num, half_ud_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
@@ -240,6 +240,28 @@ function ud_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     return t
 end
 const nꜛꜜ = ud_num
+
+@doc """
+    half_ud_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the one-body operator that counts the number of singly occupied sites.
+This is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, and respects the particle-hole symmetry.
+"""
+half_ud_num(P::Type{<:Sector}, S::Type{<:Sector}) = half_ud_num(ComplexF64, P, S)
+function half_ud_num(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}
+    )
+    I = id(hubbard_space(particle_symmetry, spin_symmetry))
+    return (u_num(elt, particle_symmetry, spin_symmetry) - I / 2) *
+        (d_num(elt, particle_symmetry, spin_symmetry) - I / 2)
+end
+function half_ud_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, SU2Irrep, SU2Irrep)
+    block(t, sectortype(t)(0, 1 // 2, 0)) .= 1 // 4
+    block(t, sectortype(t)(1, 0, 1 // 2)) .= -1 // 4
+    return t
+end
 
 @doc """
     S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
