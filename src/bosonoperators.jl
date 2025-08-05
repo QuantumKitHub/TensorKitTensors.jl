@@ -140,7 +140,7 @@ function b_plus_b_min(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
     for (f1, f2) in fusiontrees(b⁺b⁻)
         c_out, c_in = f1.uncoupled, f2.uncoupled
         if c_in[1].charge + 1 == c_out[1].charge &&
-           c_in[2].charge - 1 == c_out[2].charge
+                c_in[2].charge - 1 == c_out[2].charge
             b⁺b⁻[f1, f2] .= sqrt(c_out[1].charge) * sqrt(c_in[2].charge)
         end
     end
@@ -169,7 +169,7 @@ function b_min_b_plus(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
     for (f1, f2) in fusiontrees(b⁻b⁺)
         c_out, c_in = f1.uncoupled, f2.uncoupled
         if c_in[1].charge - 1 == c_out[1].charge &&
-           c_in[2].charge + 1 == c_out[2].charge
+                c_in[2].charge + 1 == c_out[2].charge
             b⁻b⁺[f1, f2] .= sqrt(c_in[1].charge) * sqrt(c_out[2].charge)
         end
     end
