@@ -47,14 +47,12 @@ function hubbard_space(::Type{U1Irrep}, ::Type{Trivial})
 end
 function hubbard_space(::Type{U1Irrep}, ::Type{U1Irrep})
     return Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep](
-        (0, 0, 0) => 1, (1, 1, 1 // 2) => 1,
-        (1, 1, -1 // 2) => 1, (0, 2, 0) => 1
+        (0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (1, 1, -1 // 2) => 1, (0, 2, 0) => 1
     )
 end
 function hubbard_space(::Type{U1Irrep}, ::Type{SU2Irrep})
     return Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep](
-        (0, 0, 0) => 1, (1, 1, 1 // 2) => 1,
-        (0, 2, 0) => 1
+        (0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (0, 2, 0) => 1
     )
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{Trivial})
@@ -62,8 +60,7 @@ function hubbard_space(::Type{SU2Irrep}, ::Type{Trivial})
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{U1Irrep})
     return Vect[FermionParity ⊠ SU2Irrep ⊠ U1Irrep](
-        (0, 0, 0) => 1, (1, 1 // 2, 1) => 1,
-        (0, 0, 2) => 1
+        (0, 0, 0) => 1, (1, 1 // 2, 1) => 1, (0, 0, 2) => 1
     )
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{SU2Irrep})
@@ -302,8 +299,7 @@ function S_x(
         spin_symmetry::Type{<:Sector}
     )
     return (
-        S_plus(elt, particle_symmetry, spin_symmetry)
-            +
+        S_plus(elt, particle_symmetry, spin_symmetry) +
             S_min(elt, particle_symmetry, spin_symmetry)
     ) / 2
 end
@@ -323,8 +319,7 @@ function S_y(
         spin_symmetry::Type{<:Sector}
     )
     return (
-        S_plus(elt, particle_symmetry, spin_symmetry)
-            -
+        S_plus(elt, particle_symmetry, spin_symmetry) -
             S_min(elt, particle_symmetry, spin_symmetry)
     ) / (2im)
 end
@@ -934,12 +929,10 @@ function S_exchange(
         spin_symmetry::Type{<:Sector}
     )
     Sz = S_z(elt, particle_symmetry, spin_symmetry)
-    return (
-        S_plus_S_min(elt, particle_symmetry, spin_symmetry)
-            +
+    return Sz ⊗ Sz + (
+        S_plus_S_min(elt, particle_symmetry, spin_symmetry) +
             S_min_S_plus(elt, particle_symmetry, spin_symmetry)
-    ) / 2 +
-        Sz ⊗ Sz
+    ) / 2
 end
 function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     t = two_site_operator(elt, Trivial, SU2Irrep)

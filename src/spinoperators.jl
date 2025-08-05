@@ -32,12 +32,7 @@ function _pauliterm(spin, i, j)
     return sqrt((spin + 1) * (i + j - 1) - i * j) / 2.0
 end
 function _pauliterm(spin, i::U1Irrep, j::U1Irrep)
-    -spin <= i.charge <= spin || return 0.0
-    -spin <= j.charge <= spin || return 0.0
-    return sqrt(
-        (spin + 1) * (i.charge + j.charge + 2 * spin + 1) -
-            (i.charge + spin + 1) * (j.charge + spin + 1)
-    ) / 2.0
+    return _pauliterm(spin, i.charge + spin + 1, j.charge + spin + 1)
 end
 
 """

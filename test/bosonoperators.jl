@@ -90,10 +90,7 @@ end
         O = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
 
         true_eigenvals = sort(
-            [
-                0, 2 * b_n, b_n + sqrt(b_mp * b_pm),
-                b_n - sqrt(b_mp * b_pm),
-            ]
+            [0, 2 * b_n, b_n + sqrt(b_mp * b_pm), b_n - sqrt(b_mp * b_pm)]
         )
         eigenvals = expanded_eigenvalues(O; L)
         @test eigenvals ≈ true_eigenvals

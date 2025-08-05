@@ -70,23 +70,19 @@ end
                     @test upum' ≈ -umup ≈ swap_2sites(upum)
                 else
                     @test_throws ArgumentError d_plus_d_min(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                     @test_throws ArgumentError d_min_d_plus(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                     @test_throws ArgumentError u_plus_u_min(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                     @test_throws ArgumentError u_min_u_plus(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                 end
@@ -135,8 +131,7 @@ end
                     @test swap_2sites(updp) ≈ -dpup
                 else
                     @test_throws ArgumentError singlet_plus(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                     @test_throws ArgumentError singlet_min(
@@ -152,13 +147,11 @@ end
                         slave_fermion
                     )
                     @test_throws ArgumentError u_plus_d_plus(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                     @test_throws ArgumentError d_plus_u_plus(
-                        particle_symmetry,
-                        spin_symmetry;
+                        particle_symmetry, spin_symmetry;
                         slave_fermion
                     )
                 end
@@ -183,12 +176,12 @@ end
                         slave_fermion
                     )
                     @test_throws ArgumentError u_plus_u_plus(
-                        particle_symmetry,
-                        spin_symmetry; slave_fermion
+                        particle_symmetry, spin_symmetry;
+                        slave_fermion
                     )
                     @test_throws ArgumentError d_plus_d_plus(
-                        particle_symmetry,
-                        spin_symmetry; slave_fermion
+                        particle_symmetry, spin_symmetry;
+                        slave_fermion
                     )
                 end
 
@@ -265,12 +258,7 @@ function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_ferm
     hop_heis = (-t) * (
         e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
             e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
-    ) +
-        J *
-        (
-        S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
-            (1 / 4) * (num ⊗ num)
-    )
+    ) + J * (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) - (1 / 4) * (num ⊗ num))
     chemical_potential = (-mu) * num
     I = id(tj_space(particle_symmetry, spin_symmetry; slave_fermion))
     H = sum(1:(L - 1)) do i
@@ -301,8 +289,7 @@ end
                     continue
                 end
                 H_symm = tjhamiltonian(
-                    particle_symmetry, spin_symmetry; t, J, mu, L,
-                    slave_fermion
+                    particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion
                 )
                 vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
                     return repeat(real.(v), dim(c))
@@ -311,8 +298,7 @@ end
                 @test vals_triv ≈ vals_symm
             else
                 @test_broken tjhamiltonian(
-                    particle_symmetry, spin_symmetry; t, J, mu, L,
-                    slave_fermion
+                    particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion
                 )
             end
         end
@@ -342,10 +328,7 @@ end
                 )
 
                 true_eigenvals = sort(
-                    vcat(
-                        [-J], repeat([-t], 2), repeat([t], 2),
-                        repeat([0.0], 4)
-                    )
+                    vcat([-J], repeat([-t], 2), repeat([t], 2), repeat([0.0], 4))
                 )
                 eigenvals = expanded_eigenvalues(H; L)
                 @test eigenvals ≈ true_eigenvals
