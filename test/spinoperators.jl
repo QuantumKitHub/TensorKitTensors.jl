@@ -126,7 +126,37 @@ end
     test_operator(O_u1, O_triv; L)
 end
 
-@testset "Exact diagonalisation for $sector symmetry" for sector in [Trivial U1Irrep]
+@testset "SU2-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
+    rng = StableRNG(123)
+
+    # inferrability
+    V = @inferred spin_space(SU2Irrep; spin)
+    I = id(V)
+    SS = @inferred S_exchange(SU2Irrep; spin)
+
+    @test_throws ArgumentError S_x(SU2Irrep; spin)
+    @test_throws ArgumentError S_y(SU2Irrep; spin)
+    @test_throws ArgumentError S_z(SU2Irrep; spin)
+    @test_throws ArgumentError S_plus(SU2Irrep; spin)
+    @test_throws ArgumentError S_min(SU2Irrep; spin)
+    @test_throws ArgumentError S_min_S_plus(SU2Irrep; spin)
+    @test_throws ArgumentError S_plus_S_min(SU2Irrep; spin)
+    @test_throws ArgumentError S_x_S_x(SU2Irrep; spin)
+    @test_throws ArgumentError S_y_S_y(SU2Irrep; spin)
+    @test_throws ArgumentError S_z_S_z(SU2Irrep; spin)
+
+    L = 4
+    SS_triv = S_exchange(; spin)
+    I_triv = id(spin_space(; spin))
+    test_operator(SS, SS_triv; L)
+    a = rand(rng, 3)
+    O_su2 = a[1] * SS ⊗ I ⊗ I + a[2] * I ⊗ SS ⊗ I + a[3] * I ⊗ I ⊗ SS
+    O_triv = a[1] * SS_triv ⊗ I_triv ⊗ I_triv + a[2] * I_triv ⊗ SS_triv ⊗ I_triv +
+             a[3] * I_triv ⊗ I_triv ⊗ SS_triv
+    test_operator(O_su2, O_triv)
+end
+
+@testset "Exact diagonalisation for $sector symmetry" for sector in [Trivial, U1Irrep]
     spin = 1
 
     ZZ = @inferred S_z_S_z(sector; spin)

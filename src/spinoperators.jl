@@ -16,7 +16,7 @@ export SˣSˣ, SʸSʸ, SᶻSᶻ, S⁺S⁻, S⁻S⁺, SS
 The local Hilbert space for a spin system with a given symmetry and spin.
 Available symmetries are `Trivial`, `Z2Irrep`, `U1Irrep` and `SU2Irrep`.
 """
-spin_space(::Type{Trivial}; spin=1 // 2) = ComplexSpace(Int(2 * spin + 1))
+spin_space(::Type{Trivial}=Trivial; spin=1 // 2) = ComplexSpace(Int(2 * spin + 1))
 function spin_space(::Type{Z2Irrep}; spin=1 // 2)
     spin == 1 // 2 || throw(ArgumentError("Z2 symmetry only implemented for spin 1//2"))
     return Z2Space(0 => 1, 1 => 1)
@@ -37,9 +37,15 @@ function _pauliterm(spin, i::U1Irrep, j::U1Irrep)
     return sqrt((spin + 1) * (i.charge + j.charge + 2 * spin + 1) -
                 (i.charge + spin + 1) * (j.charge + spin + 1)) / 2.0
 end
-function casimir(spin)
-    return spin * (spin + 1)
-end
+
+"""
+    casimir(spin::Real)
+    casimir(c::SU2Irrep)
+
+Return the (scalar) value of the quadratic Casimir for SU(2).
+"""
+casimir(spin::Real) = spin * (spin + 1)
+casimir(c::SU2Irrep) = casimir(c.j)
 
 """
     spinmatrices(spin [, eltype])
