@@ -610,6 +610,22 @@ function e_hopping(
     return e_plus_e_min(elt, particle_symmetry, spin_symmetry) -
         e_min_e_plus(elt, particle_symmetry, spin_symmetry)
 end
+function e_hopping(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+    elt <: Complex || throw(DomainError(elt, "SU₂ × SU₂ symmetry requires complex entries"))
+    t = two_site_operator(elt, SU2Irrep, SU2Irrep)
+    I = sectortype(t)
+    even = I(0, 1 // 2, 0)
+    odd = I(1, 0, 1 // 2)
+    f1 = only(fusiontrees((odd, odd), one(I)))
+    f2 = only(fusiontrees((even, even), one(I)))
+    t[f1, f2] .= 2im
+    t[f2, f1] .= -2im
+    f3 = only(fusiontrees((even, odd), I((1, 1 // 2, 1 // 2))))
+    f4 = only(fusiontrees((odd, even), I((1, 1 // 2, 1 // 2))))
+    t[f3, f4] .= im
+    t[f4, f3] .= -im
+    return t
+end
 const e_hop = e_hopping
 
 @doc """
