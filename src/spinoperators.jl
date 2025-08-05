@@ -37,6 +37,13 @@ function _pauliterm(spin, i::U1Irrep, j::U1Irrep)
     return sqrt((spin + 1) * (i.charge + j.charge + 2 * spin + 1) -
                 (i.charge + spin + 1) * (j.charge + spin + 1)) / 2.0
 end
+
+"""
+    casimir(spin::Real)
+    casimir(c::SU2Irrep)
+
+Return the (scalar) value of the quadratic Casimir for SU(2).
+"""
 casimir(spin::Real) = spin * (spin + 1)
 casimir(c::SU2Irrep) = casimir(c.j)
 
