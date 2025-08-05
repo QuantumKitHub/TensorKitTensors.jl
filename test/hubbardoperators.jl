@@ -16,7 +16,7 @@ implemented_symmetries = [
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
-            space = hubbard_space(particle_symmetry, spin_symmetry)
+            space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
 
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
@@ -40,6 +40,14 @@ implemented_symmetries = [
             @test_broken S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
+
+    # special case for SU2Irrep x SU2Irrep
+    O = e_hopping(ComplexF64, SU2Irrep, SU2Irrep)
+    O_triv = e_hopping(ComplexF64, Trivial, Trivial)
+    test_operator(O, O_triv)
+
+    O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
+    O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
 end
 
 @testset "basic properties" begin
@@ -184,6 +192,19 @@ function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
     end
     return H
 end
+function hubbard_hamiltonian(::Type{SU2Irrep}, ::Type{SU2Irrep}; t, U, mu=U / 2, L)
+    @assert mu ≈ U / 2
+    hopping = -t * e_hopping(SU2Irrep, SU2Irrep)
+    interaction = U * half_ud_num(SU2Irrep, SU2Irrep)
+    I = id(hubbard_space(SU2Irrep, SU2Irrep))
+    H = sum(1:(L - 1)) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
+    end +
+        sum(1:L) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction))
+    end
+    return H
+end
 
 @testset "spectrum" begin
     L = 4
@@ -208,6 +229,20 @@ end
         sort!(vals_symm)
         @test vals_triv ≈ vals_symm
     end
+
+    mu = U / 2
+    H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu, L)
+    vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
+        return repeat(real.(v), dim(c)) .+ U * L / 4
+    end
+    sort!(vals_triv)
+
+    H_symm = hubbard_hamiltonian(SU2Irrep, SU2Irrep; t, U, mu, L)
+    vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
+        return repeat(real.(v), dim(c))
+    end
+    sort!(vals_symm)
+    @test vals_triv ≈ vals_symm
 end
 
 @testset "Exact diagonalisation" begin
