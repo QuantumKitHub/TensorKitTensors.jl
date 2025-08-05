@@ -38,7 +38,7 @@ end
     # commutation relations
     for i in 1:3, j in 1:3
         @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
-              sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+            sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
     end
 
     # definition of +-
@@ -65,9 +65,9 @@ end
     XX = @inferred S_x_S_x(Z2Irrep)
     ZZ = @inferred S_z_S_z(Z2Irrep)
 
-    @test_throws ArgumentError S_x(Z2Irrep; spin=1)
-    @test_throws ArgumentError S_x_S_x(Z2Irrep; spin=1)
-    @test_throws ArgumentError S_z_S_z(Z2Irrep; spin=1)
+    @test_throws ArgumentError S_x(Z2Irrep; spin = 1)
+    @test_throws ArgumentError S_x_S_x(Z2Irrep; spin = 1)
+    @test_throws ArgumentError S_z_S_z(Z2Irrep; spin = 1)
 
     @test_throws ArgumentError S_plus(Z2Irrep)
     @test_throws ArgumentError S_min(Z2Irrep)
@@ -84,7 +84,7 @@ end
     O_z2 = (X ⊗ id(domain(X)) + id(domain(X)) ⊗ X) * a_x + XX * a_xx + ZZ * a_zz
 
     O_triv = (S_x() ⊗ id(domain(S_x())) + id(domain(S_x())) ⊗ S_x()) * a_x +
-             S_x_S_x() * a_xx + S_z_S_z() * a_zz
+        S_x_S_x() * a_xx + S_z_S_z() * a_zz
 
     test_operator(O_z2, O_triv; L)
 end
@@ -113,16 +113,18 @@ end
 
     a_z, a_zz, a_plusmin, a_minplus, a_exchange = rand(rng, 5)
     O_u1 = (Z ⊗ id(domain(Z)) + id(domain(Z)) ⊗ Z) * a_z +
-           ZZ * a_zz +
-           plusmin * a_plusmin +
-           minplus * a_minplus +
-           exchange * a_exchange
-    O_triv = (S_z(; spin) ⊗ id(domain(S_z(; spin))) +
-              id(domain(S_z(; spin))) ⊗ S_z(; spin)) * a_z +
-             S_z_S_z(; spin) * a_zz +
-             S_plus_S_min(; spin) * a_plusmin +
-             S_min_S_plus(; spin) * a_minplus +
-             S_exchange(; spin) * a_exchange
+        ZZ * a_zz +
+        plusmin * a_plusmin +
+        minplus * a_minplus +
+        exchange * a_exchange
+    O_triv = (
+        S_z(; spin) ⊗ id(domain(S_z(; spin))) +
+            id(domain(S_z(; spin))) ⊗ S_z(; spin)
+    ) * a_z +
+        S_z_S_z(; spin) * a_zz +
+        S_plus_S_min(; spin) * a_plusmin +
+        S_min_S_plus(; spin) * a_minplus +
+        S_exchange(; spin) * a_exchange
     test_operator(O_u1, O_triv; L)
 end
 
@@ -152,7 +154,7 @@ end
     a = rand(rng, 3)
     O_su2 = a[1] * SS ⊗ I ⊗ I + a[2] * I ⊗ SS ⊗ I + a[3] * I ⊗ I ⊗ SS
     O_triv = a[1] * SS_triv ⊗ I_triv ⊗ I_triv + a[2] * I_triv ⊗ SS_triv ⊗ I_triv +
-             a[3] * I_triv ⊗ I_triv ⊗ SS_triv
+        a[3] * I_triv ⊗ I_triv ⊗ SS_triv
     test_operator(O_su2, O_triv)
 end
 
@@ -165,10 +167,10 @@ end
     O = ZZ + 0.5 * (plusmin + minplus)
 
     true_eigenvals = vcat([-2.0], repeat([-1.0], 3), repeat([1.0], 5))
-    eigenvals = expanded_eigenvalues(O; L=2)
+    eigenvals = expanded_eigenvalues(O; L = 2)
     @test eigenvals ≈ true_eigenvals
 
     # Value based on https://doi.org/10.1088/0953-8984/2/26/010. Exact diagonalisations of open spin-1 chains
-    eigenvals = expanded_eigenvalues(O; L=4)
-    @test eigenvals[2] - eigenvals[1] ≈ 0.509170 atol = 1e-6
+    eigenvals = expanded_eigenvalues(O; L = 4)
+    @test eigenvals[2] - eigenvals[1] ≈ 0.50917 atol = 1.0e-6
 end

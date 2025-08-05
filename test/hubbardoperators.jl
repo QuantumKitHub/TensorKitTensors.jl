@@ -6,12 +6,14 @@ using .TensorKitTensorsTestSetup
 using TensorKitTensors.HubbardOperators
 using StableRNGs
 
-implemented_symmetries = [(Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
-                          (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep)]
+implemented_symmetries = [
+    (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
+    (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
+]
 
 @testset "Compare symmetric with trivial tensors" begin
     for particle_symmetry in [Trivial, U1Irrep, SU2Irrep],
-        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+            spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = hubbard_space(particle_symmetry, spin_symmetry)
@@ -42,7 +44,7 @@ end
 
 @testset "basic properties" begin
     for particle_symmetry in (Trivial, U1Irrep, SU2Irrep),
-        spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
+            spin_symmetry in (Trivial, U1Irrep, SU2Irrep)
 
         space = hubbard_space(particle_symmetry, spin_symmetry)
         @test dim(space) == 4
@@ -69,13 +71,13 @@ end
             # test number operator
             if spin_symmetry !== SU2Irrep
                 @test e_num(particle_symmetry, spin_symmetry) ≈
-                      u_num(particle_symmetry, spin_symmetry) +
-                      d_num(particle_symmetry, spin_symmetry)
+                    u_num(particle_symmetry, spin_symmetry) +
+                    d_num(particle_symmetry, spin_symmetry)
                 @test ud_num(particle_symmetry, spin_symmetry) ≈
-                      u_num(particle_symmetry, spin_symmetry) *
-                      d_num(particle_symmetry, spin_symmetry) ≈
-                      d_num(particle_symmetry, spin_symmetry) *
-                      u_num(particle_symmetry, spin_symmetry)
+                    u_num(particle_symmetry, spin_symmetry) *
+                    d_num(particle_symmetry, spin_symmetry) ≈
+                    d_num(particle_symmetry, spin_symmetry) *
+                    u_num(particle_symmetry, spin_symmetry)
             end
 
             # test singlet operators
@@ -122,9 +124,11 @@ end
                     ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
                     ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
                 end
-                Svec = [S_x(particle_symmetry, spin_symmetry),
-                        S_y(particle_symmetry, spin_symmetry),
-                        S_z(particle_symmetry, spin_symmetry)]
+                Svec = [
+                    S_x(particle_symmetry, spin_symmetry),
+                    S_y(particle_symmetry, spin_symmetry),
+                    S_z(particle_symmetry, spin_symmetry),
+                ]
                 # Hermiticity
                 for s in Svec
                     @test s' ≈ s
@@ -134,15 +138,15 @@ end
                 @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
                 # test S_plus and S_min
                 @test S_plus_S_min(particle_symmetry, spin_symmetry) ≈
-                      S_plus(particle_symmetry, spin_symmetry) ⊗
-                      S_min(particle_symmetry, spin_symmetry)
+                    S_plus(particle_symmetry, spin_symmetry) ⊗
+                    S_min(particle_symmetry, spin_symmetry)
                 @test S_min_S_plus(particle_symmetry, spin_symmetry) ≈
-                      S_min(particle_symmetry, spin_symmetry) ⊗
-                      S_plus(particle_symmetry, spin_symmetry)
+                    S_min(particle_symmetry, spin_symmetry) ⊗
+                    S_plus(particle_symmetry, spin_symmetry)
                 # commutation relations
                 for i in 1:3, j in 1:3
                     @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
-                          sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
+                        sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
                 end
             else
                 @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry)
@@ -170,14 +174,14 @@ function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
     chemical_potential = -mu * e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
-            return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
-        end +
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
+    end +
         sum(1:L) do i
-            return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction))
-        end +
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction))
+    end +
         sum(1:L) do i
-            return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
-        end
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
+    end
     return H
 end
 
@@ -208,7 +212,7 @@ end
 
 @testset "Exact diagonalisation" begin
     for particle_symmetry in [Trivial, U1Irrep, SU2Irrep],
-        spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
+            spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             rng = StableRNG(123)
@@ -221,10 +225,14 @@ end
             H_triv = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
 
             # Values based on https://arxiv.org/pdf/0807.4878. Introduction to Hubbard Model and Exact Diagonalization
-            true_eigenvals = sort(vcat(repeat([-t], 2), [E⁻], repeat([0], 4),
-                                       repeat([t], 2),
-                                       repeat([U - t], 2), [U], [E⁺], repeat([U + t], 2),
-                                       [2 * U]))
+            true_eigenvals = sort(
+                vcat(
+                    repeat([-t], 2), [E⁻], repeat([0], 4),
+                    repeat([t], 2),
+                    repeat([U - t], 2), [U], [E⁺], repeat([U + t], 2),
+                    [2 * U]
+                )
+            )
             eigenvals = expanded_eigenvalues(H_triv; L)
             @test eigenvals ≈ true_eigenvals
         end

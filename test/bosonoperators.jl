@@ -66,9 +66,11 @@ end
     b_pm, b_mp, b_n = rand(rng, 3)
     O_u1 = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
 
-    O_triv = (n(; cutoff) ⊗ id(boson_space(Trivial; cutoff)) +
-              id(boson_space(Trivial; cutoff)) ⊗ n(; cutoff)) * b_n +
-             b⁺b⁻(; cutoff) * b_pm + b⁻b⁺(; cutoff) * b_mp
+    O_triv = (
+        n(; cutoff) ⊗ id(boson_space(Trivial; cutoff)) +
+            id(boson_space(Trivial; cutoff)) ⊗ n(; cutoff)
+    ) * b_n +
+        b⁺b⁻(; cutoff) * b_pm + b⁻b⁺(; cutoff) * b_mp
 
     test_operator(O_u1, O_triv; L)
 end
@@ -87,8 +89,9 @@ end
         b_pm, b_mp, b_n = rand(rng, 3)
         O = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
 
-        true_eigenvals = sort([0, 2 * b_n, b_n + sqrt(b_mp * b_pm),
-                               b_n - sqrt(b_mp * b_pm)])
+        true_eigenvals = sort(
+            [0, 2 * b_n, b_n + sqrt(b_mp * b_pm), b_n - sqrt(b_mp * b_pm)]
+        )
         eigenvals = expanded_eigenvalues(O; L)
         @test eigenvals ≈ true_eigenvals
     end
