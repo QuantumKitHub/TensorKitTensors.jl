@@ -48,6 +48,7 @@ implemented_symmetries = [
 
     O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
     O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
+    test_operator(O, O_triv)
 end
 
 @testset "basic properties" begin
