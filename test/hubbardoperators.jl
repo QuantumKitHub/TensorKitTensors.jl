@@ -9,6 +9,7 @@ using StableRNGs
 implemented_symmetries = [
     (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
     (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
+    (SU2Irrep, SU2Irrep),
 ]
 
 @testset "Compare symmetric with trivial tensors" begin
@@ -17,6 +18,18 @@ implemented_symmetries = [
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
+
+            if particle_symmetry == spin_symmetry == SU2Irrep
+                O = e_hopping(ComplexF64, SU2Irrep, SU2Irrep)
+                O_triv = e_hopping(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv)
+
+                O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
+                O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv)
+            else
+                continue
+            end
 
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
@@ -40,15 +53,6 @@ implemented_symmetries = [
             @test_broken S_exchange(ComplexF64, particle_symmetry, spin_symmetry)
         end
     end
-
-    # special case for SU2Irrep x SU2Irrep
-    O = e_hopping(ComplexF64, SU2Irrep, SU2Irrep)
-    O_triv = e_hopping(ComplexF64, Trivial, Trivial)
-    test_operator(O, O_triv)
-
-    O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
-    O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
-    test_operator(O, O_triv)
 end
 
 @testset "basic properties" begin
@@ -59,6 +63,7 @@ end
         @test dim(space) == 4
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            particle_symmetry == spin_symmetry == SU2Irrep && continue
             # test hopping operator
             epem = e_plus_e_min(particle_symmetry, spin_symmetry)
             emep = e_min_e_plus(particle_symmetry, spin_symmetry)
@@ -254,6 +259,7 @@ end
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            particle_symmetry == spin_symmetry == SU2Irrep && continue
             rng = StableRNG(123)
 
             L = 2
