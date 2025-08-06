@@ -244,8 +244,7 @@ const nꜛꜜ = ud_num
 @doc """
     half_ud_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator that counts the number of singly occupied sites.
-This is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, and respects the particle-hole symmetry.
+Return the the one-body operator that is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, which respects the particle-hole symmetry.
 """
 half_ud_num(P::Type{<:Sector}, S::Type{<:Sector}) = half_ud_num(ComplexF64, P, S)
 function half_ud_num(
