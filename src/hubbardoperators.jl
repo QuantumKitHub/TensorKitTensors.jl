@@ -3,7 +3,7 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export e_num, u_num, d_num, ud_num
+export e_num, u_num, d_num, ud_num, half_ud_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
@@ -56,15 +56,17 @@ function hubbard_space(::Type{U1Irrep}, ::Type{SU2Irrep})
     )
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{Trivial})
-    return Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 2, (1, 1 // 2) => 1)
+    return Vect[FermionParity ⊠ SU2Irrep]((0, 1 // 2) => 1, (1, 0) => 2)
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{U1Irrep})
     return Vect[FermionParity ⊠ SU2Irrep ⊠ U1Irrep](
-        (0, 0, 0) => 1, (1, 1 // 2, 1) => 1, (0, 0, 2) => 1
+        (0, 1 // 2, 0) => 1, (1, 0, -1 // 2) => 1, (1, 0, 1 // 2) => 1
     )
 end
 function hubbard_space(::Type{SU2Irrep}, ::Type{SU2Irrep})
-    return Vect[FermionParity ⊠ SU2Irrep ⊠ SU2Irrep]((1, 1 // 2, 1 // 2) => 1)
+    return Vect[FermionParity ⊠ SU2Irrep ⊠ SU2Irrep](
+        (0, 1 // 2, 0) => 1, (1, 0, 1 // 2) => 1
+    )
 end
 
 # Single-site operators
@@ -238,6 +240,27 @@ function ud_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     return t
 end
 const nꜛꜜ = ud_num
+
+@doc """
+    half_ud_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the the one-body operator that is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, which respects the particle-hole symmetry.
+"""
+half_ud_num(P::Type{<:Sector}, S::Type{<:Sector}) = half_ud_num(ComplexF64, P, S)
+function half_ud_num(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}
+    )
+    I = id(hubbard_space(particle_symmetry, spin_symmetry))
+    return (u_num(elt, particle_symmetry, spin_symmetry) - I / 2) *
+        (d_num(elt, particle_symmetry, spin_symmetry) - I / 2)
+end
+function half_ud_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, SU2Irrep, SU2Irrep)
+    block(t, sectortype(t)(0, 1 // 2, 0)) .= 1 // 4
+    block(t, sectortype(t)(1, 0, 1 // 2)) .= -1 // 4
+    return t
+end
 
 @doc """
     S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -585,6 +608,22 @@ function e_hopping(
     )
     return e_plus_e_min(elt, particle_symmetry, spin_symmetry) -
         e_min_e_plus(elt, particle_symmetry, spin_symmetry)
+end
+function e_hopping(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+    elt <: Complex || throw(DomainError(elt, "SU₂ × SU₂ symmetry requires complex entries"))
+    t = two_site_operator(elt, SU2Irrep, SU2Irrep)
+    I = sectortype(t)
+    even = I(0, 1 // 2, 0)
+    odd = I(1, 0, 1 // 2)
+    f1 = only(fusiontrees((odd, odd), one(I)))
+    f2 = only(fusiontrees((even, even), one(I)))
+    t[f1, f2] .= 2im
+    t[f2, f1] .= -2im
+    f3 = only(fusiontrees((even, odd), I((1, 1 // 2, 1 // 2))))
+    f4 = only(fusiontrees((odd, even), I((1, 1 // 2, 1 // 2))))
+    t[f3, f4] .= im
+    t[f4, f3] .= -im
+    return t
 end
 const e_hop = e_hopping
 
