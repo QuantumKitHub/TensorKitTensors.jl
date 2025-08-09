@@ -19,7 +19,7 @@ using StableRNGs
     # @test ff⁺ ≈ -swap_2sites(f⁺f)
 
     @test f⁻f⁺()' ≈ -f⁺f⁻()
-    @test f⁻f⁻()' ≈ f⁺f⁺()
+    @test f⁻f⁻()' ≈ -f⁺f⁺()
     @test (f⁺f⁻() - f⁻f⁺())' ≈ f⁺f⁻() - f⁻f⁺()
     @test (f⁺f⁻() + f⁻f⁺())' ≈ -(f⁻f⁺() + f⁺f⁻())
 
