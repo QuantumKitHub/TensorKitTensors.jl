@@ -95,7 +95,7 @@ Return the two-body operator that annihilates a particle at the first and at the
 function f_min_f_min(T::Type{<:Number} = ComplexF64)
     t = two_site_operator(T)
     I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= 1
+    t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= -1
     return t
 end
 const f⁻f⁻ = f_min_f_min
