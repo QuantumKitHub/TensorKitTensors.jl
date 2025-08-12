@@ -9,6 +9,7 @@ using StableRNGs
 implemented_symmetries = [
     (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
     (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
+    (SU2Irrep, SU2Irrep),
 ]
 
 @testset "Compare symmetric with trivial tensors" begin
@@ -16,7 +17,18 @@ implemented_symmetries = [
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
-            space = hubbard_space(particle_symmetry, spin_symmetry)
+            space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
+
+            if particle_symmetry == spin_symmetry == SU2Irrep
+                O = e_hopping(ComplexF64, SU2Irrep, SU2Irrep)
+                O_triv = e_hopping(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv)
+
+                O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
+                O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv)
+                continue
+            end
 
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
@@ -50,6 +62,7 @@ end
         @test dim(space) == 4
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            particle_symmetry == spin_symmetry == SU2Irrep && continue
             # test hopping operator
             epem = e_plus_e_min(particle_symmetry, spin_symmetry)
             emep = e_min_e_plus(particle_symmetry, spin_symmetry)
@@ -168,46 +181,77 @@ end
     end
 end
 
-function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
-    hopping = -t * e_hopping(particle_symmetry, spin_symmetry)
-    interaction = U * ud_num(particle_symmetry, spin_symmetry)
-    chemical_potential = -mu * e_num(particle_symmetry, spin_symmetry)
+function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
+    L = length(t) + 1
+    @assert length(t) + 1 == length(U) == length(mu)
+    hopping = e_hopping(particle_symmetry, spin_symmetry)
+    interaction = ud_num(particle_symmetry, spin_symmetry)
+    chemical_potential = e_num(particle_symmetry, spin_symmetry)
     I = id(hubbard_space(particle_symmetry, spin_symmetry))
     H = sum(1:(L - 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping))
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping * -t[i]))
     end +
         sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction))
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction * U[i]))
     end +
         sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential))
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential * -mu[i]))
+    end
+    return H
+end
+function hubbard_hamiltonian(::Type{SU2Irrep}, ::Type{SU2Irrep}; t, U, mu = U ./ 2)
+    L = length(t) + 1
+    @assert length(t) + 1 == length(U) == length(mu)
+    @assert mu ≈ U / 2
+    hopping = e_hopping(SU2Irrep, SU2Irrep)
+    interaction = half_ud_num(SU2Irrep, SU2Irrep)
+    I = id(hubbard_space(SU2Irrep, SU2Irrep))
+    H = sum(1:(L - 1)) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping * -t[i]))
+    end + sum(1:L) do i
+        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction * U[i]))
     end
     return H
 end
 
 @testset "spectrum" begin
     L = 4
-    t = randn()
-    U = randn()
-    mu = randn()
+    t = randn(L - 1)
+    U = randn(L)
+    mu = randn(L)
 
-    H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu, L)
+    H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu)
     vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
         return repeat(real.(v), dim(c))
     end
     sort!(vals_triv)
 
     for (particle_symmetry, spin_symmetry) in implemented_symmetries
-        if (particle_symmetry, spin_symmetry) == (Trivial, Trivial)
+        if particle_symmetry == spin_symmetry == Trivial ||
+                particle_symmetry == spin_symmetry == SU2Irrep
             continue
         end
-        H_symm = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
+        H_symm = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
         vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
             return repeat(real.(v), dim(c))
         end
         sort!(vals_symm)
         @test vals_triv ≈ vals_symm
     end
+
+    mu = U ./ 2
+    H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu)
+    vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
+        return repeat(real.(v), dim(c)) .+ sum(U) / 4
+    end
+    sort!(vals_triv)
+
+    H_symm = hubbard_hamiltonian(SU2Irrep, SU2Irrep; t, U, mu)
+    vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
+        return repeat(real.(v), dim(c))
+    end
+    sort!(vals_symm)
+    @test vals_triv ≈ vals_symm
 end
 
 @testset "Exact diagonalisation" begin
@@ -215,6 +259,7 @@ end
             spin_symmetry in [Trivial, U1Irrep, SU2Irrep]
 
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
+            particle_symmetry == spin_symmetry == SU2Irrep && continue
             rng = StableRNG(123)
 
             L = 2
@@ -222,7 +267,10 @@ end
             mu = 0.0
             E⁻ = U / 2 - sqrt((U / 2)^2 + 4 * t^2)
             E⁺ = U / 2 + sqrt((U / 2)^2 + 4 * t^2)
-            H_triv = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu, L)
+            H_triv = hubbard_hamiltonian(
+                particle_symmetry, spin_symmetry;
+                t = fill(t, L - 1), U = fill(U, L), mu = fill(mu, L)
+            )
 
             # Values based on https://arxiv.org/pdf/0807.4878. Introduction to Hubbard Model and Exact Diagonalization
             true_eigenvals = sort(
