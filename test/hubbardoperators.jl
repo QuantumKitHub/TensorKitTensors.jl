@@ -27,7 +27,6 @@ implemented_symmetries = [
                 O = half_ud_num(ComplexF64, SU2Irrep, SU2Irrep)
                 O_triv = half_ud_num(ComplexF64, Trivial, Trivial)
                 test_operator(O, O_triv)
-            else
                 continue
             end
 
@@ -228,7 +227,8 @@ end
     sort!(vals_triv)
 
     for (particle_symmetry, spin_symmetry) in implemented_symmetries
-        if (particle_symmetry, spin_symmetry) == (Trivial, Trivial)
+        if particle_symmetry == spin_symmetry == Trivial ||
+                particle_symmetry == spin_symmetry == SU2Irrep
             continue
         end
         H_symm = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
