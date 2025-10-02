@@ -255,10 +255,7 @@ end
 
 function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion)
     num = e_num(particle_symmetry, spin_symmetry; slave_fermion)
-    hop_heis = (-t) * (
-        e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
-            e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
-    ) + J * (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) - (1 / 4) * (num ⊗ num))
+    hop_heis = (-t) * e_hopping(particle_symmetry, spin_symmetry; slave_fermion) + J * (S_exchange(particle_symmetry, spin_symmetry; slave_fermion) - (1 / 4) * (num ⊗ num))
     chemical_potential = (-mu) * num
     I = id(tj_space(particle_symmetry, spin_symmetry; slave_fermion))
     H = sum(1:(L - 1)) do i
@@ -316,13 +313,8 @@ end
             if (particle_symmetry, spin_symmetry) in implemented_symmetries
                 t, J = rand(rng, 2)
                 num = e_num(particle_symmetry, spin_symmetry; slave_fermion)
-                H = (-t) *
-                    (
-                    e_plus_e_min(particle_symmetry, spin_symmetry; slave_fermion) -
-                        e_min_e_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                ) +
-                    J *
-                    (
+                H = (-t) * e_hopping(particle_symmetry, spin_symmetry; slave_fermion) +
+                    J * (
                     S_exchange(particle_symmetry, spin_symmetry; slave_fermion) -
                         (1 / 4) * (num ⊗ num)
                 )
