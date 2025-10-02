@@ -136,7 +136,7 @@ for opname in (
         function ($opname)(args...; slave_fermion::Bool = false)
             psymm, ssymm = args[end - 1], args[end]
             if psymm == SU2Irrep
-                error("t-J model doesn't have SU(2) particle symmetry.")
+                throw(ArgumentError("t-J model does not have SU(2) particle symmetry."))
             end
             opHub = Hub.$opname(args...)
             proj = tj_projector(psymm, ssymm)
@@ -190,7 +190,7 @@ for opname in (
         function ($opname)(args...; slave_fermion::Bool = false)
             psymm, ssymm = args[end - 1], args[end]
             if psymm == SU2Irrep
-                error("t-J model doesn't have SU(2) particle symmetry.")
+                throw(ArgumentError("t-J model does not have SU(2) particle symmetry."))
             end
             opHub = Hub.$opname(args...)
             proj = tj_projector(psymm, ssymm)
