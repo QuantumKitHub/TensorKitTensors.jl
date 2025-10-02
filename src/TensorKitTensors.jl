@@ -6,10 +6,13 @@ export FermionOperators
 export TJOperators
 export HubbardOperators
 
+using TensorKit
+
+include("utils.jl")
 include("spinoperators.jl")
 include("bosonoperators.jl")
 include("fermionoperators.jl")
-include("tjoperators.jl")
 include("hubbardoperators.jl")
+include("tjoperators.jl")
 
 end

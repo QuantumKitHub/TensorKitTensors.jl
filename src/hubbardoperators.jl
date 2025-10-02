@@ -72,11 +72,11 @@ end
 # Single-site operators
 # ---------------------
 function single_site_operator(
-        T, particle_symmetry::Type{<:Sector},
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}
     )
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    return zeros(T, V ← V)
+    return zeros(elt, V ← V)
 end
 
 @doc """
@@ -132,8 +132,8 @@ end
 const nꜛ = u_num
 
 @doc """
-    d_num([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
-    nꜜ([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    d_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nꜜ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the one-body operator that counts the number of spin-down particles.
 """ d_num
