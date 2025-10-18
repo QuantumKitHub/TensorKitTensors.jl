@@ -3,7 +3,7 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export e_num, u_num, d_num, ud_num, half_ud_num
+export e_num, u_num, d_num, ud_num, half_ud_num, h_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
@@ -15,7 +15,7 @@ export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
 
-export n, nꜛ, nꜜ, nꜛꜜ
+export n, nꜛ, nꜜ, nꜛꜜ, nʰ
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
 export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
@@ -261,6 +261,17 @@ function half_ud_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
     block(t, sectortype(t)(1, 0, 1 // 2)) .= -1 // 4
     return t
 end
+
+@doc """
+    h_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nʰ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the one-body operator that counts the number of holes, i.e. the number of non-occupied sites.
+""" h_num
+h_num(P::Type{<:Sector}, S::Type{<:Sector}) = h_num(ComplexF64, P, S)
+h_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}) =
+    id(elt, hubbard_space(particle_symmetry, spin_symmetry)) - e_num(elt, particle_symmetry, spin_symmetry)
+const nʰ = h_num
 
 @doc """
     S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})

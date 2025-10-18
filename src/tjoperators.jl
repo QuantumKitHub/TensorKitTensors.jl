@@ -128,7 +128,7 @@ end
 
 for (opname, alias) in zip(
         (
-            :e_num, :u_num, :d_num,
+            :e_num, :u_num, :d_num, :h_num,
             :S_x, :S_y, :S_z, :S_plus, :S_min,
             :u_plus_u_min, :d_plus_d_min, :u_min_u_plus, :d_min_d_plus,
             :u_min_d_min, :d_min_u_min, :u_plus_d_plus, :d_plus_u_plus,
@@ -137,7 +137,7 @@ for (opname, alias) in zip(
             :singlet_plus, :singlet_min,
             :S_plus_S_min, :S_min_S_plus, :S_exchange,
         ), (
-            :n, :nꜛ, :nꜜ,
+            :n, :nꜛ, :nꜜ, :nʰ,
             :Sˣ, :Sʸ, :Sᶻ, :S⁺, :S⁻,
             :u⁺u⁻, :d⁺d⁻, :u⁻u⁺, :d⁻d⁺,
             :u⁻d⁻, :d⁻u⁻, :u⁺d⁺, :d⁺u⁺,
@@ -175,23 +175,5 @@ for (opname, alias) in zip(
         const $alias = $opname
     end
 end
-
-@doc """
-    h_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-    nʰ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false)
-
-Return the one-body operator that counts the number of holes.
-""" h_num
-function h_num(P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool = false)
-    return h_num(ComplexF64, P, S; slave_fermion)
-end
-function h_num(
-        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false
-    )
-    iden = TensorKit.id(elt, tj_space(particle_symmetry, spin_symmetry; slave_fermion))
-    return iden - e_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
-end
-const nʰ = h_num
 
 end
