@@ -3,7 +3,7 @@ module TJOperators
 using LinearAlgebra
 using TensorKit
 using ..HubbardOperators: HubbardOperators, hubbard_space
-import ..TensorKitTensors: _fuse_ids
+import ..TensorKitTensors: fuse_local_operators
 
 export tj_space, tj_projector
 export e_num, u_num, d_num, h_num
@@ -27,69 +27,35 @@ export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁺, singlet⁻
 export S⁻S⁺, S⁺S⁻
 
+export transform_slave_fermion
+
 @doc """
-    tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the local hilbert space for a t-J-type model with the given particle and spin symmetries.
-The possible symmetries are 
-- Particle number: `Trivial`, `U1Irrep`;
-- Spin: `Trivial`, `U1Irrep`, `SU2Irrep`.
+The basis consists of ``|0⟩``, ``|↑⟩ = u⁺|0⟩`` and ``|↓⟩ = d⁺|0⟩``.
 
-Setting `slave_fermion = true` switches to the slave-fermion basis. 
-
-- basis states for `slave_fermion = false`: 
-    |0⟩ = |vac⟩ (vacuum), |↑⟩ = (c↑)†|vac⟩, |↓⟩ = (c↓)†|vac⟩
-- basis states for `slave_fermion = true`: (c_σ = h† b_σ; holon h is fermionic, spinon b_σ is bosonic): 
-    |0⟩ = h†|vac⟩, |↑⟩ = (b↑)†|vac⟩, |↓⟩ = (b↓)†|vac⟩
+The possible symmetries are:
+- Particle number : `Trivial`, `U1Irrep`
+- Spin            : `Trivial`, `U1Irrep`, `SU2Irrep`.
 """ tj_space
-tj_space(::Type{Trivial} = Trivial, ::Type{Trivial} = Trivial; slave_fermion::Bool = false) =
-    Vect[FermionParity](0 ⊻ slave_fermion => 1, 1 ⊻ slave_fermion => 2)
-tj_space(::Type{Trivial}, ::Type{U1Irrep}; slave_fermion::Bool = false) =
-    Vect[FermionParity ⊠ U1Irrep](
-    (0 ⊻ slave_fermion, 0) => 1, (1 ⊻ slave_fermion, 1 // 2) => 1, (1 ⊻ slave_fermion, -1 // 2) => 1
-)
-tj_space(::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool = false) =
-    Vect[FermionParity ⊠ SU2Irrep]((0 ⊻ slave_fermion, 0) => 1, (1 ⊻ slave_fermion, 1 // 2) => 1)
-tj_space(::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool = false) =
-    Vect[FermionParity ⊠ U1Irrep]((0 ⊻ slave_fermion, 0) => 1, (1 ⊻ slave_fermion, 1) => 2)
-tj_space(::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool = false) =
-    Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep](
-    (0 ⊻ slave_fermion, 0, 0) => 1, (1 ⊻ slave_fermion, 1, 1 // 2) => 1, (1 ⊻ slave_fermion, 1, -1 // 2) => 1
-)
-tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool = false) =
-    Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep](
-    (0 ⊻ slave_fermion, 0, 0) => 1, (1 ⊻ slave_fermion, 1, 1 // 2) => 1
-)
-
-@doc """
-    slave_fermion_auxiliary_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-
-Return the auxiliary space to add a fermion-Z2 charge
-to the t-J space and switch to the slave fermion basis.
-""" slave_fermion_auxiliary_space
-function slave_fermion_auxiliary_space(::Type{Trivial}, ::Type{Trivial})
-    return Vect[FermionParity](1 => 1)
-end
-function slave_fermion_auxiliary_space(::Type{Trivial}, ::Type{U1Irrep})
-    return Vect[FermionParity ⊠ U1Irrep]((1, 0) => 1)
-end
-function slave_fermion_auxiliary_space(::Type{Trivial}, ::Type{SU2Irrep})
-    return Vect[FermionParity ⊠ SU2Irrep]((1, 0) => 1)
-end
-function slave_fermion_auxiliary_space(::Type{U1Irrep}, ::Type{Trivial})
-    return Vect[FermionParity ⊠ U1Irrep]((1, 0) => 1)
-end
-function slave_fermion_auxiliary_space(::Type{U1Irrep}, ::Type{U1Irrep})
-    return Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep]((1, 0, 0) => 1)
-end
-function slave_fermion_auxiliary_space(::Type{U1Irrep}, ::Type{SU2Irrep})
-    return Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((1, 0, 0) => 1)
-end
+tj_space(::Type{Trivial} = Trivial, ::Type{Trivial} = Trivial) =
+    Vect[FermionParity](0 => 1, 1 => 2)
+tj_space(::Type{Trivial}, ::Type{U1Irrep}) =
+    Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1 // 2) => 1, (1, -1 // 2) => 1)
+tj_space(::Type{Trivial}, ::Type{SU2Irrep}) =
+    Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 1, (1, 1 // 2) => 1)
+tj_space(::Type{U1Irrep}, ::Type{Trivial}) =
+    Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1) => 2)
+tj_space(::Type{U1Irrep}, ::Type{U1Irrep}) =
+    Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (1, 1, -1 // 2) => 1)
+tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}) =
+    Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1)
 
 """
     tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Projection operator from Hubbard space to t-J space (under usual basis, i.e. `slave_fermion = false`).
+Projection operator from Hubbard space to t-J space.
 The scalartype is `Int` to avoid floating point errors.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -131,8 +97,7 @@ for (opname, alias) in zip(
 
     # apply projector on Hubbard operator
     @eval function $opname(
-            elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
-            slave_fermion::Bool = false
+            elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}
         )
         particle_symmetry == SU2Irrep &&
             throw(ArgumentError("t-J model does not have ``SU(2)`` particle symmetry."))
@@ -140,17 +105,42 @@ for (opname, alias) in zip(
         proj = tj_projector(particle_symmetry, spin_symmetry)
         N = numin(op_H)
         (N > 1) && (proj = reduce(⊗, ntuple(Returns(proj), N)))
-        op_tJ = proj * op_H * proj'
-        slave_fermion || return op_tJ
-
-        Vaux = slave_fermion_auxiliary_space(particle_symmetry, spin_symmetry)
-        return _fuse_ids(op_tJ, ntuple(Returns(Vaux), N))
+        return proj * op_H * proj'
     end
 
     # define alias
     isnothing(alias) || @eval begin
         const $alias = $opname
     end
+end
+
+slave_fermion_auxiliary_charge(::Type{FermionParity}) = FermionParity(1)
+slave_fermion_auxiliary_charge(::Type{ProductSector{T}}) where {T} =
+    mapreduce(⊠, fieldtypes(T)) do I
+    I === FermionParity ? FermionParity(1) : one(I)
+end
+
+"""
+    transform_slave_fermion(O::AbstractTensorMap)
+
+Transform the given operator to the slave-fermion basis. This is a local basis transformation
+that transforms the vacuum in order to map the basis states as follows
+
+| tJ basis | slave-fermion |
+| -------- | ------------- |
+|   |0⟩    |     h⁺|0′⟩    |
+|  u⁺|0⟩   |    bꜛ⁺|0′⟩    |
+|  d⁺|0⟩   |    bꜜ⁺|0′⟩    |
+
+where now the holon operators (``h``) are fermionic, and the spinon operators (``bꜛ, bꜜ``) are bosonic.
+"""
+function transform_slave_fermion(O::AbstractTensorMap)
+    (N = numin(O)) == numout(O) || throw(ArgumentError("not a valid operator"))
+    aux_charge = slave_fermion_auxiliary_charge(sectortype(O))
+    aux_space = spacetype(O)(aux_charge => 1)
+    aux_operator = id(Int, aux_space^N)
+
+    return fuse_local_operators(O, aux_operator)
 end
 
 end
