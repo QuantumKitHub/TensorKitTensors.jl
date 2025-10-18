@@ -95,6 +95,11 @@ for (opname, alias) in zip(
         @doc (@doc HubbardOperators.$opname) $opname
     end
 
+    # default arguments
+    @eval $opname(particle_symmetry::Type{<:Sector} = Trivial, spin_symmetry::Type{<:Sector} = Trivial) =
+        $opname(ComplexF64, particle_symmetry, spin_symmetry)
+    @eval $opname(elt::Type{<:Number}) = $opname(elt, Trivial, Trivial)
+
     # apply projector on Hubbard operator
     @eval function $opname(
             elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}
