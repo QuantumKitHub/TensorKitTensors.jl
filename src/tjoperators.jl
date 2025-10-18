@@ -2,7 +2,7 @@ module TJOperators
 
 using LinearAlgebra
 using TensorKit
-import ..HubbardOperators as Hub
+using ..HubbardOperators: HubbardOperators, hubbard_space
 import ..TensorKitTensors: _fuse_ids
 
 export tj_space, tj_projector
@@ -116,37 +116,63 @@ end
 Projection operator from Hubbard space to t-J space (under usual basis, i.e. `slave_fermion = false`). The scalartype is `Int`.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    Vhub = Hub.hubbard_space(particle_symmetry, spin_symmetry)
+    Vhub = hubbard_space(particle_symmetry, spin_symmetry)
     VtJ = tj_space(particle_symmetry, spin_symmetry)
     proj = zeros(Int, Vhub → VtJ)
+
     for (f1, f2) in fusiontrees(proj)
         proj[f1, f2][diagind(proj[f1, f2])] .= 1
     end
     return proj
 end
 
-# Single-site operators
-for opname in (
-        :e_num, :u_num, :d_num,
-        :S_x, :S_y, :S_z, :S_plus, :S_min,
-        :n, :nꜛ, :nꜜ,
-        :Sˣ, :Sʸ, :Sᶻ, :S⁺, :S⁻,
+for (opname, alias) in zip(
+        (
+            :e_num, :u_num, :d_num,
+            :S_x, :S_y, :S_z, :S_plus, :S_min,
+            :u_plus_u_min, :d_plus_d_min, :u_min_u_plus, :d_min_d_plus,
+            :u_min_d_min, :d_min_u_min, :u_plus_d_plus, :d_plus_u_plus,
+            :u_min_u_min, :d_min_d_min, :u_plus_u_plus, :d_plus_d_plus,
+            :e_plus_e_min, :e_min_e_plus, :e_hopping,
+            :singlet_plus, :singlet_min,
+            :S_plus_S_min, :S_min_S_plus, :S_exchange,
+        ), (
+            :n, :nꜛ, :nꜜ,
+            :Sˣ, :Sʸ, :Sᶻ, :S⁺, :S⁻,
+            :u⁺u⁻, :d⁺d⁻, :u⁻u⁺, :d⁻d⁺,
+            :u⁻d⁻, :d⁻u⁻, :u⁺d⁺, :d⁺u⁺,
+            :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
+            :e⁺e⁻, :e⁻e⁺, :e_hop,
+            :singlet⁺, :singlet⁻,
+            :S⁻S⁺, :S⁺S⁻, nothing,
+        )
     )
+    # copy over the docstrings
     @eval begin
-        function ($opname)(args...; slave_fermion::Bool = false)
-            psymm, ssymm = args[end - 1], args[end]
-            if psymm == SU2Irrep
-                throw(ArgumentError("t-J model does not have SU(2) particle symmetry."))
-            end
-            opHub = Hub.$opname(args...)
-            proj = tj_projector(psymm, ssymm)
-            optJ = proj * opHub * proj'
-            if slave_fermion
-                Vaux = slave_fermion_auxiliary_space(psymm, ssymm)
-                optJ = _fuse_ids(optJ, (Vaux,))
-            end
-            return optJ
-        end
+        @doc (@doc HubbardOperators.$opname) $opname
+    end
+
+    # apply projector on Hubbard operator
+    @eval function $opname(
+            elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+            slave_fermion::Bool = false
+        )
+        particle_symmetry == SU2Irrep &&
+            throw(ArgumentError("t-J model does not have ``SU(2)`` particle symmetry."))
+        op_H = HubbardOperators.$opname(elt, particle_symmetry, spin_symmetry)
+        proj = tj_projector(particle_symmetry, spin_symmetry)
+        N = numin(op_H)
+        (N > 1) && (proj = reduce(⊗, ntuple(Returns(proj), N)))
+        op_tJ = proj * op_H * proj'
+        slave_fermion || return op_tJ
+
+        Vaux = slave_fermion_auxiliary_space(particle_symmetry, spin_symmetry)
+        return _fuse_ids(op_tJ, ntuple(Returns(Vaux), N))
+    end
+
+    # define alias
+    isnothing(alias) || @eval begin
+        const $alias = $opname
     end
 end
 
@@ -167,42 +193,5 @@ function h_num(
     return iden - e_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
 end
 const nʰ = h_num
-
-# Two-site operators
-for opname in (
-        :u_plus_u_min, :d_plus_d_min,
-        :u_min_u_plus, :d_min_d_plus,
-        :u_min_d_min, :d_min_u_min,
-        :u_plus_d_plus, :d_plus_u_plus,
-        :u_min_u_min, :d_min_d_min,
-        :u_plus_u_plus, :d_plus_d_plus,
-        :e_plus_e_min, :e_min_e_plus, :e_hopping,
-        :singlet_plus, :singlet_min,
-        :S_plus_S_min, :S_min_S_plus, :S_exchange,
-        :u⁺u⁻, :d⁺d⁻, :u⁻u⁺, :d⁻d⁺,
-        :u⁻d⁻, :d⁻u⁻, :u⁺d⁺, :d⁺u⁺,
-        :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
-        :e⁺e⁻, :e⁻e⁺, :e_hop,
-        :singlet⁺, :singlet⁻,
-        :S⁻S⁺, :S⁺S⁻,
-    )
-    @eval begin
-        function ($opname)(args...; slave_fermion::Bool = false)
-            psymm, ssymm = args[end - 1], args[end]
-            if psymm == SU2Irrep
-                throw(ArgumentError("t-J model does not have SU(2) particle symmetry."))
-            end
-            opHub = Hub.$opname(args...)
-            proj = tj_projector(psymm, ssymm)
-            proj = proj ⊗ proj
-            optJ = proj * opHub * proj'
-            if slave_fermion
-                Vaux = slave_fermion_auxiliary_space(psymm, ssymm)
-                optJ = _fuse_ids(optJ, (Vaux, Vaux))
-            end
-            return optJ
-        end
-    end
-end
 
 end
