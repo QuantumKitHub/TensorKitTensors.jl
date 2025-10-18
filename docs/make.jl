@@ -20,6 +20,7 @@ makedocs(;
         assets = String[],
     ),
     pages = ["Home" => "index.md", "Operators" => operatorpages],
+    checkdocs = :public
 )
 
 deploydocs(;
