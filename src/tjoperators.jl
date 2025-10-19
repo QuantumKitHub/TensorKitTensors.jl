@@ -92,8 +92,13 @@ for (opname, alias) in zip(
     )
     # copy over the docstrings
     @eval begin
-        hub_doc = (@doc HubbardOperators.$opname).text[1]
-        tJ_doc = replace(hub_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)") * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
+        hub_doc = (@doc HubbardOperators.$opname)
+        tJ_doc = if hub_doc isa Base.Docs.DocStr
+            hub_doc.text[1]
+        else
+            string(hub_doc)
+        end
+        tJ_doc = replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)") * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
         @doc (tJ_doc) $opname
     end
 
