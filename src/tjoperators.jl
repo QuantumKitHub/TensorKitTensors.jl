@@ -30,26 +30,41 @@ export S⁻S⁺, S⁺S⁻
 export transform_slave_fermion
 
 @doc """
-    tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the local hilbert space for a t-J-type model with the given particle and spin symmetries.
 The basis consists of ``|0⟩``, ``|↑⟩ = u⁺|0⟩`` and ``|↓⟩ = d⁺|0⟩``.
+When `slave_fermion` is `true`, the basis consists of ``h⁺|0⟩``, ``bꜛ⁺|0⟩`` and ``bꜜ⁺|0⟩``,
+where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
 
 The possible symmetries are:
 - Particle number : `Trivial`, `U1Irrep`
 - Spin            : `Trivial`, `U1Irrep`, `SU2Irrep`.
 """ tj_space
-tj_space(::Type{Trivial} = Trivial, ::Type{Trivial} = Trivial) =
+function tj_space(
+        particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+        slave_fermion::Bool = false
+    )
+    V = _tj_space(particle_symmetry, spin_symmetry)
+    if slave_fermion
+        charge = slave_fermion_auxiliary_charge(sectortype(V))
+        V_aux = spacetype(V)(charge => 1)
+        V = fuse(V, V_aux)
+    end
+    return V
+end
+
+_tj_space(::Type{Trivial} = Trivial, ::Type{Trivial} = Trivial) =
     Vect[FermionParity](0 => 1, 1 => 2)
-tj_space(::Type{Trivial}, ::Type{U1Irrep}) =
+_tj_space(::Type{Trivial}, ::Type{U1Irrep}) =
     Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1 // 2) => 1, (1, -1 // 2) => 1)
-tj_space(::Type{Trivial}, ::Type{SU2Irrep}) =
+_tj_space(::Type{Trivial}, ::Type{SU2Irrep}) =
     Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 1, (1, 1 // 2) => 1)
-tj_space(::Type{U1Irrep}, ::Type{Trivial}) =
+_tj_space(::Type{U1Irrep}, ::Type{Trivial}) =
     Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1) => 2)
-tj_space(::Type{U1Irrep}, ::Type{U1Irrep}) =
+_tj_space(::Type{U1Irrep}, ::Type{U1Irrep}) =
     Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (1, 1, -1 // 2) => 1)
-tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}) =
+_tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}) =
     Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1)
 
 """
@@ -96,6 +111,7 @@ for (opname, alias) in zip(
         tJ_doc = if hub_doc isa Base.Docs.DocStr
             hub_doc.text[1]
         else
+            # compatibility with Julia 1.10 (hub_doc is a Markdown.MD object)
             string(hub_doc)
         end
         tJ_doc = replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)") * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
