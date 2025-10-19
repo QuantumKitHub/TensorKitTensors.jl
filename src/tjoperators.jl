@@ -2,7 +2,7 @@ module TJOperators
 
 using LinearAlgebra
 using TensorKit
-using ..HubbardOperators: HubbardOperators, hubbard_space
+import ..HubbardOperators
 import ..TensorKitTensors: fuse_local_operators
 
 export tj_space, tj_projector
@@ -59,7 +59,7 @@ Projection operator from Hubbard space to t-J space.
 The scalartype is `Int` to avoid floating point errors.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    Vhub = hubbard_space(particle_symmetry, spin_symmetry)
+    Vhub = HubbardOperators.hubbard_space(particle_symmetry, spin_symmetry)
     VtJ = tj_space(particle_symmetry, spin_symmetry)
     proj = zeros(Int, Vhub → VtJ)
 
@@ -92,17 +92,23 @@ for (opname, alias) in zip(
     )
     # copy over the docstrings
     @eval begin
-        @doc (@doc HubbardOperators.$opname) $opname
+        hub_doc = (@doc HubbardOperators.$opname).text[1]
+        tJ_doc = replace(hub_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)") * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
+        @doc (tJ_doc) $opname
     end
 
     # default arguments
-    @eval $opname(particle_symmetry::Type{<:Sector} = Trivial, spin_symmetry::Type{<:Sector} = Trivial) =
-        $opname(ComplexF64, particle_symmetry, spin_symmetry)
-    @eval $opname(elt::Type{<:Number}) = $opname(elt, Trivial, Trivial)
+    @eval $opname(
+        particle_symmetry::Type{<:Sector} = Trivial, spin_symmetry::Type{<:Sector} = Trivial;
+        slave_fermion::Bool = false
+    ) = $opname(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+    @eval $opname(elt::Type{<:Number}; slave_fermion::Bool = false) =
+        $opname(elt, Trivial, Trivial; slave_fermion)
 
     # apply projector on Hubbard operator
     @eval function $opname(
-            elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}
+            elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+            slave_fermion::Bool = false
         )
         particle_symmetry == SU2Irrep &&
             throw(ArgumentError("t-J model does not have ``SU(2)`` particle symmetry."))
@@ -110,7 +116,11 @@ for (opname, alias) in zip(
         proj = tj_projector(particle_symmetry, spin_symmetry)
         N = numin(op_H)
         (N > 1) && (proj = reduce(⊗, ntuple(Returns(proj), N)))
-        return proj * op_H * proj'
+        op = proj * op_H * proj'
+        if slave_fermion
+            op = transform_slave_fermion(op)
+        end
+        return op
     end
 
     # define alias

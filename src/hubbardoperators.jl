@@ -343,7 +343,7 @@ const Sˣ = S_x
     S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sʸ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` symmetry). 
+Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` symmetry).
 """ S_y
 function S_y(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_y(ComplexF64, P, S)
@@ -363,7 +363,7 @@ const Sʸ = S_y
     S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sᶻ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 z-operator on the electrons. 
+Return the one-body spin-1/2 z-operator on the electrons.
 """ S_z
 function S_z(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_z(ComplexF64, P, S)
@@ -611,7 +611,7 @@ const e⁻e⁺ = e_min_e_plus
     e_hop([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
-""" e_hop
+""" e_hopping
 e_hopping(P::Type{<:Sector}, S::Type{<:Sector}) = e_hopping(ComplexF64, P, S)
 function e_hopping(
         elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
