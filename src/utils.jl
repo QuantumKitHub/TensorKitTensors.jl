@@ -14,7 +14,7 @@ function fuse_local_operators(O₁::AbstractTensorMap, O₂::AbstractTensorMap)
         Vᵢ = space(O₁, i)
         Wᵢ = space(O₂, i)
         VWᵢ = fuse(Vᵢ, Wᵢ)
-        return isomorphism(VWᵢ ← Vᵢ ⊗ Wᵢ)
+        return isomorphism(Int, VWᵢ ← Vᵢ ⊗ Wᵢ)
     end
 
     O₁₂ = permute(
