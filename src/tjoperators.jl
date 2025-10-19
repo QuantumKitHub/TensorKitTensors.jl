@@ -159,16 +159,15 @@ end
 """
     transform_slave_fermion(O::AbstractTensorMap)
 
-Transform the given operator to the slave-fermion basis. This is a local basis transformation
-that transforms the vacuum in order to map the basis states as follows
+Transform the given operator to the slave-fermion basis, which is related to the usual t-J basis by
 
 | tJ basis | slave-fermion |
 | -------- | ------------- |
-|   |0⟩    |     h⁺|0′⟩    |
-|  u⁺|0⟩   |    bꜛ⁺|0′⟩    |
-|  d⁺|0⟩   |    bꜜ⁺|0′⟩    |
+|   |0⟩    |      h⁺|0⟩    |
+|  u⁺|0⟩   |     bꜛ⁺|0⟩    |
+|  d⁺|0⟩   |     bꜜ⁺|0⟩    |
 
-where now the holon operators (``h``) are fermionic, and the spinon operators (``bꜛ, bꜜ``) are bosonic.
+where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
 """
 function transform_slave_fermion(O::AbstractTensorMap)
     (N = numin(O)) == numout(O) || throw(ArgumentError("not a valid operator"))
