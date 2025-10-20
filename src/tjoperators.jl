@@ -45,27 +45,32 @@ function tj_space(
         particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
         slave_fermion::Bool = false
     )
-    V = _tj_space(particle_symmetry, spin_symmetry)
-    if slave_fermion
-        charge = slave_fermion_auxiliary_charge(sectortype(V))
-        V_aux = spacetype(V)(charge => 1)
-        V = fuse(V, V_aux)
+    V = if particle_symmetry === Trivial
+        if spin_symmetry === Trivial
+            Vect[FermionParity](0 => 1, 1 => 2)
+        elseif spin_symmetry === U1Irrep
+            Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1 // 2) => 1, (1, -1 // 2) => 1)
+        elseif spin_symmetry === SU2Irrep
+            Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 1, (1, 1 // 2) => 1)
+        else
+            throw(ArgumentError("Invalid symmetry"))
+        end
+    elseif particle_symmetry === U1Irrep
+        if spin_symmetry === Trivial
+            Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1) => 2)
+        elseif spin_symmetry === U1Irrep
+            Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (1, 1, -1 // 2) => 1)
+        elseif spin_symmetry === SU2Irrep
+            Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1)
+        else
+            throw(ArgumentError("Invalid symmetry"))
+        end
+    else
+        throw(ArgumentError("Invalid symmetry"))
     end
-    return V
-end
 
-_tj_space(::Type{Trivial} = Trivial, ::Type{Trivial} = Trivial) =
-    Vect[FermionParity](0 => 1, 1 => 2)
-_tj_space(::Type{Trivial}, ::Type{U1Irrep}) =
-    Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1 // 2) => 1, (1, -1 // 2) => 1)
-_tj_space(::Type{Trivial}, ::Type{SU2Irrep}) =
-    Vect[FermionParity ⊠ SU2Irrep]((0, 0) => 1, (1, 1 // 2) => 1)
-_tj_space(::Type{U1Irrep}, ::Type{Trivial}) =
-    Vect[FermionParity ⊠ U1Irrep]((0, 0) => 1, (1, 1) => 2)
-_tj_space(::Type{U1Irrep}, ::Type{U1Irrep}) =
-    Vect[FermionParity ⊠ U1Irrep ⊠ U1Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1, (1, 1, -1 // 2) => 1)
-_tj_space(::Type{U1Irrep}, ::Type{SU2Irrep}) =
-    Vect[FermionParity ⊠ U1Irrep ⊠ SU2Irrep]((0, 0, 0) => 1, (1, 1, 1 // 2) => 1)
+    return slave_fermion ? transform_slave_fermion(V) : V
+end
 
 """
     tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -138,10 +143,7 @@ for (opname, alias) in zip(
         N = numin(op_H)
         (N > 1) && (proj = reduce(⊗, ntuple(Returns(proj), N)))
         op = proj * op_H * proj'
-        if slave_fermion
-            op = transform_slave_fermion(op)
-        end
-        return op
+        return slave_fermion ? transform_slave_fermion(op) : op
     end
 
     # define alias
@@ -156,8 +158,9 @@ slave_fermion_auxiliary_charge(::Type{ProductSector{T}}) where {T} =
     I === FermionParity ? FermionParity(1) : one(I)
 end
 
-"""
+@doc """
     transform_slave_fermion(O::AbstractTensorMap)
+    transform_slave_fermion(V::ElementarySpace)
 
 Transform the given operator to the slave-fermion basis, which is related to the usual t-J basis by
 
@@ -168,7 +171,7 @@ Transform the given operator to the slave-fermion basis, which is related to the
 |  d⁺|0⟩   |     bꜜ⁺|0⟩    |
 
 where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
-"""
+""" transform_slave_fermion
 function transform_slave_fermion(O::AbstractTensorMap)
     (N = numin(O)) == numout(O) || throw(ArgumentError("not a valid operator"))
     aux_charge = slave_fermion_auxiliary_charge(sectortype(O))
@@ -176,6 +179,11 @@ function transform_slave_fermion(O::AbstractTensorMap)
     aux_operator = id(Int, aux_space^N)
 
     return fuse_local_operators(O, aux_operator)
+end
+function transform_slave_fermion(V::ElementarySpace)
+    charge = slave_fermion_auxiliary_charge(sectortype(V))
+    V_aux = spacetype(V)(charge => 1)
+    return fuse(V, V_aux)
 end
 
 end
