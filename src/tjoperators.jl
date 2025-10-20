@@ -30,11 +30,11 @@ export S⁻S⁺, S⁺S⁻
 export transform_slave_fermion
 
 const _docs_basis_table = """
-| label | tJ basis | slave-fermion |
-| ----- | -------- | ------------- |
-|  |0⟩  |   |0⟩    |     h⁺|0′⟩    |
-|  |↑⟩  |  u⁺|0⟩   |    bꜛ⁺|0′⟩    |
-|  |↓⟩  |  d⁺|0⟩   |    bꜜ⁺|0′⟩    |
+| tJ basis | slave-fermion |
+| -------- | ------------- |
+|   |0⟩    |      h⁺|0⟩    |
+|  u⁺|0⟩   |     bꜛ⁺|0⟩    |
+|  d⁺|0⟩   |     bꜜ⁺|0⟩    |
 """
 
 @doc """
