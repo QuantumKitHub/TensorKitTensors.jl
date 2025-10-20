@@ -29,13 +29,24 @@ export S⁻S⁺, S⁺S⁻
 
 export transform_slave_fermion
 
+const _docs_basis_table = """
+| label | tJ basis | slave-fermion |
+| ----- | -------- | ------------- |
+|  |0⟩  |   |0⟩    |     h⁺|0′⟩    |
+|  |↑⟩  |  u⁺|0⟩   |    bꜛ⁺|0′⟩    |
+|  |↓⟩  |  d⁺|0⟩   |    bꜜ⁺|0′⟩    |
+"""
+
 @doc """
     tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the local hilbert space for a t-J-type model with the given particle and spin symmetries.
-The basis consists of ``|0⟩``, ``|↑⟩ = u⁺|0⟩`` and ``|↓⟩ = d⁺|0⟩``.
-When `slave_fermion` is `true`, the basis consists of ``h⁺|0⟩``, ``bꜛ⁺|0⟩`` and ``bꜜ⁺|0⟩``,
-where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+The basis consists of the following vectors:
+
+$_docs_basis_table
+
+where `u⁺` and `d⁺` denote fermionic spin-up and spin-down creation operators, or when `slave_fermion = true`,
+``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
 
 The possible symmetries are:
 - Particle number : `Trivial`, `U1Irrep`
@@ -164,11 +175,7 @@ end
 
 Transform the given operator to the slave-fermion basis, which is related to the usual t-J basis by
 
-| tJ basis | slave-fermion |
-| -------- | ------------- |
-|   |0⟩    |      h⁺|0⟩    |
-|  u⁺|0⟩   |     bꜛ⁺|0⟩    |
-|  d⁺|0⟩   |     bꜜ⁺|0⟩    |
+$_docs_basis_table
 
 where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
 """ transform_slave_fermion
