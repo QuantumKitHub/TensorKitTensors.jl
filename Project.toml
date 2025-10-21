@@ -1,7 +1,7 @@
 name = "TensorKitTensors"
 uuid = "41b62e7d-e9d1-4e23-942c-79a97adf954b"
 authors = ["QuantumKitHub"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

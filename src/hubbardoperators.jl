@@ -3,7 +3,7 @@ module HubbardOperators
 using TensorKit
 
 export hubbard_space
-export e_num, u_num, d_num, ud_num, half_ud_num
+export e_num, u_num, d_num, ud_num, half_ud_num, h_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
 export u_min_u_plus, d_min_d_plus
@@ -15,7 +15,7 @@ export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
 
-export n, nꜛ, nꜜ, nꜛꜜ
+export n, nꜛ, nꜜ, nꜛꜜ, nʰ
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
 export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
 export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
@@ -72,11 +72,11 @@ end
 # Single-site operators
 # ---------------------
 function single_site_operator(
-        T, particle_symmetry::Type{<:Sector},
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}
     )
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    return zeros(T, V ← V)
+    return zeros(elt, V ← V)
 end
 
 @doc """
@@ -132,8 +132,8 @@ end
 const nꜛ = u_num
 
 @doc """
-    d_num([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
-    nꜜ([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    d_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nꜜ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the one-body operator that counts the number of spin-down particles.
 """ d_num
@@ -263,6 +263,17 @@ function half_ud_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
 end
 
 @doc """
+    h_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nʰ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the one-body operator that counts the number of holes, i.e. the number of non-occupied sites.
+""" h_num
+h_num(P::Type{<:Sector}, S::Type{<:Sector}) = h_num(ComplexF64, P, S)
+h_num(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}) =
+    id(elt, hubbard_space(particle_symmetry, spin_symmetry)) - e_num(elt, particle_symmetry, spin_symmetry)
+const nʰ = h_num
+
+@doc """
     S_plus(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     S⁺(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
@@ -312,7 +323,7 @@ const S⁻ = S_min
     S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry). .
+Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry).
 """ S_x
 function S_x(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_x(ComplexF64, P, S)
@@ -332,7 +343,7 @@ const Sˣ = S_x
     S_y(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sʸ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` symmetry). 
+Return the one-body spin-1/2 y-operator on the electrons (only defined for `Trivial` symmetry).
 """ S_y
 function S_y(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_y(ComplexF64, P, S)
@@ -352,7 +363,7 @@ const Sʸ = S_y
     S_z(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sᶻ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 z-operator on the electrons. 
+Return the one-body spin-1/2 z-operator on the electrons.
 """ S_z
 function S_z(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_z(ComplexF64, P, S)
@@ -600,7 +611,7 @@ const e⁻e⁺ = e_min_e_plus
     e_hop([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
-""" e_hop
+""" e_hopping
 e_hopping(P::Type{<:Sector}, S::Type{<:Sector}) = e_hopping(ComplexF64, P, S)
 function e_hopping(
         elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
