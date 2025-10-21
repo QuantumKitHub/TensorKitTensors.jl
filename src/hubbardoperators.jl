@@ -323,7 +323,7 @@ const S⁻ = S_min
     S_x(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Sˣ(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry). .
+Return the one-body spin-1/2 x-operator on the electrons (only defined for `Trivial` symmetry).
 """ S_x
 function S_x(P::Type{<:Sector} = Trivial, S::Type{<:Sector} = Trivial)
     return S_x(ComplexF64, P, S)

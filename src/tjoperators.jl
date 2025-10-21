@@ -30,23 +30,26 @@ export S⁻S⁺, S⁺S⁻
 export transform_slave_fermion
 
 const _docs_basis_table = """
-| tJ basis | slave-fermion |
-| -------- | ------------- |
-|   |0⟩    |      h⁺|0⟩    |
-|  u⁺|0⟩   |     bꜛ⁺|0⟩    |
-|  d⁺|0⟩   |     bꜜ⁺|0⟩    |
+```
+| label | tJ basis | slave-fermion |
+| ----- | -------- | ------------- |
+|  |0⟩  |   |∅⟩    |      h⁺|∅⟩    |
+|  |↑⟩  |  u⁺|∅⟩   |     bꜛ⁺|∅⟩    |
+|  |↓⟩  |  d⁺|∅⟩   |     bꜜ⁺|∅⟩    |
+```
 """
 
 @doc """
     tj_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Return the local hilbert space for a t-J-type model with the given particle and spin symmetries.
-The basis consists of the following vectors:
+The basis consists of the following states:
 
 $_docs_basis_table
 
-where `u⁺` and `d⁺` denote fermionic spin-up and spin-down creation operators, or when `slave_fermion = true`,
-``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+- `|∅⟩` is the vacuum state;
+- `u` and `d` denote fermionic spin-up and spin-down operators;
+- in the slave-fermion representation, ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
 
 The possible symmetries are:
 - Particle number : `Trivial`, `U1Irrep`
@@ -130,7 +133,12 @@ for (opname, alias) in zip(
             # compatibility with Julia 1.10 (hub_doc is a Markdown.MD object)
             string(hub_doc)
         end
-        tJ_doc = replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)") * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
+        tJ_doc = if occursin("[spin_symmetry::Type{<:Sector}])", tJ_doc)
+            replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)")
+        else
+            replace(tJ_doc, "spin_symmetry::Type{<:Sector})" => "spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)")
+        end
+        tJ_doc = tJ_doc * "Use `slave_fermion = true` to switch to the slave-fermion basis.\n"
         @doc (tJ_doc) $opname
     end
 
