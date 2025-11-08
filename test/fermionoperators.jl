@@ -10,7 +10,9 @@ using StableRNGs
 # {fᵢ†, fⱼ†} = 0 = {fᵢ, fⱼ}
 # {fᵢ, fⱼ†} = δᵢⱼ
 
-@testset "simple fermions" begin
+const symmetries = (Trivial, U1Irrep)
+
+@testset "fermion properties" begin
     @test f⁻f⁻() ≈ -swap_2sites(f⁻f⁻())
     @test f⁺f⁺() ≈ -swap_2sites(f⁺f⁺())
 
@@ -18,15 +20,20 @@ using StableRNGs
     # I don't think I can get all of these to hold simultaneously?
     # @test ff⁺ ≈ -swap_2sites(f⁺f)
 
-    @test f⁻f⁺()' ≈ -f⁺f⁻()
     @test f⁻f⁻()' ≈ -f⁺f⁺()
-    @test (f⁺f⁻() - f⁻f⁺())' ≈ f⁺f⁻() - f⁻f⁺()
-    @test (f⁺f⁻() + f⁻f⁺())' ≈ -(f⁻f⁺() + f⁺f⁻())
+    for sym in symmetries
+        @test f⁻f⁺(sym)' ≈ -f⁺f⁻(sym)
+        @test (f⁺f⁻(sym) - f⁻f⁺(sym))' ≈ f⁺f⁻(sym) - f⁻f⁺(sym)
+        @test (f⁺f⁻(sym) + f⁻f⁺(sym))' ≈ -(f⁻f⁺(sym) + f⁺f⁻(sym))
 
-    @plansor f_number[-1; -2] := f⁺f⁻()[-1 1; 3 2] * τ[3 2; -2 1]
-    @test f_number ≈ f_num()
+        @plansor f_number[-1; -2] := f⁺f⁻(sym)[-1 1; 3 2] * τ[3 2; -2 1]
+        @test f_number ≈ f_num(sym)
 
-    @test f_hop() ≈ f_plus_f_min() - f_min_f_plus()
+        @test f_hop(sym) ≈ f_plus_f_min(sym) - f_min_f_plus(sym)
+    end
+
+    @test_throws ArgumentError f⁻f⁻(U1Irrep)
+    @test_throws ArgumentError f⁺f⁺(U1Irrep)
 end
 
 @testset "Exact Diagonalization" begin
@@ -34,14 +41,15 @@ end
 
     L = 2
     t, V, mu = rand(rng, 3)
-    pspace = fermion_space()
-
-    H = -t * (f⁺f⁻() - f⁻f⁺()) +
-        V * ((n() - 0.5 * id(pspace)) ⊗ (n() - 0.5 * id(pspace))) -
-        0.5 * mu * (n() ⊗ id(pspace) + id(pspace) ⊗ n())
-
     # Values based on https://arxiv.org/abs/1610.05003v1. Half-Chain Entanglement Entropy in the One-Dimensional Spinless Fermion Model
     true_eigenvals = sort([V / 4, V / 4 - mu, -V / 4 - mu / 2 + t, -V / 4 - mu / 2 - t])
-    eigenvals = expanded_eigenvalues(H; L)
-    @test eigenvals ≈ true_eigenvals
+
+    for sym in symmetries
+        pspace = fermion_space(sym)
+        H = -t * (f⁺f⁻(sym) - f⁻f⁺(sym)) +
+            V * ((n(sym) - 0.5 * id(pspace)) ⊗ (n(sym) - 0.5 * id(pspace))) -
+            0.5 * mu * (n(sym) ⊗ id(pspace) + id(pspace) ⊗ n(sym))
+        eigenvals = expanded_eigenvalues(H; L)
+        @test eigenvals ≈ true_eigenvals
+    end
 end
