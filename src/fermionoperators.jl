@@ -116,6 +116,7 @@ function f_plus_f_plus(elt::Type{<:Number}, symmetry::Type{<:Sector})
     end
 end
 f_plus_f_plus(elt::Type{<:Number}) = f_plus_f_plus(elt, Trivial)
+f_plus_f_plus(sym::Type{<:Sector}) = f_plus_f_plus(ComplexF64, sym)
 f_plus_f_plus() = f_plus_f_plus(ComplexF64, Trivial)
 const f⁺f⁺ = f_plus_f_plus
 
@@ -136,6 +137,7 @@ function f_min_f_min(elt::Type{<:Number}, symmetry::Type{<:Sector})
     end
 end
 f_min_f_min(elt::Type{<:Number}) = f_min_f_min(elt, Trivial)
+f_min_f_min(sym::Type{<:Sector}) = f_min_f_min(ComplexF64, sym)
 f_min_f_min() = f_min_f_min(ComplexF64, Trivial)
 const f⁻f⁻ = f_min_f_min
 
