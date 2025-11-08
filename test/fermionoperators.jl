@@ -32,8 +32,8 @@ const symmetries = (Trivial, U1Irrep)
         @test f_hop(sym) ≈ f_plus_f_min(sym) - f_min_f_plus(sym)
     end
 
-    @test_broken f⁻f⁻(U1Irrep)
-    @test_broken f⁺f⁺(U1Irrep)
+    @test_throws ArgumentError f⁻f⁻(U1Irrep)
+    @test_throws ArgumentError f⁺f⁺(U1Irrep)
 end
 
 @testset "Exact Diagonalization" begin
