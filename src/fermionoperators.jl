@@ -100,31 +100,43 @@ f_min_f_plus(sym::Type{<:Sector}) = f_min_f_plus(ComplexF64, sym)
 const f⁻f⁺ = f_min_f_plus
 
 @doc """
-    f_plus_f_plus([elt::Type{<:Number}=ComplexF64])
-    f⁺f⁺([elt::Type{<:Number}=ComplexF64])
+    f_plus_f_plus([elt::Type{<:Number}=ComplexF64], [symmetry::Type{<:Sector}=Trivial])
+    f⁺f⁺([elt::Type{<:Number}=ComplexF64], [symmetry::Type{<:Sector}=Trivial])
 
-Return the two-body operator that creates a particle at the first and at the second site.
+Return the two-body operator that creates a particle at the first and at the second site. It only has `Trivial` symmetry.
 """ f_plus_f_plus
-function f_plus_f_plus(T::Type{<:Number} = ComplexF64)
-    t = two_site_operator(T)
-    I = sectortype(t)
-    t[(I(1), I(1), dual(I(0)), dual(I(0)))] .= 1
-    return t
+function f_plus_f_plus(elt::Type{<:Number}, symmetry::Type{<:Sector})
+    if symmetry == Trivial
+        t = two_site_operator(elt)
+        I = sectortype(t)
+        t[(I(1), I(1), dual(I(0)), dual(I(0)))] .= 1
+        return t
+    else
+        throw(ArgumentError("invalid symmetry `$symmetry`"))
+    end
 end
+f_plus_f_plus(elt::Type{<:Number}) = f_plus_f_plus(elt, Trivial)
+f_plus_f_plus() = f_plus_f_plus(ComplexF64, Trivial)
 const f⁺f⁺ = f_plus_f_plus
 
 @doc """
-    f_min_f_min([elt::Type{<:Number}=ComplexF64])
-    f⁻f⁻([elt::Type{<:Number}=ComplexF64])
+    f_min_f_min([elt::Type{<:Number}=ComplexF64], [symmetry::Type{<:Sector}=Trivial])
+    f⁻f⁻([elt::Type{<:Number}=ComplexF64], [symmetry::Type{<:Sector}=Trivial])
 
-Return the two-body operator that annihilates a particle at the first and at the second site.
+Return the two-body operator that annihilates a particle at the first and at the second site. It only has `Trivial` symmetry.
 """ f_min_f_min
-function f_min_f_min(T::Type{<:Number} = ComplexF64)
-    t = two_site_operator(T)
-    I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= -1
-    return t
+function f_min_f_min(elt::Type{<:Number}, symmetry::Type{<:Sector})
+    if symmetry == Trivial
+        t = two_site_operator(elt)
+        I = sectortype(t)
+        t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= -1
+        return t
+    else
+        throw(ArgumentError("invalid symmetry `$symmetry`"))
+    end
 end
+f_min_f_min(elt::Type{<:Number}) = f_min_f_min(elt, Trivial)
+f_min_f_min() = f_min_f_min(ComplexF64, Trivial)
 const f⁻f⁻ = f_min_f_min
 
 @doc """
