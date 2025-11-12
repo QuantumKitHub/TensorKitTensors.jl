@@ -23,5 +23,22 @@ function SUNHubbardOperators.hubbard_space(::Type{U1Irrep}, ::Type{SUNIrrep{3}};
     )
 end
 
+function SUNHubbardOperators.e_num(::Type{T}, ::Type{Trivial}, ::Type{SUNIrrep{3}}; kwargs...) where {T <: Number}
+    t = SUNHubbardOperators.single_site_operator(T, Trivial, SU3Irrep; kwargs...)
+    I = sectortype(t)
+    for (i, c) in enumerate(((0, (0, 0, 0)), (1, (1, 0, 0)), (0, (1, 1, 0)), (1, (0, 0, 0))))
+        block(t, I(c)) .= i - 1
+    end
+    return t
+end
+function SUNHubbardOperators.e_num(::Type{T}, ::Type{U1Irrep}, ::Type{SUNIrrep{3}}; kwargs...) where {T <: Number}
+    t = SUNHubbardOperators.single_site_operator(T, U1Irrep, SU3Irrep; kwargs...)
+    I = sectortype(t)
+    for c in ((0, (0, 0, 0)), (1, (1, 0, 0)), (2, (1, 1, 0)), (3, (0, 0, 0)))
+        block(t, I(c)) .= c[1]
+    end
+    return t
+end
+
 
 end

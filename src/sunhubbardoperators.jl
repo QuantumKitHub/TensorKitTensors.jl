@@ -11,6 +11,10 @@ module SUNHubbardOperators
 using TensorKit
 
 export hubbard_space
+export e_num
+
+export n
+
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; N::Integer = 3)
 
@@ -39,4 +43,49 @@ function hubbard_space(::Type{PS} = Trivial, ::Type{SS} = Trivial; N::Integer = 
     error(lazy"combination of particle symmetry ($PS) and spin symmetry ($SS) not supported or not implemented for N = $N")
 end
 
+
+# Single-site operators
+# ---------------------
+function single_site_operator(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+        kwargs...
+    )
+    V = hubbard_space(particle_symmetry, spin_symmetry; kwargs...)
+    return zeros(elt, V ← V)
 end
+
+
+@doc """
+    e_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    n([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the one-body operator that counts the number of particles.
+
+```math
+N = ∑_{α < β} n_α n_β
+```
+""" e_num
+e_num(P::Type{<:Sector}, S::Type{<:Sector}) = e_num(ComplexF64, P, S)
+function e_num(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}
+    )
+    return u_num(elt, particle_symmetry, spin_symmetry) +
+        d_num(elt, particle_symmetry, spin_symmetry)
+end
+function e_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, Trivial, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(1, 1 // 2))[1, 1] = 1
+    block(t, I(0, 0))[2, 2] = 2
+    return t
+end
+function e_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, U1Irrep, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(1, 1, 1 // 2)) .= 1
+    block(t, I(0, 2, 0)) .= 2
+    return t
+end
+const n = e_num
+
