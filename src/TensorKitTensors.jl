@@ -13,6 +13,7 @@ include("spinoperators.jl")
 include("bosonoperators.jl")
 include("fermionoperators.jl")
 include("hubbardoperators.jl")
+include("sunhubbardoperators.jl")
 include("tjoperators.jl")
 
 end
