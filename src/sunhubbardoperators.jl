@@ -12,8 +12,10 @@ using TensorKit
 
 export hubbard_space
 export e_num
+export e_plus_e_min, e_min_e_plus, e_hopping
 
 export n
+export e⁺e⁻, e⁻e⁺, e_hop
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; N::Integer = 3)
@@ -89,3 +91,58 @@ function e_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
 end
 const n = e_num
 
+# Two site operators
+# ------------------
+function two_site_operator(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+        kwargs...
+    )
+    V = hubbard_space(particle_symmetry, spin_symmetry; kwargs...)
+    return zeros(elt, V ⊗ V ← V ⊗ V)
+end
+
+@doc """
+    e_plus_e_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    e⁺e⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
+""" e_plus_e_min
+
+e_plus_e_min(P::Type{<:Sector}, S::Type{<:Sector}; kwargs...) = e_plus_e_min(ComplexF64, P, S; kwargs...)
+
+const e⁺e⁻ = e_plus_e_min
+
+@doc """
+    e_min_e_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    e⁻e⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
+This is the sum of `u_min_u_plus` and `d_min_d_plus`.
+""" e_min_e_plus
+e_min_e_plus(P::Type{<:Sector}, S::Type{<:Sector}; kwargs...) = e_min_e_plus(ComplexF64, P, S; kwargs...)
+function e_min_e_plus(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}; kwargs...
+    )
+    return -copy(adjoint(e_plus_e_min(elt, particle_symmetry, spin_symmetry; kwargs...)))
+end
+const e⁻e⁺ = e_min_e_plus
+
+@doc """
+    e_hopping([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    e_hop([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the two-body operator that describes a particle that hops between the first and the second site.
+""" e_hopping
+e_hopping(P::Type{<:Sector}, S::Type{<:Sector}; kwargs...) = e_hopping(ComplexF64, P, S; kwargs...)
+function e_hopping(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
+        kwargs...
+    )
+    return e_plus_e_min(elt, particle_symmetry, spin_symmetry; kwargs...) -
+        e_min_e_plus(elt, particle_symmetry, spin_symmetry; kwargs...)
+end
+
+const e_hop = e_hopping
+
+end
