@@ -5,6 +5,7 @@ export BosonOperators
 export FermionOperators
 export TJOperators
 export HubbardOperators
+export SUNHubbardOperators
 
 using TensorKit
 
