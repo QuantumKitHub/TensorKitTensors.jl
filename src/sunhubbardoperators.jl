@@ -124,6 +124,7 @@ function e_double(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     block(t, I(0, 2, 0)) .= 1
     return t
 end
+const nn = e_double
 
 # Two site operators
 # ------------------
