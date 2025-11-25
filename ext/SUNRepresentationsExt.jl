@@ -28,20 +28,38 @@ end
 function SUNHubbardOperators.e_num(::Type{T}, ::Type{Trivial}, ::Type{SUNIrrep{3}}; kwargs...) where {T <: Number}
     t = SUNHubbardOperators.single_site_operator(T, Trivial, SU3Irrep; kwargs...)
     I = sectortype(t)
-    for (i, c) in enumerate(((0, (0, 0, 0)), (1, (1, 0, 0)), (0, (1, 1, 0)), (1, (0, 0, 0))))
-        block(t, I(c)) .= i - 1
-    end
+    block(t, I((0, (0, 0, 0)))) .= 0
+    block(t, I((1, (1, 0, 0)))) .= 1
+    block(t, I((0, (1, 1, 0)))) .= 2
+    block(t, I((1, (0, 0, 0)))) .= 3
     return t
 end
 function SUNHubbardOperators.e_num(::Type{T}, ::Type{U1Irrep}, ::Type{SUNIrrep{3}}; kwargs...) where {T <: Number}
     t = SUNHubbardOperators.single_site_operator(T, U1Irrep, SU3Irrep; kwargs...)
-    I = sectortype(t)
-    for c in ((0, (0, 0, 0)), (1, (1, 0, 0)), (2, (1, 1, 0)), (3, (0, 0, 0)))
-        block(t, I(c)) .= c[1]
+    for (c, b) in blocks(t)
+        b .= c[2].charge
     end
     return t
 end
 
+function SUNHubbardOperators.e_double(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SUNIrrep{3}}; kwargs...)
+    t = SUNHubbardOperators.single_site_operator(elt, Trivial, SUNIrrep{3}; kwargs...)
+    I = sectortype(t)
+    block(t, I((0, (0, 0, 0)))) .= 0
+    block(t, I((1, (1, 0, 0)))) .= 0
+    block(t, I((0, (1, 1, 0)))) .= 1
+    block(t, I((1, (0, 0, 0)))) .= 3
+    return t
+end
+function SUNHubbardOperators.e_double(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SUNIrrep{3}}; kwargs...)
+    t = SUNHubbardOperators.single_site_operator(elt, U1Irrep, SUNIrrep{3}; kwargs...)
+    I = sectortype(t)
+    block(t, I((0, 0, (0, 0, 0)))) .= 0
+    block(t, I((1, 1, (1, 0, 0)))) .= 0
+    block(t, I((0, 2, (1, 1, 0)))) .= 1
+    block(t, I((1, 3, (0, 0, 0)))) .= 3
+    return t
+end
 
 # Two site operators
 # ------------------

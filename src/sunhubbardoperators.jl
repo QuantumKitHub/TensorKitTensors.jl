@@ -1,20 +1,22 @@
 """
     module SUNHubbardOperators
 
-Module for the ``SU(N)`` generalizations of the [`HubbardOperators`](@ref) operators.
+Module for the ``SU(N)`` generalizations of the [`HubbardOperators`](@ref hubbard_operators)
+operators.
 
 !!! note
     This module requires `using SUNRepresentations` in order to define the `SUNIrrep`-symmetric tensors.
+
 """
 module SUNHubbardOperators
 
 using TensorKit
 
 export hubbard_space
-export e_num
+export e_num, e_double
 export e_plus_e_min, e_min_e_plus, e_hopping
 
-export n
+export n, nn
 export e⁺e⁻, e⁻e⁺, e_hop
 
 """
@@ -61,10 +63,11 @@ end
     e_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     n([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator that counts the number of particles.
+Return the one-body operator that counts the number of particles across all particle
+flavors.
 
 ```math
-N = ∑_{α < β} n_α n_β
+n = ∑_{α} n_α
 ```
 """ e_num
 e_num(P::Type{<:Sector}, S::Type{<:Sector}) = e_num(ComplexF64, P, S)
@@ -90,6 +93,37 @@ function e_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     return t
 end
 const n = e_num
+
+@doc """
+    e_double([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+    nn([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Return the one-body operator that counts the number of doubly occupied flavor pairs on a
+given site.
+
+```math
+nn = ∑_{α < β} n_α n_β
+```
+""" e_double
+e_double(P::Type{<:Sector}, S::Type{<:Sector}) = e_double(ComplexF64, P, S)
+function e_double(
+        ::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}
+    )
+    throw(ArgumentError("e_double is not defined for particle symmetry $particle_symmetry and spin symmetry $spin_symmetry"))
+end
+function e_double(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, Trivial, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(0, 0))[2, 2] = 1
+    return t
+end
+function e_double(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    t = single_site_operator(elt, U1Irrep, SU2Irrep)
+    I = sectortype(t)
+    block(t, I(0, 2, 0)) .= 1
+    return t
+end
 
 # Two site operators
 # ------------------
@@ -117,7 +151,6 @@ const e⁺e⁻ = e_plus_e_min
     e⁻e⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
 Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
-This is the sum of `u_min_u_plus` and `d_min_d_plus`.
 """ e_min_e_plus
 e_min_e_plus(P::Type{<:Sector}, S::Type{<:Sector}; kwargs...) = e_min_e_plus(ComplexF64, P, S; kwargs...)
 function e_min_e_plus(
