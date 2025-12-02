@@ -30,6 +30,13 @@ implemented_symmetries = [
                 continue
             end
 
+            if particle_symmetry == Trivial
+                O = singlet_plus(ComplexF64, Trivial, SU2Irrep)
+                O_triv = singlet_plus(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv) # eigenvalues are all 0
+                test_operator(O * O', O_triv * O_triv')
+            end
+
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
@@ -104,6 +111,9 @@ end
                 updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
                 dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
                 @test swap_2sites(updp) ≈ -dpup
+            elseif particle_symmetry == Trivial && spin_symmetry == SU2Irrep
+                singm = singlet_min(particle_symmetry, spin_symmetry)
+                @test swap_2sites(singm) ≈ singm
             else
                 @test_throws ArgumentError singlet_plus(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)

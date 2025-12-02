@@ -33,6 +33,13 @@ implemented_symmetries = [
                 O = S_exchange(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
                 O_triv = S_exchange(ComplexF64, Trivial, Trivial; slave_fermion)
                 test_operator(O, O_triv)
+
+                if particle_symmetry == Trivial
+                    O = singlet_plus(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                    O_triv = singlet_plus(ComplexF64, Trivial, Trivial; slave_fermion)
+                    test_operator(O, O_triv)
+                    test_operator(O * O', O_triv * O_triv')
+                end
             else
                 @test_broken e_plus_e_min(
                     ComplexF64, particle_symmetry, spin_symmetry;
@@ -113,22 +120,19 @@ end
                 end
 
                 # test singlet operators
-                if particle_symmetry == Trivial && spin_symmetry !== SU2Irrep
-                    singm = singlet_min(
-                        particle_symmetry, spin_symmetry;
-                        slave_fermion
-                    )
-                    umdm = u_min_d_min(
-                        particle_symmetry, spin_symmetry;
-                        slave_fermion
-                    )
-                    dmum = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test swap_2sites(umdm) ≈ -dmum
+                if particle_symmetry == Trivial
+                    singm = singlet_min(particle_symmetry, spin_symmetry; slave_fermion)
                     @test swap_2sites(singm) ≈ singm
-                    @test singm ≈ (-umdm + dmum) / sqrt(2)
-                    updp = u_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    dpup = d_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    @test swap_2sites(updp) ≈ -dpup
+                    if spin_symmetry !== SU2Irrep
+                        umdm = u_min_d_min(particle_symmetry, spin_symmetry; slave_fermion)
+                        dmum = d_min_u_min(particle_symmetry, spin_symmetry; slave_fermion)
+                        @test swap_2sites(umdm) ≈ -dmum
+
+                        @test singm ≈ (-umdm + dmum) / sqrt(2)
+                        updp = u_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                        dpup = d_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
+                        @test swap_2sites(updp) ≈ -dpup
+                    end
                 else
                     @test_throws ArgumentError singlet_plus(
                         particle_symmetry, spin_symmetry;

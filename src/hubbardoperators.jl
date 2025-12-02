@@ -892,6 +892,30 @@ function singlet_plus(
             d_plus_u_plus(elt, particle_symmetry, spin_symmetry)
     ) / sqrt(2)
 end
+function singlet_plus(
+        elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}
+    )
+    t = two_site_operator(elt, Trivial, SU2Irrep)
+    for (s, f) in fusiontrees(t)
+        l1 = s.uncoupled[1][2].j
+        l2 = s.uncoupled[2][2].j
+        l3 = f.uncoupled[1][2].j
+        l4 = f.uncoupled[2][2].j
+        if (l1 == l2 == 1 // 2) && (l3 == l4 == 0)
+            t[s, f][1, 1, 1, 1] = 1
+        end
+        if (l1 == l2 == 0) && (l3 == l4 == 1 // 2)
+            t[s, f][2, 2, 1, 1] = -1
+        end
+        if (l1 == 0 && l2 == 1 // 2) && (l3 == 1 // 2 && l4 == 0)
+            t[s, f][2, 1, 1, 1] = -1 / sqrt(2)
+        end
+        if (l1 == 1 // 2 && l2 == 0) && (l3 == 0 && l4 == 1 // 2)
+            t[s, f][1, 2, 1, 1] = -1 / sqrt(2)
+        end
+    end
+    return t
+end
 const singlet⁺ = singlet_plus
 
 @doc """
