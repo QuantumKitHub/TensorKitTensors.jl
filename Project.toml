@@ -1,6 +1,6 @@
 name = "TensorKitTensors"
 uuid = "41b62e7d-e9d1-4e23-942c-79a97adf954b"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["QuantumKitHub"]
 
 [deps]
