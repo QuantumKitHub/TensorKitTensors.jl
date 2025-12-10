@@ -1,7 +1,7 @@
 name = "TensorKitTensors"
 uuid = "41b62e7d-e9d1-4e23-942c-79a97adf954b"
+version = "0.2.3"
 authors = ["QuantumKitHub"]
-version = "0.2.2"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -12,7 +12,7 @@ Aqua = "0.8.9"
 LinearAlgebra = "1"
 SafeTestsets = "0.1"
 StableRNGs = "1"
-TensorKit = "0.13.2, 0.14, 0.15"
+TensorKit = "0.13.2, 0.14, 0.15, 0.16"
 Test = "1"
 julia = "1.10"
 
