@@ -63,28 +63,30 @@ end
     # inferrability
     X = @inferred S_x(Z2Irrep)
     XX = @inferred S_x_S_x(Z2Irrep)
+    YY = @inferred S_y_S_y(Z2Irrep)
     ZZ = @inferred S_z_S_z(Z2Irrep)
+    exchange = @inferred S_exchange(Z2Irrep)
 
     @test_throws ArgumentError S_x(Z2Irrep; spin = 1)
     @test_throws ArgumentError S_x_S_x(Z2Irrep; spin = 1)
+    @test_throws ArgumentError S_y_S_y(Z2Irrep; spin = 1)
     @test_throws ArgumentError S_z_S_z(Z2Irrep; spin = 1)
+    @test_throws ArgumentError S_exchange(Z2Irrep; spin = 1)
 
     @test_throws ArgumentError S_plus(Z2Irrep)
     @test_throws ArgumentError S_min(Z2Irrep)
     @test_throws ArgumentError S_plus_S_min(Z2Irrep)
     @test_throws ArgumentError S_min_S_plus(Z2Irrep)
     @test_throws ArgumentError S_y(Z2Irrep)
-    @test_throws ArgumentError S_y_S_y(Z2Irrep)
     @test_throws ArgumentError S_z(Z2Irrep)
 
-    @test_broken S_exchange(Z2Irrep)
-
     L = 4
-    a_x, a_xx, a_zz = rand(rng, 3)
-    O_z2 = (X ⊗ id(domain(X)) + id(domain(X)) ⊗ X) * a_x + XX * a_xx + ZZ * a_zz
+    a_x, a_xx, a_yy, a_zz, a_exchange = rand(rng, 5)
+    O_z2 = (X ⊗ id(domain(X)) + id(domain(X)) ⊗ X) * a_x +
+        XX * a_xx + YY * a_yy + ZZ * a_zz + exchange * a_exchange
 
     O_triv = (S_x() ⊗ id(domain(S_x())) + id(domain(S_x())) ⊗ S_x()) * a_x +
-        S_x_S_x() * a_xx + S_z_S_z() * a_zz
+        S_x_S_x() * a_xx + S_y_S_y() * a_yy + S_z_S_z() * a_zz + S_exchange() * a_exchange
 
     test_operator(O_z2, O_triv; L)
 end

@@ -245,11 +245,20 @@ const SˣSˣ = S_x_S_x
 The spin y exchange operator.
 """ S_y_S_y
 S_y_S_y(; kwargs...) = S_y_S_y(ComplexF64, Trivial; kwargs...)
-S_y_S_y(elt::Type{<:Complex}; kwargs...) = S_y_S_y(elt, Trivial; kwargs...)
+S_y_S_y(elt::Type{<:Number}; kwargs...) = S_y_S_y(elt, Trivial; kwargs...)
 S_y_S_y(symm::Type{<:Sector}; kwargs...) = S_y_S_y(ComplexF64, symm; kwargs...)
-function S_y_S_y(elt::Type{<:Complex}, symmetry::Type{<:Sector}; spin = 1 // 2)
+function S_y_S_y(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin = 1 // 2)
     if symmetry === Trivial
-        YY = S_y(elt, Trivial; spin) ⊗ S_y(elt, Trivial; spin)
+        YY = S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
+    elseif symmetry === Z2Irrep
+        spin == 1 // 2 || throw(ArgumentError("Z2 symmetry only implemented for spin 1//2"))
+        pspace = spin_space(Z2Irrep; spin)
+        YY = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
+        for (f₁, f₂) in fusiontrees(YY)
+            if f₁.uncoupled[1] != f₂.uncoupled[1] && f₁.uncoupled[2] != f₂.uncoupled[2]
+                YY[f₁, f₂] .= f₂.uncoupled[1] == f₂.uncoupled[2] ? -one(elt) / 4 : one(elt) / 4
+            end
+        end
     else
         throw(ArgumentError("invalid symmetry `$symmetry`"))
     end
@@ -359,6 +368,9 @@ function S_exchange(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin = 1 // 2
     if symmetry === Trivial || symmetry === U1Irrep
         SS = (S_plus_S_min(elt, symmetry; spin) + S_min_S_plus(elt, symmetry; spin)) / 2 +
             S_z_S_z(elt, symmetry; spin)
+    elseif symmetry === Z2Irrep
+        spin == 1 // 2 || throw(ArgumentError("Z2 symmetry only implemented for spin 1//2"))
+        SS = S_x_S_x(elt, Z2Irrep; spin) + S_y_S_y(elt, Z2Irrep; spin) + S_z_S_z(elt, Z2Irrep; spin)
     elseif symmetry === SU2Irrep
         pspace = spin_space(SU2Irrep; spin)
         SS = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
