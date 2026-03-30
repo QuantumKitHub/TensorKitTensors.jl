@@ -30,7 +30,7 @@ end
 
 function expanded_eigenvalues(O1::AbstractTensorMap; L::Int = 4)
     H = operator_sum(O1; L)
-    eigenvals = mapreduce(vcat, eigvals(H)) do (c, vals)
+    eigenvals = mapreduce(vcat, pairs(eigvals(H))) do (c, vals)
         return repeat(vals, dim(c))
     end
     return sort!(eigenvals; by = real)

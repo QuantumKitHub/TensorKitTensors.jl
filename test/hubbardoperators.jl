@@ -30,6 +30,13 @@ implemented_symmetries = [
                 continue
             end
 
+            if particle_symmetry == Trivial
+                O = singlet_plus(ComplexF64, Trivial, SU2Irrep)
+                O_triv = singlet_plus(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv) # eigenvalues are all 0
+                test_operator(O * O', O_triv * O_triv')
+            end
+
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
@@ -104,6 +111,9 @@ end
                 updp = u_plus_d_plus(particle_symmetry, spin_symmetry)
                 dpup = d_plus_u_plus(particle_symmetry, spin_symmetry)
                 @test swap_2sites(updp) ≈ -dpup
+            elseif particle_symmetry == Trivial && spin_symmetry == SU2Irrep
+                singm = singlet_min(particle_symmetry, spin_symmetry)
+                @test swap_2sites(singm) ≈ singm
             else
                 @test_throws ArgumentError singlet_plus(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError singlet_min(particle_symmetry, spin_symmetry)
@@ -221,7 +231,7 @@ end
     mu = randn(L)
 
     H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu)
-    vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
+    vals_triv = mapreduce(vcat, pairs(eigvals(H_triv))) do (c, v)
         return repeat(real.(v), dim(c))
     end
     sort!(vals_triv)
@@ -232,7 +242,7 @@ end
             continue
         end
         H_symm = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
-        vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
+        vals_symm = mapreduce(vcat, pairs(eigvals(H_symm))) do (c, v)
             return repeat(real.(v), dim(c))
         end
         sort!(vals_symm)
@@ -241,13 +251,13 @@ end
 
     mu = U ./ 2
     H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu)
-    vals_triv = mapreduce(vcat, eigvals(H_triv)) do (c, v)
+    vals_triv = mapreduce(vcat, pairs(eigvals(H_triv))) do (c, v)
         return repeat(real.(v), dim(c)) .+ sum(U) / 4
     end
     sort!(vals_triv)
 
     H_symm = hubbard_hamiltonian(SU2Irrep, SU2Irrep; t, U, mu)
-    vals_symm = mapreduce(vcat, eigvals(H_symm)) do (c, v)
+    vals_symm = mapreduce(vcat, pairs(eigvals(H_symm))) do (c, v)
         return repeat(real.(v), dim(c))
     end
     sort!(vals_symm)
