@@ -26,3 +26,16 @@ function fuse_local_operators(O₁::AbstractTensorMap, O₂::AbstractTensorMap)
 
     return fuser * O₁₂ * fuser'
 end
+
+function desymmetrize(O::AbstractTensorMap)
+    sectortype(O) == Trivial && return O
+
+    cod = mapreduce(⊗, codomain(O); init = one(ComplexSpace)) do V
+        return ComplexSpace(dim(V), isdual(V))
+    end
+    dom = mapreduce(⊗, domain(O); init = one(ComplexSpace)) do V
+        return ComplexSpace(dim(V), isdual(V))
+    end
+
+    return TensorMap(convert(Array, O), cod ← dom)
+end
