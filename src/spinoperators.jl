@@ -55,7 +55,7 @@ casimir(c::SU2Irrep) = casimir(c.j)
 
 The spinmatrices according to [Wikipedia](https://en.wikipedia.org/wiki/Spin_(physics)#Higher_spins).
 """
-function spinmatrices(spin::Union{Rational{Int}, Int}, elt = ComplexF64)
+function spinmatrices(spin, elt = ComplexF64)
     N = Int(2 * spin)
 
     Sx = zeros(elt, N + 1, N + 1)
