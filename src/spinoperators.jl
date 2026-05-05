@@ -470,4 +470,43 @@ function S_exchange(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin = 1 // 2
 end
 const SS = S_exchange
 
+# Precompilation
+# --------------
+using PrecompileTools: @compile_workload
+
+@compile_workload begin
+    spin = 1 // 2
+    for elt in (Float64, ComplexF64)
+        for symm in (Trivial, Z2Irrep, U1Irrep, SU2Irrep)
+            spin_space(symm; spin)
+        end
+
+        S_x(elt, Trivial; spin)
+        S_x(elt, Z2Irrep; spin)
+        S_z(elt, Trivial; spin)
+        S_z(elt, U1Irrep; spin)
+        S_plus(elt, Trivial; spin)
+        S_min(elt, Trivial; spin)
+
+        S_x_S_x(elt, Trivial; spin)
+        S_x_S_x(elt, Z2Irrep; spin)
+        S_z_S_z(elt, Trivial; spin)
+        S_z_S_z(elt, U1Irrep; spin)
+        S_z_S_z(elt, Z2Irrep; spin)
+        S_plus_S_min(elt, Trivial; spin)
+        S_plus_S_min(elt, U1Irrep; spin)
+        S_min_S_plus(elt, Trivial; spin)
+        S_min_S_plus(elt, U1Irrep; spin)
+        S_exchange(elt, Trivial; spin)
+        S_exchange(elt, U1Irrep; spin)
+        S_exchange(elt, Z2Irrep; spin)
+        S_exchange(elt, SU2Irrep; spin)
+    end
+
+    # complex-only paths
+    S_y(ComplexF64, Trivial; spin)
+    S_y_S_y(ComplexF64, Trivial; spin)
+    S_y_S_y(ComplexF64, Z2Irrep; spin)
+end
+
 end

@@ -154,4 +154,24 @@ f_hopping(elt::Type{<:Number}) = f_hopping(elt, Trivial)
 f_hopping(sym::Type{<:Sector}) = f_hopping(ComplexF64, sym)
 const f_hop = f_hopping
 
+# Precompilation
+# --------------
+using PrecompileTools: @compile_workload
+
+@compile_workload begin
+    for symm in (Trivial, U1Irrep)
+        fermion_space(symm)
+    end
+    for elt in (Float64, ComplexF64), symm in (Trivial, U1Irrep)
+        f_num(elt, symm)
+        f_plus_f_min(elt, symm)
+        f_min_f_plus(elt, symm)
+        f_hopping(elt, symm)
+    end
+    for elt in (Float64, ComplexF64)
+        f_plus_f_plus(elt, Trivial)
+        f_min_f_min(elt, Trivial)
+    end
+end
+
 end

@@ -210,4 +210,27 @@ function b_hopping(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Intege
 end
 const b_hop = b_hopping
 
+# Precompilation
+# --------------
+using PrecompileTools: @compile_workload
+
+@compile_workload begin
+    cutoff = 1
+    for symm in (Trivial, U1Irrep)
+        boson_space(symm; cutoff)
+    end
+    for elt in (Float64, ComplexF64)
+        b_plus(elt, Trivial; cutoff)
+        b_min(elt, Trivial; cutoff)
+        b_plus_b_plus(elt, Trivial; cutoff)
+        b_min_b_min(elt, Trivial; cutoff)
+        for symm in (Trivial, U1Irrep)
+            b_num(elt, symm; cutoff)
+            b_plus_b_min(elt, symm; cutoff)
+            b_min_b_plus(elt, symm; cutoff)
+            b_hopping(elt, symm; cutoff)
+        end
+    end
+end
+
 end
