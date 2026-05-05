@@ -1029,4 +1029,38 @@ function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     return t
 end
 
+# Precompilation
+# --------------
+using PrecompileTools: @setup_workload, @compile_workload
+
+@setup_workload begin
+    symmetries = [
+        (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
+        (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
+        (SU2Irrep, Trivial), (SU2Irrep, U1Irrep), (SU2Irrep, SU2Irrep),
+    ]
+    operators = [
+        u_num, d_num, e_num, h_num, ud_num, half_ud_num,
+        u_plus_u_min, d_plus_d_min, u_min_u_plus, d_min_d_plus, u_min_d_min, d_min_u_min, u_plus_d_plus,
+        d_plus_u_plus, u_min_u_min, d_min_d_min, u_plus_u_plus, d_plus_d_plus, e_plus_e_min, e_min_e_plus,
+        e_hopping,
+        S_x, S_y, S_z, S_plus, S_min,
+        singlet_plus, singlet_min,
+        S_plus_S_min, S_min_S_plus, S_exchange,
+    ]
+    eltypes = [Float64, ComplexF64]
+
+    @compile_workload begin
+        for (P, S) in symmetries
+            hubbard_space(P, S)
+        end
+        for (P, S) in symmetries, elt in eltypes, operator in operators
+            try
+                operator(elt, P, S)
+            catch
+            end
+        end
+    end
+end
+
 end
