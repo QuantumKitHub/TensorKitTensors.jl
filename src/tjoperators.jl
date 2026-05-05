@@ -201,4 +201,42 @@ function transform_slave_fermion(V::ElementarySpace)
     return fuse(V, V_aux)
 end
 
+# Precompilation
+# --------------
+using PrecompileTools: @setup_workload, @compile_workload
+
+@setup_workload begin
+    symmetries = [
+        (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
+        (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
+    ]
+    operators = [
+        e_num, u_num, d_num, h_num,
+        S_x, S_y, S_z, S_plus, S_min,
+        u_plus_u_min, d_plus_d_min,
+        u_min_u_plus, d_min_d_plus,
+        u_min_d_min, d_min_u_min,
+        u_plus_d_plus, d_plus_u_plus,
+        u_min_u_min, d_min_d_min,
+        u_plus_u_plus, d_plus_d_plus,
+        e_plus_e_min, e_min_e_plus, e_hopping,
+        singlet_plus, singlet_min,
+        S_plus_S_min, S_min_S_plus, S_exchange,
+    ]
+    eltypes = [Float64, ComplexF64]
+
+    @compile_workload begin
+        for (P, S) in symmetries
+            tj_space(P, S)
+            tj_projector(P, S)
+        end
+        for (P, S) in symmetries, elt in eltypes, operator in operators
+            try
+                operator(elt, P, S)
+            catch
+            end
+        end
+    end
+end
+
 end
