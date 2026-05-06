@@ -17,6 +17,7 @@ export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
 export S_plus_S_min, S_min_S_plus, S_exchange
+export threesite
 
 export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
@@ -169,6 +170,70 @@ for (opname, alias) in zip(
     isnothing(alias) || @eval begin
         const $alias = $opname
     end
+end
+
+"""
+The 3-site term `c†_{i↑} c†_{j↓} c_{j↓} c_{k↑}`.
+"""
+function u_plus_d_num_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    Nd = d_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    return permute(hop_up ⊗ Nd, ((1, 3, 2), (4, 6, 5)))
+end
+"""
+The 3-site term `c†_{i↓} c†_{j↑} c_{j↑} c_{k↓}`.
+"""
+function d_plus_u_num_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    Nu = u_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    return permute(hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
+end
+
+#= 
+        -4         -5
+    ┌---┴-----------┴---┐
+    |   c†_{i↑} c_{j↑}  |
+    └---┬-----------┬---┘
+        -1          1           -6
+                ┌---┴-----------┴---┐
+                |   c†_{j↓} c_{k↓}  |
+                └---┬-----------┬---┘
+                    -2         -3
+=#
+"""
+The 3-site term `c†_{j↓} c_{k↓} c†_{i↑} c_{j↑}`.
+"""
+function Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    @tensor op[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
+    return op
+end
+"""
+The 3-site term `c†_{j↑} c_{k↑} c†_{i↓} c_{j↓}`.
+"""
+function Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
+    @tensor op[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
+    return op
+end
+
+"""
+    threesite( elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+
+The 3-site term in t-J model ``O_{ijk} = \\sum_σ O_{ijk,σ}``, where
+```
+    O_{ijk,σ} = c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} + c†_{jσ̄} c_{kσ̄} c†_{iσ} c_{jσ}
+```
+where `i`, `k` are nearest neighbors of `j`. Note that ``O_{kji} = O^†_{ijk}``.
+(Reference: )
+"""
+function threesite(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    return u_plus_d_num_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion) +
+        d_plus_u_num_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion) +
+        Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry; slave_fermion) +
+        Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry; slave_fermion)
 end
 
 slave_fermion_auxiliary_charge(::Type{FermionParity}) = FermionParity(1)
