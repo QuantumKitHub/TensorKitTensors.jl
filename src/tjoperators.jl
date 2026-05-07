@@ -15,9 +15,8 @@ export u_plus_d_plus, d_plus_u_plus
 export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
-export singlet_plus, singlet_min
+export singlet_plus, singlet_min, singlet_hopping
 export S_plus_S_min, S_min_S_plus, S_exchange
-export threesite
 
 export nꜛ, nꜜ, nʰ, n
 export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
@@ -172,24 +171,34 @@ for (opname, alias) in zip(
     end
 end
 
+function three_site_operator(
+        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false,
+    )
+    V = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
+    return zeros(elt, V ⊗ V ⊗ V ← V ⊗ V ⊗ V)
+end
+
 """
 The 3-site term `c†_{i↑} c†_{j↓} c_{j↓} c_{k↑}`.
+The only nonzero element is `|0,↓,↑⟩ -> -|↑,↓,0⟩` (in t-J basis).
 """
-function u_plus_d_num_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
-    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    Nd = d_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
+function _Cpu_Nd_Cmu(elt, particle_symmetry, spin_symmetry)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry)
+    Nd = d_num(elt, particle_symmetry, spin_symmetry)
     return permute(hop_up ⊗ Nd, ((1, 3, 2), (4, 6, 5)))
 end
 """
 The 3-site term `c†_{i↓} c†_{j↑} c_{j↑} c_{k↓}`.
+The only nonzero element is `|0,↑,↓⟩ -> -|↓,↑,0⟩` (in t-J basis).
 """
-function d_plus_u_num_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
-    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    Nu = u_num(elt, particle_symmetry, spin_symmetry; slave_fermion)
+function _Cpd_Nu_Cmd(elt, particle_symmetry, spin_symmetry)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry)
+    Nu = u_num(elt, particle_symmetry, spin_symmetry)
     return permute(hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
 end
 
-#= 
+#=
         -4         -5
     ┌---┴-----------┴---┐
     |   c†_{i↑} c_{j↑}  |
@@ -199,41 +208,62 @@ end
                 |   c†_{j↓} c_{k↓}  |
                 └---┬-----------┬---┘
                     -2         -3
+        i           j           k
 =#
 """
 The 3-site term `c†_{j↓} c_{k↓} c†_{i↑} c_{j↑}`.
+The only nonzero element is `|0,↑,↓⟩ -> |↑,↓,0⟩` (in t-J basis).
 """
-function Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
-    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    @tensor op[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
-    return op
+function _Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry)
+    return @tensor op[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
 end
 """
 The 3-site term `c†_{j↑} c_{k↑} c†_{i↓} c_{j↓}`.
+The only nonzero element is `|0,↓,↑⟩ -> |↓,↑,0⟩` (in t-J basis).
 """
-function Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry; slave_fermion = false)
-    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion)
-    @tensor op[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
-    return op
+function _Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry)
+    hop_up = u_plus_u_min(elt, particle_symmetry, spin_symmetry)
+    hop_down = d_plus_d_min(elt, particle_symmetry, spin_symmetry)
+    return @tensor op[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
 end
 
 """
-    threesite( elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    singlet_hopping(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 The 3-site term in t-J model ``O_{ijk} = \\sum_σ O_{ijk,σ}``, where
 ```
-    O_{ijk,σ} = c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} + c†_{jσ̄} c_{kσ̄} c†_{iσ} c_{jσ}
+    O_{ijk,σ}
+    = c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ̄} c†_{jσ} c_{jσ̄} c_{kσ}
+    = c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} + c†_{jσ} c_{kσ} c†_{iσ̄} c_{jσ̄}
 ```
 where `i`, `k` are nearest neighbors of `j`. Note that ``O_{kji} = O^†_{ijk}``.
-(Reference: )
 """
-function threesite(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
-    return u_plus_d_num_u_min(elt, particle_symmetry, spin_symmetry; slave_fermion) +
-        d_plus_u_num_d_min(elt, particle_symmetry, spin_symmetry; slave_fermion) +
-        Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry; slave_fermion) +
-        Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry; slave_fermion)
+function singlet_hopping(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
+    op = _Cpu_Nd_Cmu(elt, particle_symmetry, spin_symmetry) +
+        _Cpd_Nu_Cmd(elt, particle_symmetry, spin_symmetry) +
+        _Cpu_CpdCmu_Cmd(elt, particle_symmetry, spin_symmetry) +
+        _Cpd_CpuCmd_Cmu(elt, particle_symmetry, spin_symmetry)
+    return slave_fermion ? transform_slave_fermion(op) : op
+end
+
+function singlet_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
+    t = three_site_operator(elt, Trivial, SU2Irrep)
+    S = sectortype(t)
+    f1 = only(fusiontrees((S(1, 1 // 2), S(1, 1 // 2), S(0, 0)), S(0, 0)))
+    f2 = only(fusiontrees((S(0, 0), S(1, 1 // 2), S(1, 1 // 2)), S(0, 0)))
+    t[f1, f2] .= 2
+    return slave_fermion ? transform_slave_fermion(t) : t
+end
+
+function singlet_hopping(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
+    t = three_site_operator(elt, U1Irrep, SU2Irrep)
+    S = sectortype(t)
+    f1 = only(fusiontrees((S(1, 1, 1 // 2), S(1, 1, 1 // 2), S(0, 0, 0)), S(0, 2, 0)))
+    f2 = only(fusiontrees((S(0, 0, 0), S(1, 1, 1 // 2), S(1, 1, 1 // 2)), S(0, 2, 0)))
+    t[f1, f2] .= 2
+    return slave_fermion ? transform_slave_fermion(t) : t
 end
 
 slave_fermion_auxiliary_charge(::Type{FermionParity}) = FermionParity(1)
