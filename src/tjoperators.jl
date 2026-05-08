@@ -177,7 +177,7 @@ function three_site_operator(
         spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false,
     )
     V = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
-    return zeros(elt, V ⊗ V ⊗ V ← V ⊗ V ⊗ V)
+    return zeros(elt, V^3 ← V^3)
 end
 
 @doc """
