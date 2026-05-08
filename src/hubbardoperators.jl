@@ -877,7 +877,7 @@ const d⁺d⁺ = d_plus_d_plus
     singlet_plus(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     singlet⁺(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / sqrt(2)``,
+Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``,
 which creates the singlet state when acting on vaccum.
 """ singlet_plus
 function singlet_plus(P::Type{<:Sector}, S::Type{<:Sector})
@@ -923,7 +923,7 @@ const singlet⁺ = singlet_plus
     singlet⁻(elt, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the adjoint of `singlet_plus` operator, which is 
-``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / sqrt(2)``
+``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``.
 """ singlet_min
 function singlet_min(P::Type{<:Sector}, S::Type{<:Sector})
     return singlet_min(ComplexF64, P, S)
