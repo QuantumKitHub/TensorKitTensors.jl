@@ -180,13 +180,18 @@ function three_site_operator(
     return zeros(elt, V ⊗ V ⊗ V ← V ⊗ V ⊗ V)
 end
 
-"""
+@doc """
     singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
 
 Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
 ``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
 It describes the hopping of a singlet pair from bond `(j,k)` to bond `(i,j)`.
-"""
+""" singlet_plus_singlet_min
+function singlet_plus_singlet_min(
+        P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool = false
+    )
+    return singlet_plus_singlet_min(ComplexF64, P, S; slave_fermion)
+end
 function singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
     #=
                 -5      -6
@@ -205,7 +210,6 @@ function singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<
     @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
     return slave_fermion ? transform_slave_fermion(t) : t
 end
-
 #=
 The 3-site term can be expanded as
 ```
@@ -233,7 +237,6 @@ function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{T
     t[idx][1, 2, 1, 1, 1, 2] = 1
     return slave_fermion ? transform_slave_fermion(t) : t
 end
-
 function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool = false)
     t = three_site_operator(elt, U1Irrep, U1Irrep)
     S = sectortype(t)
@@ -244,7 +247,6 @@ function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U
     t[(d, u, h, dual(h), dual(d), dual(u))] .= 1
     return slave_fermion ? transform_slave_fermion(t) : t
 end
-
 function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
     t = three_site_operator(elt, Trivial, SU2Irrep)
     S = sectortype(t)
@@ -253,7 +255,6 @@ function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{S
     t[f1, f2] .= 1
     return slave_fermion ? transform_slave_fermion(t) : t
 end
-
 function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
     t = three_site_operator(elt, U1Irrep, SU2Irrep)
     S = sectortype(t)
