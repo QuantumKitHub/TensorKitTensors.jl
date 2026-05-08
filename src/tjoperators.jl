@@ -206,6 +206,45 @@ function singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<
     return slave_fermion ? transform_slave_fermion(t) : t
 end
 
+#=
+The 3-site term can be expanded as
+```
+    O_{ijk} = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ} c†_{jσ̄} c_{jσ} c_{kσ̄})
+```
+The only nonzero elements are given by
+```
+    + c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} |0σ̄σ⟩ = - |σσ̄0⟩
+    - c†_{iσ} c†_{jσ̄} c_{jσ} c_{kσ̄} |0σσ̄⟩ = + |σσ̄0⟩
+```
+leading to
+```
+    |0,↓,↑⟩ -> -|↑,↓,0⟩,    |0,↑,↓⟩ -> -|↓,↑,0⟩
+    |0,↓,↑⟩ -> |↓,↑,0⟩,     |0,↑,↓⟩ -> |↑,↓,0⟩
+```
+=#
+function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool = false)
+    t = three_site_operator(elt, U1Irrep, Trivial)
+    S = sectortype(t)
+    spin, hole = S(1, 1), S(0, 0)
+    idx = (spin, spin, hole, dual(hole), dual(spin), dual(spin))
+    t[idx][1, 2, 1, 1, 2, 1] = -1
+    t[idx][2, 1, 1, 1, 1, 2] = -1
+    t[idx][2, 1, 1, 1, 2, 1] = 1
+    t[idx][1, 2, 1, 1, 1, 2] = 1
+    return slave_fermion ? transform_slave_fermion(t) : t
+end
+
+function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool = false)
+    t = three_site_operator(elt, U1Irrep, U1Irrep)
+    S = sectortype(t)
+    u, d, h = S(1, 1, 1 // 2), S(1, 1, -1 // 2), S(0, 0, 0)
+    t[(u, d, h, dual(h), dual(d), dual(u))] .= -1
+    t[(d, u, h, dual(h), dual(u), dual(d))] .= -1
+    t[(u, d, h, dual(h), dual(u), dual(d))] .= 1
+    t[(d, u, h, dual(h), dual(d), dual(u))] .= 1
+    return slave_fermion ? transform_slave_fermion(t) : t
+end
+
 function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
     t = three_site_operator(elt, Trivial, SU2Irrep)
     S = sectortype(t)
