@@ -102,9 +102,6 @@ function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(0, 0), dual(I(0, 0)))][2, 2] = 1
     return t
 end
-function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    throw(ArgumentError("`u_num` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function u_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt, U1Irrep, Trivial)
     I = sectortype(t)
@@ -119,16 +116,13 @@ function u_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
     block(t, I(0, 2, 0)) .= 1
     return t
 end
-function u_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`u_num` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function u_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
 end
 function u_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
-function u_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+function u_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_num` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const nꜛ = u_num
@@ -154,9 +148,6 @@ function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(0, 0), I(0, 0))][2, 2] = 1
     return t
 end
-function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    throw(ArgumentError("`d_num` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function d_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt, U1Irrep, Trivial)
     I = sectortype(t)
@@ -171,16 +162,13 @@ function d_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
     block(t, I(0, 2, 0)) .= 1
     return t
 end
-function d_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`d_num` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function d_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
 end
 function d_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
-function d_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+function d_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_num` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const nꜜ = d_num
@@ -296,10 +284,10 @@ function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     t[(I(1, 1), dual(I(1, 1)))][1, 2] = 1.0
     return t
 end
-function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
+function S_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
     throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `U1Irrep` spin symmetry"))
 end
-function S_plus(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+function S_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`S_plus`, `S_min` are not symmetric under `SU2Irrep` spin symmetry"))
 end
 const S⁺ = S_plus
@@ -652,13 +640,13 @@ function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(1, -1 // 2), I(1, 1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 2, 2] = -1
     return t
 end
-function u_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+function u_min_d_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
     throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
-function u_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+function u_min_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
-function u_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+function u_min_d_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
 end
 const u⁻d⁻ = u_min_d_min
@@ -712,13 +700,13 @@ function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 2, 2] = -1
     return t
 end
-function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+function d_min_u_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
-function d_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+function d_min_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
-function d_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+function d_min_u_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
 end
 const d⁻u⁻ = d_min_u_min
@@ -763,20 +751,20 @@ function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t[(I(1), I(1), dual(I(0)), dual(I(0)))][2, 2, 2, 2] = 1
     return t
 end
-function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+function u_min_u_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
     throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
-function u_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
+function u_min_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
     throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` spin symmetry"))
 end
-function u_min_u_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+function u_min_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_min_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
-function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` particle symmetry"))
+function u_min_u_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` spin symmetry"))
 end
-function u_min_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+function u_min_u_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    throw(ArgumentError("`u_min_u_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
 end
 const u⁻u⁻ = u_min_u_min
 
@@ -820,20 +808,20 @@ function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t[(I(1), I(1), dual(I(0)), dual(I(0)))][1, 1, 2, 2] = 1
     return t
 end
-function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
+function d_min_d_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{<:Sector})
     throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry"))
 end
-function d_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
+function d_min_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{U1Irrep})
     throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` spin symmetry"))
 end
-function d_min_d_min(elt::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
+function d_min_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_min_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
-function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` particle symmetry"))
+function d_min_d_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `U1Irrep` spin symmetry"))
 end
-function d_min_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` particle symmetry"))
+function d_min_d_min(::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    throw(ArgumentError("`d_min_d_min` is not symmetric under `U1Irrep` particle symmetry or under `SU2Irrep` spin symmetry"))
 end
 const d⁻d⁻ = d_min_d_min
 
