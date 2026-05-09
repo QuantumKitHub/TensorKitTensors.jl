@@ -148,7 +148,7 @@ end
 
             # test 3-site singlet hopping operator
             if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
-                O_ijk = singlet_plus_singlet_min_nn(particle_symmetry, spin_symmetry; slave_fermion)
+                O_ijk = singlet_plus_singlet_min_nn(particle_symmetry, spin_symmetry)
                 O_kji = permute(O_ijk, ((3, 2, 1), (6, 5, 4)))
                 @test O_kji ≈ O_ijk'
             end
