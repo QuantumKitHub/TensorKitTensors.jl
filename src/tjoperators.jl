@@ -112,7 +112,7 @@ for (opname, alias) in zip(
             :u_min_d_min, :d_min_u_min, :u_plus_d_plus, :d_plus_u_plus,
             :u_min_u_min, :d_min_d_min, :u_plus_u_plus, :d_plus_d_plus,
             :e_plus_e_min, :e_min_e_plus, :e_hopping,
-            :singlet_plus, :singlet_min,
+            :singlet_plus, :singlet_min, :singlet_plus_singlet_min,
             :S_plus_S_min, :S_min_S_plus, :S_exchange,
         ), (
             :n, :nꜛ, :nꜜ, :nʰ,
@@ -121,7 +121,7 @@ for (opname, alias) in zip(
             :u⁻d⁻, :d⁻u⁻, :u⁺d⁺, :d⁺u⁺,
             :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
             :e⁺e⁻, :e⁻e⁺, :e_hop,
-            :singlet⁺, :singlet⁻,
+            :singlet⁺, :singlet⁻, nothing,
             :S⁻S⁺, :S⁺S⁻, nothing,
         )
     )
@@ -170,98 +170,6 @@ for (opname, alias) in zip(
     isnothing(alias) || @eval begin
         const $alias = $opname
     end
-end
-
-function three_site_operator(
-        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false,
-    )
-    V = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
-    return zeros(elt, V^3 ← V^3)
-end
-
-@doc """
-    singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
-
-Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
-``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
-It describes the hopping of a singlet pair from bond `(j,k)` to bond `(i,j)`.
-""" singlet_plus_singlet_min
-function singlet_plus_singlet_min(
-        P::Type{<:Sector}, S::Type{<:Sector}; slave_fermion::Bool = false
-    )
-    return singlet_plus_singlet_min(ComplexF64, P, S; slave_fermion)
-end
-function singlet_plus_singlet_min(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)
-    #=
-                -5      -6
-            ┌---┴-------┴---┐
-            |     A_{jk}    |
-            └---┬-------┬---┘
-        -4      1       -3
-    ┌---┴-------┴---┐
-    |    A†_{ij}    |
-    └---┬-------┬---┘
-        -1      -2
-        i       j       k
-    =#
-    singp = singlet_plus(elt, particle_symmetry, spin_symmetry)
-    singm = singp'
-    @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
-    return slave_fermion ? transform_slave_fermion(t) : t
-end
-#=
-The 3-site term can be expanded as
-```
-    O_{ijk} = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ} c†_{jσ̄} c_{jσ} c_{kσ̄})
-```
-The only nonzero elements are given by
-```
-    + c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} |0σ̄σ⟩ = - |σσ̄0⟩
-    - c†_{iσ} c†_{jσ̄} c_{jσ} c_{kσ̄} |0σσ̄⟩ = + |σσ̄0⟩
-```
-leading to
-```
-    |0,↓,↑⟩ -> -|↑,↓,0⟩,    |0,↑,↓⟩ -> -|↓,↑,0⟩
-    |0,↓,↑⟩ -> |↓,↑,0⟩,     |0,↑,↓⟩ -> |↑,↓,0⟩
-```
-=#
-function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial}; slave_fermion::Bool = false)
-    t = three_site_operator(elt, U1Irrep, Trivial)
-    S = sectortype(t)
-    spin, hole = S(1, 1), S(0, 0)
-    idx = (spin, spin, hole, dual(hole), dual(spin), dual(spin))
-    t[idx][1, 2, 1, 1, 2, 1] = -1
-    t[idx][2, 1, 1, 1, 1, 2] = -1
-    t[idx][2, 1, 1, 1, 2, 1] = 1
-    t[idx][1, 2, 1, 1, 1, 2] = 1
-    return slave_fermion ? transform_slave_fermion(t) : t
-end
-function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep}; slave_fermion::Bool = false)
-    t = three_site_operator(elt, U1Irrep, U1Irrep)
-    S = sectortype(t)
-    u, d, h = S(1, 1, 1 // 2), S(1, 1, -1 // 2), S(0, 0, 0)
-    t[(u, d, h, dual(h), dual(d), dual(u))] .= -1
-    t[(d, u, h, dual(h), dual(u), dual(d))] .= -1
-    t[(u, d, h, dual(h), dual(u), dual(d))] .= 1
-    t[(d, u, h, dual(h), dual(d), dual(u))] .= 1
-    return slave_fermion ? transform_slave_fermion(t) : t
-end
-function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
-    t = three_site_operator(elt, Trivial, SU2Irrep)
-    S = sectortype(t)
-    f1 = only(fusiontrees((S(1, 1 // 2), S(1, 1 // 2), S(0, 0)), S(0, 0)))
-    f2 = only(fusiontrees((S(0, 0), S(1, 1 // 2), S(1, 1 // 2)), S(0, 0)))
-    t[f1, f2] .= 1
-    return slave_fermion ? transform_slave_fermion(t) : t
-end
-function singlet_plus_singlet_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep}; slave_fermion::Bool = false)
-    t = three_site_operator(elt, U1Irrep, SU2Irrep)
-    S = sectortype(t)
-    f1 = only(fusiontrees((S(1, 1, 1 // 2), S(1, 1, 1 // 2), S(0, 0, 0)), S(0, 2, 0)))
-    f2 = only(fusiontrees((S(0, 0, 0), S(1, 1, 1 // 2), S(1, 1, 1 // 2)), S(0, 2, 0)))
-    t[f1, f2] .= 1
-    return slave_fermion ? transform_slave_fermion(t) : t
 end
 
 slave_fermion_auxiliary_charge(::Type{FermionParity}) = FermionParity(1)

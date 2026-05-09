@@ -193,7 +193,7 @@ end
                     )
                 end
 
-                # test singlet hopping operator
+                # test 3-site singlet hopping operator
                 O_ijk = singlet_plus_singlet_min(particle_symmetry, spin_symmetry; slave_fermion)
                 O_kji = permute(O_ijk, ((3, 2, 1), (6, 5, 4)))
                 @test O_kji ≈ O_ijk'
