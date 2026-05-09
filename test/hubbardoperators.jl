@@ -37,6 +37,12 @@ implemented_symmetries = [
                 test_operator(O * O', O_triv * O_triv')
             end
 
+            if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
+                O = singlet_plus_singlet_min_nn(ComplexF64, Trivial, SU2Irrep)
+                O_triv = singlet_plus_singlet_min_nn(ComplexF64, Trivial, Trivial)
+                test_operator(O, O_triv)
+            end
+
             O = e_plus_e_min(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv)
@@ -138,6 +144,13 @@ end
                 @test_throws ArgumentError d_min_d_min(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError u_plus_u_plus(particle_symmetry, spin_symmetry)
                 @test_throws ArgumentError d_plus_d_plus(particle_symmetry, spin_symmetry)
+            end
+
+            # test 3-site singlet hopping operator
+            if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
+                O_ijk = singlet_plus_singlet_min_nn(particle_symmetry, spin_symmetry; slave_fermion)
+                O_kji = permute(O_ijk, ((3, 2, 1), (6, 5, 4)))
+                @test O_kji ≈ O_ijk'
             end
 
             # test spin operator

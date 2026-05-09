@@ -13,6 +13,7 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
+export singlet_plus_singlet_min_nn
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -69,16 +70,17 @@ function hubbard_space(::Type{SU2Irrep}, ::Type{SU2Irrep})
     )
 end
 
-# Single-site operators
-# ---------------------
-function single_site_operator(
-        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
+function n_site_operator(
+        ::Val{N}, elt::Type{<:Number},
+        particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}
-    )
+    ) where {N}
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    return zeros(elt, V ← V)
+    return zeros(elt, V^N ← V^N)
 end
 
+# Single-site operators
+# ---------------------
 @doc """
     u_num([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     nꜛ([particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
@@ -87,14 +89,14 @@ Return the one-body operator that counts the number of spin-up particles.
 """ u_num
 u_num(P::Type{<:Sector}, S::Type{<:Sector}) = u_num(ComplexF64, P, S)
 function u_num(elt::Type{<:Number}, (::Type{Trivial}) = Trivial, (::Type{Trivial}) = Trivial)
-    t = single_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(1), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][1, 1] = 1
     t[(I(0), I(0))][2, 2] = 1
     return t
 end
 function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = single_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(1), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1 // 2), dual(I(1, 1 // 2)))][1, 1] = 1
     t[(I(0, 0), dual(I(0, 0)))][2, 2] = 1
@@ -104,14 +106,14 @@ function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_num` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function u_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = single_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(1), elt, U1Irrep, Trivial)
     I = sectortype(t)
     block(t, I(1, 1))[1, 1] = 1
     block(t, I(0, 2))[1, 1] = 1
     return t
 end
 function u_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    t = single_site_operator(elt, U1Irrep, U1Irrep)
+    t = n_site_operator(Val(1), elt, U1Irrep, U1Irrep)
     I = sectortype(t)
     block(t, I(1, 1, 1 // 2)) .= 1
     block(t, I(0, 2, 0)) .= 1
@@ -139,14 +141,14 @@ Return the one-body operator that counts the number of spin-down particles.
 """ d_num
 d_num(P::Type{<:Sector}, S::Type{<:Sector}) = d_num(ComplexF64, P, S)
 function d_num(elt::Type{<:Number}, (::Type{Trivial}) = Trivial, (::Type{Trivial}) = Trivial)
-    t = single_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(1), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1))][2, 2] = 1
     t[(I(0), I(0))][2, 2] = 1
     return t
 end
 function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = single_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(1), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(1, -1 // 2), dual(I(1, -1 // 2)))][1, 1] = 1
     t[(I(0, 0), I(0, 0))][2, 2] = 1
@@ -156,14 +158,14 @@ function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_num` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 function d_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = single_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(1), elt, U1Irrep, Trivial)
     I = sectortype(t)
     block(t, I(1, 1))[2, 2] = 1 # expected to be [1,2]
     block(t, I(0, 2))[1, 1] = 1
     return t
 end
 function d_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    t = single_site_operator(elt, U1Irrep, U1Irrep)
+    t = n_site_operator(Val(1), elt, U1Irrep, U1Irrep)
     I = sectortype(t)
     block(t, I(1, 1, -1 // 2)) .= 1
     block(t, I(0, 2, 0)) .= 1
@@ -198,14 +200,14 @@ function e_num(
         d_num(elt, particle_symmetry, spin_symmetry)
 end
 function e_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    t = single_site_operator(elt, Trivial, SU2Irrep)
+    t = n_site_operator(Val(1), elt, Trivial, SU2Irrep)
     I = sectortype(t)
     block(t, I(1, 1 // 2))[1, 1] = 1
     block(t, I(0, 0))[2, 2] = 2
     return t
 end
 function e_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = single_site_operator(elt, U1Irrep, SU2Irrep)
+    t = n_site_operator(Val(1), elt, U1Irrep, SU2Irrep)
     I = sectortype(t)
     block(t, I(1, 1, 1 // 2)) .= 1
     block(t, I(0, 2, 0)) .= 2
@@ -228,13 +230,13 @@ function ud_num(
         d_num(elt, particle_symmetry, spin_symmetry)
 end
 function ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    t = single_site_operator(elt, Trivial, SU2Irrep)
+    t = n_site_operator(Val(1), elt, Trivial, SU2Irrep)
     I = sectortype(t)
     block(t, I(0, 0))[2, 2] = 1
     return t
 end
 function ud_num(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = single_site_operator(elt, U1Irrep, SU2Irrep)
+    t = n_site_operator(Val(1), elt, U1Irrep, SU2Irrep)
     I = sectortype(t)
     block(t, I(0, 2, 0)) .= 1
     return t
@@ -256,7 +258,7 @@ function half_ud_num(
         (d_num(elt, particle_symmetry, spin_symmetry) - I / 2)
 end
 function half_ud_num(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
-    t = single_site_operator(elt, SU2Irrep, SU2Irrep)
+    t = n_site_operator(Val(1), elt, SU2Irrep, SU2Irrep)
     block(t, sectortype(t)(0, 1 // 2, 0)) .= 1 // 4
     block(t, sectortype(t)(1, 0, 1 // 2)) .= -1 // 4
     return t
@@ -283,13 +285,13 @@ function S_plus(P::Type{<:Sector}, S::Type{<:Sector})
     return S_plus(ComplexF64, P, S)
 end
 function S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = single_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(1), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), dual(I(1)))][1, 2] = 1.0
     return t
 end
 function S_plus(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = single_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(1), elt, U1Irrep, Trivial)
     I = sectortype(t)
     t[(I(1, 1), dual(I(1, 1)))][1, 2] = 1.0
     return t
@@ -381,14 +383,6 @@ const Sᶻ = S_z
 
 # Two site operators
 # ------------------
-function two_site_operator(
-        elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}
-    )
-    V = hubbard_space(particle_symmetry, spin_symmetry)
-    return zeros(elt, V ⊗ V ← V ⊗ V)
-end
-
 @doc """
     u_plus_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     u⁺u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
@@ -397,7 +391,7 @@ Return the two-body operator ``e†_{1,↑}, e_{2,↑}`` that creates a spin-up 
 """ u_plus_u_min
 u_plus_u_min(P::Type{<:Sector}, S::Type{<:Sector}) = u_plus_u_min(ComplexF64, P, S)
 function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))][1, 1, 1, 1] = 1
     t[(I(1), I(1), dual(I(0)), dual(I(0)))][1, 2, 1, 2] = 1
@@ -406,7 +400,7 @@ function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = two_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, 1 // 2)))][1, 1, 1, 1] = 1
     t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 1, 2] = 1
@@ -414,11 +408,8 @@ function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(0, 0), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(0, 0)))][2, 1, 1, 2] = -1
     return t
 end
-function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function u_plus_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = two_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(2), elt, U1Irrep, Trivial)
     I = sectortype(t)
     t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][1, 1, 1, 1] = 1
     t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][1, 2, 1, 1] = 1
@@ -427,7 +418,7 @@ function u_plus_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     return t
 end
 function u_plus_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    t = two_site_operator(elt, U1Irrep, U1Irrep)
+    t = n_site_operator(Val(2), elt, U1Irrep, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1, 1 // 2), I(0, 0, 0), dual(I(0, 0, 0)), dual(I(1, 1, 1 // 2)))] .= 1
     t[(I(1, 1, 1 // 2), I(1, 1, -1 // 2), dual(I(0, 0, 0)), dual(I(0, 2, 0)))] .= 1
@@ -435,16 +426,13 @@ function u_plus_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
     t[(I(0, 2, 0), I(1, 1, -1 // 2), dual(I(1, 1, -1 // 2)), dual(I(0, 2, 0)))] .= -1
     return t
 end
-function u_plus_u_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function u_plus_u_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
 end
 function u_plus_u_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
-function u_plus_u_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+function u_plus_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`u_plus_u_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const u⁺u⁻ = u_plus_u_min
@@ -457,7 +445,7 @@ Return the two-body operator ``e†_{1,↓}, e_{2,↓}`` that creates a spin-dow
 """ d_plus_d_min
 d_plus_d_min(P::Type{<:Sector}, S::Type{<:Sector}) = d_plus_d_min(ComplexF64, P, S)
 function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))][2, 1, 1, 2] = 1
     t[(I(1), I(1), dual(I(0)), dual(I(0)))][2, 1, 1, 2] = -1
@@ -466,7 +454,7 @@ function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = two_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(1, -1 // 2), I(0, 0), dual(I(0, 0)), dual(I(1, -1 // 2)))][1, 1, 1, 1] = 1
     t[(I(1, -1 // 2), I(1, 1 // 2), dual(I(0, 0)), dual(I(0, 0)))][1, 1, 1, 2] = -1
@@ -474,11 +462,8 @@ function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
     t[(I(0, 0), I(1, 1 // 2), dual(I(1, 1 // 2)), dual(I(0, 0)))][2, 1, 1, 2] = -1
     return t
 end
-function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function d_plus_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = two_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(2), elt, U1Irrep, Trivial)
     I = sectortype(t)
     t[(I(1, 1), I(0, 0), dual(I(0, 0)), dual(I(1, 1)))][2, 1, 1, 2] = 1
     t[(I(1, 1), I(1, 1), dual(I(0, 0)), dual(I(0, 2)))][2, 1, 1, 1] = -1
@@ -487,7 +472,7 @@ function d_plus_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
     return t
 end
 function d_plus_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    t = two_site_operator(elt, U1Irrep, U1Irrep)
+    t = n_site_operator(Val(2), elt, U1Irrep, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1, -1 // 2), I(0, 0, 0), dual(I(0, 0, 0)), dual(I(1, 1, -1 // 2)))] .= 1
     t[(I(1, 1, -1 // 2), I(1, 1, 1 // 2), dual(I(0, 0, 0)), dual(I(0, 2, 0)))] .= -1
@@ -495,16 +480,13 @@ function d_plus_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
     t[(I(0, 2, 0), I(1, 1, 1 // 2), dual(I(1, 1, 1 // 2)), dual(I(0, 2, 0)))] .= -1
     return t
 end
-function d_plus_d_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
-end
 function d_plus_d_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{Trivial})
     return error("Not implemented")
 end
 function d_plus_d_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{U1Irrep})
     return error("Not implemented")
 end
-function d_plus_d_min(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
+function d_plus_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{SU2Irrep})
     throw(ArgumentError("`d_plus_d_min` is not symmetric under `SU2Irrep` spin symmetry"))
 end
 const d⁺d⁻ = d_plus_d_min
@@ -555,7 +537,7 @@ function e_plus_e_min(
         d_plus_d_min(elt, particle_symmetry, spin_symmetry)
 end
 function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    t = two_site_operator(elt, Trivial, SU2Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, SU2Irrep)
     I = sectortype(t)
     f1 = only(fusiontrees((I(0, 0), I(1, 1 // 2)), I(1, 1 // 2)))
     f2 = only(fusiontrees((I(1, 1 // 2), I(0, 0)), I(1, 1 // 2)))
@@ -572,7 +554,7 @@ function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     return t
 end
 function e_plus_e_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = two_site_operator(elt, U1Irrep, SU2Irrep)
+    t = n_site_operator(Val(2), elt, U1Irrep, SU2Irrep)
     I = sectortype(t)
     f1 = only(fusiontrees((I(0, 0, 0), I(1, 1, 1 // 2)), I(1, 1, 1 // 2)))
     f2 = only(fusiontrees((I(1, 1, 1 // 2), I(0, 0, 0)), I(1, 1, 1 // 2)))
@@ -622,7 +604,7 @@ function e_hopping(
 end
 function e_hopping(elt::Type{<:Number}, ::Type{SU2Irrep}, ::Type{SU2Irrep})
     elt <: Complex || throw(DomainError(elt, "SU₂ × SU₂ symmetry requires complex entries"))
-    t = two_site_operator(elt, SU2Irrep, SU2Irrep)
+    t = n_site_operator(Val(2), elt, SU2Irrep, SU2Irrep)
     I = sectortype(t)
     even = I(0, 1 // 2, 0)
     odd = I(1, 0, 1 // 2)
@@ -653,7 +635,7 @@ function u_min_d_min(P::Type{<:Sector}, S::Type{<:Sector})
     return u_min_d_min(ComplexF64, P, S)
 end
 function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 2] = -1
     t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 1, 1, 2] = 1
@@ -662,7 +644,7 @@ function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = two_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(0, 0), I(0, 0), dual(I(1, 1 // 2)), dual(I(1, -1 // 2)))][1, 1, 1, 1] = -1
     t[(I(0, 0), I(1, 1 // 2), dual(I(1, 1 // 2)), dual(I(0, 0)))][1, 1, 1, 2] = 1
@@ -713,7 +695,7 @@ function d_min_u_min(P::Type{<:Sector}, S::Type{<:Sector})
     return d_min_u_min(ComplexF64, P, S)
 end
 function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 1] = -1
     t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 2, 2, 2] = -1
@@ -722,7 +704,7 @@ function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return t
 end
 function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = two_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(0, 0), I(0, 0), dual(I(1, -1 // 2)), dual(I(1, 1 // 2)))][1, 1, 1, 1] = -1
     t[(I(0, 0), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(0, 0)))][1, 1, 1, 2] = -1
@@ -773,7 +755,7 @@ function u_min_u_min(P::Type{<:Sector}, S::Type{<:Sector})
     return u_min_u_min(ComplexF64, P, S)
 end
 function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 1] = -1
     t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 2, 1, 2] = -1
@@ -830,7 +812,7 @@ function d_min_d_min(P::Type{<:Sector}, S::Type{<:Sector})
     return d_min_d_min(ComplexF64, P, S)
 end
 function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 2] = -1
     t[(I(0), I(1), dual(I(1)), dual(I(0)))][1, 1, 2, 2] = 1
@@ -895,7 +877,7 @@ end
 function singlet_plus(
         elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep}
     )
-    t = two_site_operator(elt, Trivial, SU2Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, SU2Irrep)
     for (s, f) in fusiontrees(t)
         l1 = s.uncoupled[1][2].j
         l2 = s.uncoupled[2][2].j
@@ -947,25 +929,25 @@ function S_plus_S_min(P::Type{<:Sector}, S::Type{<:Sector})
     return S_plus_S_min(ComplexF64, P, S)
 end
 function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    t = two_site_operator(elt, Trivial, Trivial)
+    t = n_site_operator(Val(2), elt, Trivial, Trivial)
     I = sectortype(t)
     t[(I(1), I(1), dual(I(1)), dual(I(1)))][1, 2, 2, 1] = 1
     return t
 end
 function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{U1Irrep})
-    t = two_site_operator(elt, Trivial, U1Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1 // 2), I(1, -1 // 2), dual(I(1, -1 // 2)), dual(I(1, 1 // 2)))] .= 1
     return t
 end
 function S_plus_S_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{Trivial})
-    t = two_site_operator(elt, U1Irrep, Trivial)
+    t = n_site_operator(Val(2), elt, U1Irrep, Trivial)
     I = sectortype(t)
     t[(I(1, 1), I(1, 1), dual(I(1, 1)), dual(I(1, 1)))][1, 2, 2, 1] = 1
     return t
 end
 function S_plus_S_min(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{U1Irrep})
-    t = two_site_operator(elt, U1Irrep, U1Irrep)
+    t = n_site_operator(Val(2), elt, U1Irrep, U1Irrep)
     I = sectortype(t)
     t[(I(1, 1, 1 // 2), I(1, 1, -1 // 2), dual(I(1, 1, -1 // 2)), dual(I(1, 1, 1 // 2)))] .= 1
     return t
@@ -1009,7 +991,7 @@ function S_exchange(
     ) / 2
 end
 function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
-    t = two_site_operator(elt, Trivial, SU2Irrep)
+    t = n_site_operator(Val(2), elt, Trivial, SU2Irrep)
     for (s, f) in fusiontrees(t)
         l3 = f.uncoupled[1][2].j
         l4 = f.uncoupled[2][2].j
@@ -1019,7 +1001,7 @@ function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     return t
 end
 function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = two_site_operator(elt, U1Irrep, SU2Irrep)
+    t = n_site_operator(Val(2), elt, U1Irrep, SU2Irrep)
     for (s, f) in fusiontrees(t)
         l3 = f.uncoupled[1][3].j
         l4 = f.uncoupled[2][3].j
@@ -1027,6 +1009,71 @@ function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
         t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
     end
     return t
+end
+
+# Three site operators
+# --------------------
+
+@doc """
+    singlet_plus_singlet_min_nn(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It describes the hopping of a singlet pair from bond `(j,k)`
+to a nearest neighbor bond `(i,j)` sharing site `j`.
+""" singlet_plus_singlet_min_nn
+function singlet_plus_singlet_min_nn(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus_singlet_min_nn(ComplexF64, P, S)
+end
+function singlet_plus_singlet_min_nn(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    #=
+                -5      -6
+            ┌---┴-------┴---┐
+            |     A_{jk}    |
+            └---┬-------┬---┘
+        -4      1       -3
+    ┌---┴-------┴---┐
+    |    A†_{ij}    |
+    └---┬-------┬---┘
+        -1      -2
+        i       j       k
+    =#
+    singp = singlet_plus(elt, particle_symmetry, spin_symmetry)
+    singm = singp'
+    return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
+end
+function singlet_plus_singlet_min_nn(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
+    #= rewrite the operator as
+
+    O_{ijk}
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ̄} c†_{jσ} c_{jσ̄} c_{kσ})
+    = ∑_σ [c†_{iσ} (c†_{jσ̄} c_{jσ̄}) c_{kσ} + (c†_{jσ} c_{kσ}) (c†_{iσ̄} c_{jσ̄})]
+
+    also use the contraction
+
+        -4          -5
+    ┌---┴-----------┴---┐
+    |   c†_{iσ̄} c_{jσ̄}  |
+    └---┬-----------┬---┘
+        -1          1           -6
+                ┌---┴-----------┴---┐
+                |   c†_{jσ} c_{kσ}  |
+                └---┬-----------┬---┘
+                    -2          -3
+        i           j           k
+    =#
+    hop_up = u_plus_u_min(elt, U1Irrep, spin_symmetry)
+    hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
+    Nu = u_num(elt, U1Irrep, spin_symmetry)
+    Nd = d_num(elt, U1Irrep, spin_symmetry)
+    t = permute(hop_up ⊗ Nd, ((1, 3, 2), (4, 6, 5)))
+    t += permute(hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
+    t += @tensor t3[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
+    t += @tensor t4[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
+    return t
+end
+function singlet_plus_singlet_min_nn(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    error("Not implemented")
 end
 
 end
