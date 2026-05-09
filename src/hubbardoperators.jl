@@ -13,7 +13,7 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
-export singlet_plus_singlet_min_nn
+export singlet_plus_singlet_min_3site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -1015,17 +1015,17 @@ end
 # --------------------
 
 @doc """
-    singlet_plus_singlet_min_nn(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    singlet_plus_singlet_min_3site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
 ``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
 It describes the hopping of a singlet pair from bond `(j,k)`
 to a nearest neighbor bond `(i,j)` sharing site `j`.
-""" singlet_plus_singlet_min_nn
-function singlet_plus_singlet_min_nn(P::Type{<:Sector}, S::Type{<:Sector})
-    return singlet_plus_singlet_min_nn(ComplexF64, P, S)
+""" singlet_plus_singlet_min_3site
+function singlet_plus_singlet_min_3site(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus_singlet_min_3site(ComplexF64, P, S)
 end
-function singlet_plus_singlet_min_nn(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     #=
                 -5      -6
             ┌---┴-------┴---┐
@@ -1042,7 +1042,7 @@ function singlet_plus_singlet_min_nn(elt::Type{<:Number}, particle_symmetry::Typ
     singm = singp'
     return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
 end
-function singlet_plus_singlet_min_nn(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
     #= rewrite the operator as
 
     O_{ijk}
@@ -1072,7 +1072,7 @@ function singlet_plus_singlet_min_nn(elt::Type{<:Number}, ::Type{U1Irrep}, spin_
     t += @tensor t4[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
     return t
 end
-function singlet_plus_singlet_min_nn(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     error("Not implemented")
 end
 

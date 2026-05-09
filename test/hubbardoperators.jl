@@ -38,8 +38,8 @@ implemented_symmetries = [
             end
 
             if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
-                O = singlet_plus_singlet_min_nn(ComplexF64, Trivial, SU2Irrep)
-                O_triv = singlet_plus_singlet_min_nn(ComplexF64, Trivial, Trivial)
+                O = singlet_plus_singlet_min_3site(ComplexF64, Trivial, SU2Irrep)
+                O_triv = singlet_plus_singlet_min_3site(ComplexF64, Trivial, Trivial)
                 test_operator(O, O_triv)
             end
 
@@ -148,7 +148,7 @@ end
 
             # test 3-site singlet hopping operator
             if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
-                O_ijk = singlet_plus_singlet_min_nn(particle_symmetry, spin_symmetry)
+                O_ijk = singlet_plus_singlet_min_3site(particle_symmetry, spin_symmetry)
                 O_kji = permute(O_ijk, ((3, 2, 1), (6, 5, 4)))
                 @test O_kji ≈ O_ijk'
             end
