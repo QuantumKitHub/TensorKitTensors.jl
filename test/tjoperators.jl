@@ -45,6 +45,10 @@ implemented_symmetries = [
                     O = singlet_plus_singlet_min_3site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
                     O_triv = singlet_plus_singlet_min_3site(ComplexF64, Trivial, Trivial; slave_fermion)
                     test_operator(O, O_triv)
+
+                    O = singlet_plus_singlet_min_4site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                    O_triv = singlet_plus_singlet_min_4site(ComplexF64, Trivial, Trivial; slave_fermion)
+                    test_operator(O, O_triv)
                 end
             else
                 @test_broken e_plus_e_min(

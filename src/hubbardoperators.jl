@@ -14,6 +14,7 @@ export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
 export singlet_plus_singlet_min_3site
+export singlet_plus_singlet_min_4site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -1054,13 +1055,46 @@ function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
     Nu = u_num(elt, U1Irrep, spin_symmetry)
     Nd = d_num(elt, U1Irrep, spin_symmetry)
-    t = permute(hop_up ⊗ Nd, ((1, 3, 2), (4, 6, 5)))
-    t += permute(hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
+    t = permute(hop_up ⊗ Nd + hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
     t += @tensor t3[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
     t += @tensor t4[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
     return t
 end
 function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    error("Not implemented")
+end
+
+# Four site operators
+# -------------------
+
+@doc """
+    singlet_plus_singlet_min_4site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Returns the 4-site term ``O_{ijkl} = A^†_{ij} A_{kl}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
+""" singlet_plus_singlet_min_4site
+function singlet_plus_singlet_min_4site(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus_singlet_min_4site(ComplexF64, P, S)
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    singp = singlet_plus(elt, particle_symmetry, spin_symmetry)
+    return singp ⊗ singp'
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
+    #= rewrite the operator as
+
+    O_{ijkl}
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{kσ̄} c_{lσ} - c†_{iσ̄} c†_{jσ} c_{kσ̄} c_{lσ})
+    = ∑_σ [(c†_{iσ} c_{lσ}) (c†_{jσ̄} c_{kσ̄}) + (c†_{iσ} c_{kσ}) (c†_{jσ̄} c_{lσ̄})]
+    =#
+    hop_up = u_plus_u_min(elt, U1Irrep, spin_symmetry)
+    hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
+    hop2 = hop_up ⊗ hop_down + hop_down ⊗ hop_up
+    return permute(hop2, ((1, 3, 4, 2), (5, 7, 8, 6))) +
+        permute(hop2, ((1, 3, 2, 4), (5, 7, 6, 8)))
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     error("Not implemented")
 end
 
