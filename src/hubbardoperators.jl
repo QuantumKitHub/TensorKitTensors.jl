@@ -1061,7 +1061,61 @@ function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     return t
 end
 function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    error("Not implemented")
+    t = n_site_operator(Val(3), elt, U1Irrep, SU2Irrep)
+    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
+    n0, n1, n2 = S(0, 0, 0), S(1, 1, 1 / 2), S(0, 2, 0)
+
+    n40 = S(0, 4, 0)
+    f1 = only(fusiontrees((n1, n2, n1), n40))
+    f2 = only(fusiontrees((n0, n2, n2), n40))
+    t[f1, f2] .= 1 / sqrt(2)
+
+    f1 = only(fusiontrees((n2, n1, n1), n40))
+    f2 = only(fusiontrees((n1, n1, n2), n40))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n2, n2, n0), n40))
+    f2 = only(fusiontrees((n1, n2, n1), n40))
+    t[f1, f2] .= 1 / sqrt(2)
+
+    n2 = S(0, 2, 0)
+    f1 = only(fusiontrees((n1, n1, n0), n2))
+    f2 = only(fusiontrees((n0, n1, n1), n2))
+    t[f1, f2] .= 1
+
+    n41 = S(0, 4, 1)
+    f1 = only(fusiontrees((n2, n1, n1), n41))
+    f2 = only(fusiontrees((n1, n1, n2), n41))
+    t[f1, f2] .= 0.5
+
+    n5 = S(1, 5, 1 / 2)
+    f1 = only(fusiontrees((n2, n2, n1), n5))
+    f2 = only(fusiontrees((n1, n2, n2), n5))
+    t[f1, f2] .= -0.5
+
+    n3 = S(1, 3, 1 / 2)
+    f2 = only(fusiontrees((n0, n1, n2), n3))
+    for f1 in fusiontrees((n1, n1, n1), n3)
+        if only(f1.innerlines) == S(0, 2, 0)
+            t[f1, f2] .= -1 / sqrt(2)
+            break
+        end
+    end
+
+    f1 = only(fusiontrees((n1, n2, n0), n3))
+    f2 = only(fusiontrees((n0, n2, n1), n3))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n2, n1, n0), n3))
+    for f2 in fusiontrees((n1, n1, n1), n3)
+        il = only(f2.innerlines)
+        if il == S(0, 2, 0)
+            t[f1, f2] .= sqrt(2) / 4
+        else # il == S(0, 2, 1)
+            t[f1, f2] .= -sqrt(6) / 4
+        end
+    end
+    return t
 end
 
 # Four site operators
@@ -1095,7 +1149,101 @@ function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
         permute(hop2, ((1, 3, 2, 4), (5, 7, 6, 8)))
 end
 function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    error("Not implemented")
+    t = n_site_operator(Val(4), elt, U1Irrep, SU2Irrep)
+    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
+    n0, n1, n2 = S(0, 0, 0), S(1, 1, 1 / 2), S(0, 2, 0)
+
+    n40 = S(0, 4, 0)
+    f1 = first(fusiontrees((n1, n1, n1, n1), n40))
+    f2 = only(fusiontrees((n0, n0, n2, n2), n40))
+    t[f1, f2] .= -1
+
+    n60 = S(0, 6, 0)
+    f1 = only(fusiontrees((n2, n2, n1, n1), n60))
+    f2 = only(fusiontrees((n1, n1, n2, n2), n60))
+    t[f1, f2] .= 1
+
+    f1 = only(fusiontrees((n2, n1, n0, n1), n40))
+    f2 = only(fusiontrees((n1, n0, n1, n2), n40))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n1, n2, n0, n1), n40))
+    f2 = only(fusiontrees((n0, n1, n1, n2), n40))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n2, n1, n1, n0), n40))
+    f2 = only(fusiontrees((n1, n0, n2, n1), n40))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n1, n2, n1, n0), n40))
+    f2 = only(fusiontrees((n0, n1, n2, n1), n40))
+    t[f1, f2] .= 0.5
+
+    n20 = S(0, 2, 0)
+    f1 = only(fusiontrees((n1, n1, n0, n0), n20))
+    f2 = only(fusiontrees((n0, n0, n1, n1), n20))
+    t[f1, f2] .= 1.0
+
+    f1 = only(fusiontrees((n2, n2, n0, n0), n40))
+    f2 = first(fusiontrees((n1, n1, n1, n1), n40))
+    t[f1, f2] .= -1.0
+
+    n41 = S(0, 4, 1)
+    f1 = only(fusiontrees((n2, n1, n0, n1), n41))
+    f2 = only(fusiontrees((n1, n0, n1, n2), n41))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n1, n2, n0, n1), n41))
+    f2 = only(fusiontrees((n0, n1, n1, n2), n41))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n2, n1, n1, n0), n41))
+    f2 = only(fusiontrees((n1, n0, n2, n1), n41))
+    t[f1, f2] .= 0.5
+
+    f1 = only(fusiontrees((n1, n2, n1, n0), n41))
+    f2 = only(fusiontrees((n0, n1, n2, n1), n41))
+    t[f1, f2] .= 0.5
+
+    n5 = S(1, 5, 1 / 2)
+    f2 = only(fusiontrees((n1, n0, n2, n2), n5))
+    elems = (-sqrt(2) / 4, sqrt(6) / 4)
+    for (f1, elem) in zip(fusiontrees((n2, n1, n1, n1), n5), elems)
+        t[f1, f2] .= elem
+    end
+
+    f2 = only(fusiontrees((n0, n1, n2, n2), n5))
+    for (f1, elem) in zip(fusiontrees((n1, n2, n1, n1), n5), elems)
+        t[f1, f2] .= elem
+    end
+
+    n3 = S(1, 3, 1 / 2)
+    f1 = first(fusiontrees((n1, n1, n0, n1), n3))
+    f2 = only(fusiontrees((n0, n0, n1, n2), n3))
+    t[f1, f2] .= -1 / sqrt(2)
+
+    f1 = only(fusiontrees((n2, n2, n0, n1), n5))
+    f2 = first(fusiontrees((n1, n1, n1, n2), n5))
+    t[f1, f2] .= 1 / sqrt(2)
+
+    f1 = first(fusiontrees((n1, n1, n1, n0), n3))
+    f2 = only(fusiontrees((n0, n0, n2, n1), n3))
+    t[f1, f2] .= -1 / sqrt(2)
+
+    f1 = only(fusiontrees((n2, n2, n1, n0), n5))
+    f2 = first(fusiontrees((n1, n1, n2, n1), n5))
+    t[f1, f2] .= 1 / sqrt(2)
+
+    f1 = only(fusiontrees((n2, n1, n0, n0), n3))
+    for (f2, elem) in zip(fusiontrees((n1, n0, n1, n1), n3), elems)
+        t[f1, f2] .= -elem
+    end
+
+    f1 = only(fusiontrees((n1, n2, n0, n0), n3))
+    for (f2, elem) in zip(fusiontrees((n0, n1, n1, n1), n3), elems)
+        t[f1, f2] .= -elem
+    end
+    return t
 end
 
 end

@@ -41,15 +41,13 @@ implemented_symmetries = [
                     test_operator(O * O', O_triv * O_triv')
                 end
 
-                if !(particle_symmetry == U1Irrep && spin_symmetry == SU2Irrep)
-                    O = singlet_plus_singlet_min_3site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
-                    O_triv = singlet_plus_singlet_min_3site(ComplexF64, Trivial, Trivial; slave_fermion)
-                    test_operator(O, O_triv)
+                O = singlet_plus_singlet_min_3site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                O_triv = singlet_plus_singlet_min_3site(ComplexF64, Trivial, Trivial; slave_fermion)
+                test_operator(O, O_triv)
 
-                    O = singlet_plus_singlet_min_4site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
-                    O_triv = singlet_plus_singlet_min_4site(ComplexF64, Trivial, Trivial; slave_fermion)
-                    test_operator(O, O_triv)
-                end
+                O = singlet_plus_singlet_min_4site(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+                O_triv = singlet_plus_singlet_min_4site(ComplexF64, Trivial, Trivial; slave_fermion)
+                test_operator(O, O_triv)
             else
                 @test_broken e_plus_e_min(
                     ComplexF64, particle_symmetry, spin_symmetry;
