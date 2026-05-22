@@ -80,6 +80,67 @@ function n_site_operator(
     return zeros(elt, V^N ← V^N)
 end
 
+# helper functions to convert Trivial ⊠ SU2Irrep operators
+# to U1Irrep ⊠ SU2Irrep if it has U(1) particle symmetry
+function _promote_basis_particle_u1(
+        sect::ProductSector{Tuple{FermionParity, SU2Irrep}}, idx::Integer
+    )
+    p, j = sect[1].isodd, sect[2].j
+    n = if (!p && j == 0 && idx == 1)
+        0
+    elseif (!p && j == 0 && idx == 2)
+        2
+    elseif (p && j == 1 // 2 && idx == 1)
+        1
+    else
+        error("Invalid Hubbard state.")
+    end
+    return FermionParity(p) ⊠ U1Irrep(n) ⊠ SU2Irrep(j)
+end
+function _promote_particle_u1(
+        op1::AbstractTensorMap{E, S1, N, N}
+    ) where {E, S1 <: GradedSpace{ProductSector{Tuple{FermionParity, SU2Irrep}}}, N}
+    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
+    op2 = n_site_operator(Val(N), E, U1Irrep, SU2Irrep)
+    for (f1, f2) in fusiontrees(op1)
+        blk = op1[f1, f2]
+        nonzero_idxs = findall(!iszero, blk)
+        for idxs in nonzero_idxs
+            # output fusion (split) tree
+            uncoupled1 = map(f1.uncoupled, idxs.I[1:N]) do sect, idx
+                return _promote_basis_particle_u1(sect, idx)
+            end
+            coupled = S(
+                f1.coupled[1].isodd,
+                sum(sect[2].charge for sect in uncoupled1),
+                f1.coupled[2].j
+            )
+            innerlines1 = tuple(
+                map(enumerate(f1.innerlines)) do (i, sect)
+                    ninner = sum(c[2].charge for c in uncoupled1[1:(i + 1)])
+                    return S(sect[1].isodd, ninner, sect[2].j)
+                end...
+            )
+            f1′ = FusionTree(uncoupled1, coupled, ntuple(Returns(false), N), innerlines1)
+            # input fusion tree
+            uncoupled2 = map(f2.uncoupled, idxs.I[(N + 1):end]) do sect, idx
+                return _promote_basis_particle_u1(sect, idx)
+            end
+            innerlines2 = tuple(
+                map(enumerate(f2.innerlines)) do (i, sect)
+                    ninner = sum(c[2].charge for c in uncoupled2[1:(i + 1)])
+                    return S(sect[1].isodd, ninner, sect[2].j)
+                end...
+            )
+            f2′ = FusionTree(uncoupled2, coupled, ntuple(Returns(false), N), innerlines2)
+            # tensor element
+            @assert length(op2[f1′, f2′]) == 1
+            op2[f1′, f2′] .= blk[idxs]
+        end
+    end
+    return op2
+end
+
 # Single-site operators
 # ---------------------
 @doc """
@@ -1061,61 +1122,8 @@ function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     return t
 end
 function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = n_site_operator(Val(3), elt, U1Irrep, SU2Irrep)
-    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
-    n0, n1, n2 = S(0, 0, 0), S(1, 1, 1 / 2), S(0, 2, 0)
-
-    n40 = S(0, 4, 0)
-    f1 = only(fusiontrees((n1, n2, n1), n40))
-    f2 = only(fusiontrees((n0, n2, n2), n40))
-    t[f1, f2] .= 1 / sqrt(2)
-
-    f1 = only(fusiontrees((n2, n1, n1), n40))
-    f2 = only(fusiontrees((n1, n1, n2), n40))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n2, n2, n0), n40))
-    f2 = only(fusiontrees((n1, n2, n1), n40))
-    t[f1, f2] .= 1 / sqrt(2)
-
-    n2 = S(0, 2, 0)
-    f1 = only(fusiontrees((n1, n1, n0), n2))
-    f2 = only(fusiontrees((n0, n1, n1), n2))
-    t[f1, f2] .= 1
-
-    n41 = S(0, 4, 1)
-    f1 = only(fusiontrees((n2, n1, n1), n41))
-    f2 = only(fusiontrees((n1, n1, n2), n41))
-    t[f1, f2] .= 0.5
-
-    n5 = S(1, 5, 1 / 2)
-    f1 = only(fusiontrees((n2, n2, n1), n5))
-    f2 = only(fusiontrees((n1, n2, n2), n5))
-    t[f1, f2] .= -0.5
-
-    n3 = S(1, 3, 1 / 2)
-    f2 = only(fusiontrees((n0, n1, n2), n3))
-    for f1 in fusiontrees((n1, n1, n1), n3)
-        if only(f1.innerlines) == S(0, 2, 0)
-            t[f1, f2] .= -1 / sqrt(2)
-            break
-        end
-    end
-
-    f1 = only(fusiontrees((n1, n2, n0), n3))
-    f2 = only(fusiontrees((n0, n2, n1), n3))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n2, n1, n0), n3))
-    for f2 in fusiontrees((n1, n1, n1), n3)
-        il = only(f2.innerlines)
-        if il == S(0, 2, 0)
-            t[f1, f2] .= sqrt(2) / 4
-        else # il == S(0, 2, 1)
-            t[f1, f2] .= -sqrt(6) / 4
-        end
-    end
-    return t
+    op1 = singlet_plus_singlet_min_3site(elt, Trivial, SU2Irrep)
+    return _promote_particle_u1(op1)
 end
 
 # Four site operators
@@ -1149,101 +1157,8 @@ function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
         permute(hop2, ((1, 3, 2, 4), (5, 7, 6, 8)))
 end
 function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
-    t = n_site_operator(Val(4), elt, U1Irrep, SU2Irrep)
-    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
-    n0, n1, n2 = S(0, 0, 0), S(1, 1, 1 / 2), S(0, 2, 0)
-
-    n40 = S(0, 4, 0)
-    f1 = first(fusiontrees((n1, n1, n1, n1), n40))
-    f2 = only(fusiontrees((n0, n0, n2, n2), n40))
-    t[f1, f2] .= -1
-
-    n60 = S(0, 6, 0)
-    f1 = only(fusiontrees((n2, n2, n1, n1), n60))
-    f2 = only(fusiontrees((n1, n1, n2, n2), n60))
-    t[f1, f2] .= 1
-
-    f1 = only(fusiontrees((n2, n1, n0, n1), n40))
-    f2 = only(fusiontrees((n1, n0, n1, n2), n40))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n1, n2, n0, n1), n40))
-    f2 = only(fusiontrees((n0, n1, n1, n2), n40))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n2, n1, n1, n0), n40))
-    f2 = only(fusiontrees((n1, n0, n2, n1), n40))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n1, n2, n1, n0), n40))
-    f2 = only(fusiontrees((n0, n1, n2, n1), n40))
-    t[f1, f2] .= 0.5
-
-    n20 = S(0, 2, 0)
-    f1 = only(fusiontrees((n1, n1, n0, n0), n20))
-    f2 = only(fusiontrees((n0, n0, n1, n1), n20))
-    t[f1, f2] .= 1.0
-
-    f1 = only(fusiontrees((n2, n2, n0, n0), n40))
-    f2 = first(fusiontrees((n1, n1, n1, n1), n40))
-    t[f1, f2] .= -1.0
-
-    n41 = S(0, 4, 1)
-    f1 = only(fusiontrees((n2, n1, n0, n1), n41))
-    f2 = only(fusiontrees((n1, n0, n1, n2), n41))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n1, n2, n0, n1), n41))
-    f2 = only(fusiontrees((n0, n1, n1, n2), n41))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n2, n1, n1, n0), n41))
-    f2 = only(fusiontrees((n1, n0, n2, n1), n41))
-    t[f1, f2] .= 0.5
-
-    f1 = only(fusiontrees((n1, n2, n1, n0), n41))
-    f2 = only(fusiontrees((n0, n1, n2, n1), n41))
-    t[f1, f2] .= 0.5
-
-    n5 = S(1, 5, 1 / 2)
-    f2 = only(fusiontrees((n1, n0, n2, n2), n5))
-    elems = (-sqrt(2) / 4, sqrt(6) / 4)
-    for (f1, elem) in zip(fusiontrees((n2, n1, n1, n1), n5), elems)
-        t[f1, f2] .= elem
-    end
-
-    f2 = only(fusiontrees((n0, n1, n2, n2), n5))
-    for (f1, elem) in zip(fusiontrees((n1, n2, n1, n1), n5), elems)
-        t[f1, f2] .= elem
-    end
-
-    n3 = S(1, 3, 1 / 2)
-    f1 = first(fusiontrees((n1, n1, n0, n1), n3))
-    f2 = only(fusiontrees((n0, n0, n1, n2), n3))
-    t[f1, f2] .= -1 / sqrt(2)
-
-    f1 = only(fusiontrees((n2, n2, n0, n1), n5))
-    f2 = first(fusiontrees((n1, n1, n1, n2), n5))
-    t[f1, f2] .= 1 / sqrt(2)
-
-    f1 = first(fusiontrees((n1, n1, n1, n0), n3))
-    f2 = only(fusiontrees((n0, n0, n2, n1), n3))
-    t[f1, f2] .= -1 / sqrt(2)
-
-    f1 = only(fusiontrees((n2, n2, n1, n0), n5))
-    f2 = first(fusiontrees((n1, n1, n2, n1), n5))
-    t[f1, f2] .= 1 / sqrt(2)
-
-    f1 = only(fusiontrees((n2, n1, n0, n0), n3))
-    for (f2, elem) in zip(fusiontrees((n1, n0, n1, n1), n3), elems)
-        t[f1, f2] .= -elem
-    end
-
-    f1 = only(fusiontrees((n1, n2, n0, n0), n3))
-    for (f2, elem) in zip(fusiontrees((n0, n1, n1, n1), n3), elems)
-        t[f1, f2] .= -elem
-    end
-    return t
+    op1 = singlet_plus_singlet_min_4site(elt, Trivial, SU2Irrep)
+    return _promote_particle_u1(op1)
 end
 
 end
