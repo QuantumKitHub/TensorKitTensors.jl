@@ -980,20 +980,32 @@ end
 function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{SU2Irrep})
     t = n_site_operator(Val(2), elt, Trivial, SU2Irrep)
     for (s, f) in fusiontrees(t)
+        p1 = s.uncoupled[1][1].isodd
+        p2 = s.uncoupled[2][1].isodd
+        p3 = f.uncoupled[1][1].isodd
+        p4 = f.uncoupled[2][1].isodd
         l3 = f.uncoupled[1][2].j
         l4 = f.uncoupled[2][2].j
         k = f.coupled[2].j
-        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+        if p1 && p2 && p3 && p4
+            t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+        end
     end
     return t
 end
 function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     t = n_site_operator(Val(2), elt, U1Irrep, SU2Irrep)
     for (s, f) in fusiontrees(t)
+        n1 = s.uncoupled[1][2].charge
+        n2 = s.uncoupled[2][2].charge
+        n3 = f.uncoupled[1][2].charge
+        n4 = f.uncoupled[2][2].charge
         l3 = f.uncoupled[1][3].j
         l4 = f.uncoupled[2][3].j
         k = f.coupled[3].j
-        t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+        if n1 == n2 == n3 == n4 == 1
+            t[s, f] .= (k * (k + 1) - l3 * (l3 + 1) - l4 * (l4 + 1)) / 2
+        end
     end
     return t
 end
