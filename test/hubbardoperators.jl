@@ -37,11 +37,11 @@ implemented_symmetries = [
                 test_operator(O, O_triv)
             end
 
-            O = singlet_plus_singlet_min_3site(ComplexF64, Trivial, SU2Irrep)
+            O = singlet_plus_singlet_min_3site(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = singlet_plus_singlet_min_3site(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv; L = 5)
 
-            O = singlet_plus_singlet_min_4site(ComplexF64, Trivial, SU2Irrep)
+            O = singlet_plus_singlet_min_4site(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = singlet_plus_singlet_min_4site(ComplexF64, Trivial, Trivial)
             test_operator(O, O_triv; L = 5)
 

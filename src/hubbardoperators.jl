@@ -1108,8 +1108,8 @@ function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     #= rewrite the operator as
 
     O_{ijk}
-    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ̄} c†_{jσ} c_{jσ̄} c_{kσ})
-    = ∑_σ [c†_{iσ} (c†_{jσ̄} c_{jσ̄}) c_{kσ} + (c†_{jσ} c_{kσ}) (c†_{iσ̄} c_{jσ̄})]
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ̄} c†_{jσ} c_{jσ̄} c_{kσ}) / 2
+    = ∑_σ [c†_{iσ} (c†_{jσ̄} c_{jσ̄}) c_{kσ} + (c†_{jσ} c_{kσ}) (c†_{iσ̄} c_{jσ̄})] / 2
 
     also use the contraction
 
@@ -1131,7 +1131,7 @@ function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     t = permute(hop_up ⊗ Nd + hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
     t += @tensor t3[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
     t += @tensor t4[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
-    return t
+    return t / 2
 end
 function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
     op1 = singlet_plus_singlet_min_3site(elt, Trivial, SU2Irrep)
@@ -1159,12 +1159,12 @@ function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, sp
     #= rewrite the operator as
 
     O_{ijkl}
-    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{kσ̄} c_{lσ} - c†_{iσ̄} c†_{jσ} c_{kσ̄} c_{lσ})
-    = ∑_σ [(c†_{iσ} c_{lσ}) (c†_{jσ̄} c_{kσ̄}) + (c†_{iσ} c_{kσ}) (c†_{jσ̄} c_{lσ̄})]
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{kσ̄} c_{lσ} - c†_{iσ̄} c†_{jσ} c_{kσ̄} c_{lσ}) / 2
+    = ∑_σ [(c†_{iσ} c_{lσ}) (c†_{jσ̄} c_{kσ̄}) + (c†_{iσ} c_{kσ}) (c†_{jσ̄} c_{lσ̄})] / 2
     =#
     hop_up = u_plus_u_min(elt, U1Irrep, spin_symmetry)
     hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
-    hop2 = hop_up ⊗ hop_down + hop_down ⊗ hop_up
+    hop2 = (hop_up ⊗ hop_down + hop_down ⊗ hop_up) / 2
     return permute(hop2, ((1, 3, 4, 2), (5, 7, 8, 6))) +
         permute(hop2, ((1, 3, 2, 4), (5, 7, 6, 8)))
 end
