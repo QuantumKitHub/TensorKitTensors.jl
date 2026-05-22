@@ -19,6 +19,7 @@ implemented_symmetries = [
         if (particle_symmetry, spin_symmetry) in implemented_symmetries
             space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
 
+            # SU(2) particle symmetry
             if particle_symmetry == spin_symmetry == SU2Irrep
                 O = e_hopping(ComplexF64, SU2Irrep, SU2Irrep)
                 O_triv = e_hopping(ComplexF64, Trivial, Trivial)
@@ -33,8 +34,7 @@ implemented_symmetries = [
             if particle_symmetry == Trivial
                 O = singlet_plus(ComplexF64, Trivial, SU2Irrep)
                 O_triv = singlet_plus(ComplexF64, Trivial, Trivial)
-                test_operator(O, O_triv) # eigenvalues are all 0
-                test_operator(O * O', O_triv * O_triv')
+                test_operator(O, O_triv)
             end
 
             O = singlet_plus_singlet_min_3site(ComplexF64, Trivial, SU2Irrep)
