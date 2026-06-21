@@ -13,6 +13,8 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
+export singlet_plus_singlet_min_3site
+export singlet_plus_singlet_min_4site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -76,6 +78,67 @@ function n_site_operator(
     ) where {N}
     V = hubbard_space(particle_symmetry, spin_symmetry)
     return zeros(elt, V^N ← V^N)
+end
+
+# helper functions to convert Trivial ⊠ SU2Irrep operators
+# to U1Irrep ⊠ SU2Irrep if it has U(1) particle symmetry
+function _promote_basis_particle_u1(
+        sect::ProductSector{Tuple{FermionParity, SU2Irrep}}, idx::Integer
+    )
+    p, j = sect[1].isodd, sect[2].j
+    n = if (!p && j == 0 && idx == 1)
+        0
+    elseif (!p && j == 0 && idx == 2)
+        2
+    elseif (p && j == 1 // 2 && idx == 1)
+        1
+    else
+        error("Invalid Hubbard state.")
+    end
+    return FermionParity(p) ⊠ U1Irrep(n) ⊠ SU2Irrep(j)
+end
+function _promote_particle_u1(
+        op1::AbstractTensorMap{E, S1, N, N}
+    ) where {E, S1 <: GradedSpace{ProductSector{Tuple{FermionParity, SU2Irrep}}}, N}
+    S = FermionParity ⊠ U1Irrep ⊠ SU2Irrep
+    op2 = n_site_operator(Val(N), E, U1Irrep, SU2Irrep)
+    for (f1, f2) in fusiontrees(op1)
+        blk = op1[f1, f2]
+        nonzero_idxs = findall(!iszero, blk)
+        for idxs in nonzero_idxs
+            # output fusion (split) tree
+            uncoupled1 = map(f1.uncoupled, idxs.I[1:N]) do sect, idx
+                return _promote_basis_particle_u1(sect, idx)
+            end
+            coupled = S(
+                f1.coupled[1].isodd,
+                sum(sect[2].charge for sect in uncoupled1),
+                f1.coupled[2].j
+            )
+            innerlines1 = tuple(
+                map(enumerate(f1.innerlines)) do (i, sect)
+                    ninner = sum(c[2].charge for c in uncoupled1[1:(i + 1)])
+                    return S(sect[1].isodd, ninner, sect[2].j)
+                end...
+            )
+            f1′ = FusionTree(uncoupled1, coupled, ntuple(Returns(false), N), innerlines1)
+            # input fusion tree
+            uncoupled2 = map(f2.uncoupled, idxs.I[(N + 1):end]) do sect, idx
+                return _promote_basis_particle_u1(sect, idx)
+            end
+            innerlines2 = tuple(
+                map(enumerate(f2.innerlines)) do (i, sect)
+                    ninner = sum(c[2].charge for c in uncoupled2[1:(i + 1)])
+                    return S(sect[1].isodd, ninner, sect[2].j)
+                end...
+            )
+            f2′ = FusionTree(uncoupled2, coupled, ntuple(Returns(false), N), innerlines2)
+            # tensor element
+            @assert length(op2[f1′, f2′]) == 1
+            op2[f1′, f2′] .= blk[idxs]
+        end
+    end
+    return op2
 end
 
 # Single-site operators
@@ -1008,6 +1071,106 @@ function S_exchange(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
         end
     end
     return t
+end
+
+# Three site operators
+# --------------------
+
+@doc """
+    singlet_plus_singlet_min_3site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It describes the hopping of a singlet pair from bond `(j,k)`
+to a nearest neighbor bond `(i,j)` sharing site `j`.
+""" singlet_plus_singlet_min_3site
+function singlet_plus_singlet_min_3site(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus_singlet_min_3site(ComplexF64, P, S)
+end
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    #=
+                -5      -6
+            ┌---┴-------┴---┐
+            |     A_{jk}    |
+            └---┬-------┬---┘
+        -4      1       -3
+    ┌---┴-------┴---┐
+    |    A†_{ij}    |
+    └---┬-------┬---┘
+        -1      -2
+        i       j       k
+    =#
+    singp = singlet_plus(elt, particle_symmetry, spin_symmetry)
+    singm = singp'
+    return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
+end
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
+    #= rewrite the operator as
+
+    O_{ijk}
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{jσ̄} c_{kσ} - c†_{iσ̄} c†_{jσ} c_{jσ̄} c_{kσ}) / 2
+    = ∑_σ [c†_{iσ} (c†_{jσ̄} c_{jσ̄}) c_{kσ} + (c†_{jσ} c_{kσ}) (c†_{iσ̄} c_{jσ̄})] / 2
+
+    also use the contraction
+
+        -4          -5
+    ┌---┴-----------┴---┐
+    |   c†_{iσ̄} c_{jσ̄}  |
+    └---┬-----------┬---┘
+        -1          1           -6
+                ┌---┴-----------┴---┐
+                |   c†_{jσ} c_{kσ}  |
+                └---┬-----------┬---┘
+                    -2          -3
+        i           j           k
+    =#
+    hop_up = u_plus_u_min(elt, U1Irrep, spin_symmetry)
+    hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
+    Nu = u_num(elt, U1Irrep, spin_symmetry)
+    Nd = d_num(elt, U1Irrep, spin_symmetry)
+    t = permute(hop_up ⊗ Nd + hop_down ⊗ Nu, ((1, 3, 2), (4, 6, 5)))
+    t += @tensor t3[-1 -2 -3; -4 -5 -6] := hop_down[-2 -3; 1 -6] * hop_up[-1 1; -4 -5]
+    t += @tensor t4[-1 -2 -3; -4 -5 -6] := hop_up[-2 -3; 1 -6] * hop_down[-1 1; -4 -5]
+    return t / 2
+end
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    op1 = singlet_plus_singlet_min_3site(elt, Trivial, SU2Irrep)
+    return _promote_particle_u1(op1)
+end
+
+# Four site operators
+# -------------------
+
+@doc """
+    singlet_plus_singlet_min_4site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+
+Returns the 4-site term ``O_{ijkl} = A^†_{ij} A_{kl}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
+""" singlet_plus_singlet_min_4site
+function singlet_plus_singlet_min_4site(P::Type{<:Sector}, S::Type{<:Sector})
+    return singlet_plus_singlet_min_4site(ComplexF64, P, S)
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    singp = singlet_plus(elt, particle_symmetry, spin_symmetry)
+    return singp ⊗ singp'
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, spin_symmetry::Type{<:Sector})
+    #= rewrite the operator as
+
+    O_{ijkl}
+    = ∑_σ (c†_{iσ} c†_{jσ̄} c_{kσ̄} c_{lσ} - c†_{iσ̄} c†_{jσ} c_{kσ̄} c_{lσ}) / 2
+    = ∑_σ [(c†_{iσ} c_{lσ}) (c†_{jσ̄} c_{kσ̄}) + (c†_{iσ} c_{kσ}) (c†_{jσ̄} c_{lσ̄})] / 2
+    =#
+    hop_up = u_plus_u_min(elt, U1Irrep, spin_symmetry)
+    hop_down = d_plus_d_min(elt, U1Irrep, spin_symmetry)
+    hop2 = (hop_up ⊗ hop_down + hop_down ⊗ hop_up) / 2
+    return permute(hop2, ((1, 3, 4, 2), (5, 7, 8, 6))) +
+        permute(hop2, ((1, 3, 2, 4), (5, 7, 6, 8)))
+end
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{U1Irrep}, ::Type{SU2Irrep})
+    op1 = singlet_plus_singlet_min_4site(elt, Trivial, SU2Irrep)
+    return _promote_particle_u1(op1)
 end
 
 end
