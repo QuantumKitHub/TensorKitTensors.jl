@@ -1,10 +1,19 @@
 using TensorKit
-using LinearAlgebra: tr
+using LinearAlgebra: tr, I
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.BosonOperators
 using StableRNGs
+
+@testset "basis transformations" begin
+    cutoff = 4
+    for symmetry in (Trivial, U1Irrep)
+        U = basis_transform(symmetry; cutoff)
+        @test U' * U ≈ I
+        @test U == I
+    end
+end
 
 @testset "Non-symmetric bosonic operators" begin
     cutoff = 4

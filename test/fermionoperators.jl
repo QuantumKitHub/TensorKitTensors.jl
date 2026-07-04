@@ -12,6 +12,13 @@ using StableRNGs
 
 const symmetries = (Trivial, U1Irrep)
 
+@testset "basis transformations" begin
+    for sym in symmetries
+        U = basis_transform(sym)
+        @test U == [1 0; 0 1]
+    end
+end
+
 @testset "fermion properties" begin
     @test f⁻f⁻() ≈ -swap_2sites(f⁻f⁻())
     @test f⁺f⁺() ≈ -swap_2sites(f⁺f⁺())

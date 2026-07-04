@@ -7,7 +7,7 @@ given the basis transformation `U` that maps the basis of `O` onto the basis of 
 
 The operator `O` is first converted to a dense array, then rotated by applying `U` to every
 site (or `Us[i]` to site `i`), and finally projected onto the symmetric tensor structure of
-`V^N ← V^N` using [`TensorKit.TensorMap`](@extref). If the rotated operator is not symmetric,
+`V^N ← V^N` using the `TensorMap` constructor. If the rotated operator is not symmetric,
 i.e. if it has nonzero entries (larger than `tol`) that are incompatible with the symmetry
 structure of `V`, an `ArgumentError` is thrown mentioning `name`.
 
@@ -35,7 +35,7 @@ julia> U = basis_transform(Z2Irrep); # Hadamard matrix
 
 julia> X_z2 = symmetrize(X, U, spin_space(Z2Irrep); name = "S_x");
 
-julia> block(X_z2, Z2Irrep(0)) == fill(1 / 2, 1, 1) && block(X_z2, Z2Irrep(1)) == fill(-1 / 2, 1, 1)
+julia> block(X_z2, Z2Irrep(0)) ≈ fill(1 / 2, 1, 1) && block(X_z2, Z2Irrep(1)) ≈ fill(-1 / 2, 1, 1)
 true
 ```
 """

@@ -118,7 +118,8 @@ end
 # trivial-basis indices (|0⟩, |↑↓⟩, |↑⟩, |↓⟩) = (1, 2, 3, 4) contained in sector `c`,
 # in dense row order
 function _state_indices(c, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    return if !c[1].isodd # parity even: |0⟩ and/or |↑↓⟩
+    parity = c isa FermionParity ? c : c[1]
+    return if !parity.isodd # parity even: |0⟩ and/or |↑↓⟩
         if particle_symmetry === Trivial
             return (1, 2)
         elseif particle_symmetry === SU2Irrep
@@ -370,7 +371,7 @@ Return the two-body operator that describes a particle that hops between the fir
 
 For `SU2Irrep` particle symmetry, the hopping operator is expressed in the staggered gauge
 ``c_{j,σ} → i^j c_{j,σ}`` and requires a complex scalar type; see
-[`basis_transform`](@ref) for details.
+[`basis_transform`](@ref HubbardOperators.basis_transform) for details.
 """ e_hopping
 function e_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return e_plus_e_min(elt, Trivial, Trivial) - e_min_e_plus(elt, Trivial, Trivial)

@@ -1,5 +1,5 @@
 using TensorKit
-using LinearAlgebra: tr
+using LinearAlgebra: tr, I
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
@@ -10,6 +10,20 @@ const ε = zeros(Int, 3, 3, 3)
 for i in 1:3
     ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
     ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
+end
+
+@testset "basis transformations" begin
+    for spin in (1 // 2):(1 // 2):(5 // 2)
+        for symmetry in (Trivial, U1Irrep, SU2Irrep)
+            U = basis_transform(symmetry; spin)
+            @test U' * U ≈ I
+        end
+        @test basis_transform(Trivial; spin) == I
+    end
+    U = basis_transform(Z2Irrep)
+    @test U' * U ≈ I
+    @test U ≈ [1 1; 1 -1] / sqrt(2)
+    @test_throws ArgumentError basis_transform(Z2Irrep; spin = 1)
 end
 
 @testset "Non-symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
