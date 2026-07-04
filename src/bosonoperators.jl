@@ -1,9 +1,10 @@
 module BosonOperators
 
 using TensorKit
-using LinearAlgebra: diagind
+using LinearAlgebra: I
+import ..TensorKitTensors: symmetrize, _restrict_scalartype
 
-export boson_space
+export boson_space, basis_transform
 export b_plus, b_min, b_num
 export b_plus_b_plus, b_plus_b_min, b_min_b_plus, b_min_b_min
 export b_hopping
@@ -19,6 +20,27 @@ Available symmetries are `Trivial` or `U1Irrep`.
 """
 boson_space(::Type{Trivial}; cutoff::Integer) = ComplexSpace(cutoff + 1)
 boson_space(::Type{U1Irrep}; cutoff::Integer) = U1Space(n => 1 for n in 0:cutoff)
+function boson_space(symmetry::Type{<:Sector}; kwargs...)
+    throw(ArgumentError("invalid symmetry `$symmetry`"))
+end
+
+"""
+    basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
+
+Return the unitary basis transformation that maps the occupation-number basis
+``\\{|0⟩, |1⟩, …, |\\mathrm{cutoff}⟩\\}`` of `boson_space(Trivial; cutoff)` onto the basis
+of `boson_space(symmetry; cutoff)`, as required by [`symmetrize`](@ref TensorKitTensors.symmetrize).
+
+For `U1Irrep`, the boson number is used as the ``U(1)`` charge, and the charge sectors are
+ordered as `0:cutoff`. This coincides with the occupation-number basis, such that the
+transformation is the identity.
+"""
+function basis_transform(::Type{Trivial}; cutoff::Integer)
+    return Matrix{Float64}(I, cutoff + 1, cutoff + 1)
+end
+function basis_transform(::Type{U1Irrep}; cutoff::Integer)
+    return Matrix{Float64}(I, cutoff + 1, cutoff + 1)
+end
 
 # Single-site operators
 # ---------------------
@@ -28,22 +50,14 @@ boson_space(::Type{U1Irrep}; cutoff::Integer) = U1Space(n => 1 for n in 0:cutoff
 
 The truncated bosonic annihilation operator, with a maximum of `cutoff` bosons per site.
 """ b_min
-b_min(; kwargs...) = b_min(ComplexF64, Trivial; kwargs...)
-b_min(elt::Type{<:Number}; kwargs...) = b_min(elt, Trivial; kwargs...)
-b_min(symm::Type{<:Sector}; kwargs...) = b_min(ComplexF64, symm; kwargs...)
-function b_min(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    if symmetry === Trivial
-        pspace = boson_space(Trivial; cutoff)
-        b⁻ = zeros(elt, pspace ← pspace)
-        for i in 1:cutoff
-            b⁻[i, i + 1] = sqrt(i)
-        end
-        return b⁻
-    else
-        throw(ArgumentError("invalid symmetry `$symmetry`"))
+function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    pspace = boson_space(Trivial; cutoff)
+    b⁻ = zeros(elt, pspace ← pspace)
+    for i in 1:cutoff
+        b⁻[i, i + 1] = sqrt(i)
     end
+    return b⁻
 end
-
 const b⁻ = b_min
 
 @doc """
@@ -52,22 +66,14 @@ const b⁻ = b_min
 
 The truncated bosonic creation operator, with a maximum of `cutoff` bosons per site.
 """ b_plus
-b_plus(; kwargs...) = b_plus(ComplexF64, Trivial; kwargs...)
-b_plus(elt::Type{<:Number}; kwargs...) = b_plus(elt, Trivial; kwargs...)
-b_plus(symm::Type{<:Sector}; kwargs...) = b_plus(ComplexF64, symm; kwargs...)
-function b_plus(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    if symmetry === Trivial
-        pspace = boson_space(Trivial; cutoff)
-        b⁺ = zeros(elt, pspace ← pspace)
-        for i in 1:cutoff
-            b⁺[i + 1, i] = sqrt(i)
-        end
-        return b⁺
-    else
-        throw(ArgumentError("invalid symmetry `$symmetry`"))
+function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    pspace = boson_space(Trivial; cutoff)
+    b⁺ = zeros(elt, pspace ← pspace)
+    for i in 1:cutoff
+        b⁺[i + 1, i] = sqrt(i)
     end
+    return b⁺
 end
-
 const b⁺ = b_plus
 
 @doc """
@@ -76,26 +82,14 @@ const b⁺ = b_plus
 
 The truncated bosonic number operator, with a maximum of `cutoff` bosons per site.
 """ b_num
-b_num(; kwargs...) = b_num(ComplexF64, Trivial; kwargs...)
-b_num(elt::Type{<:Number}; kwargs...) = b_num(elt, Trivial; kwargs...)
-b_num(symm::Type{<:Sector}; kwargs...) = b_num(ComplexF64, symm; kwargs...)
-function b_num(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    pspace = boson_space(symmetry; cutoff)
+function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    pspace = boson_space(Trivial; cutoff)
     n = zeros(elt, pspace ← pspace)
-    if symmetry === Trivial
-        for i in 0:cutoff
-            n[i + 1, i + 1] = i
-        end
-    elseif symmetry === U1Irrep
-        for (c, b) in blocks(n)
-            b .= c.charge
-        end
-    else
-        throw(ArgumentError("invalid symmetry `$symmetry`"))
+    for i in 0:cutoff
+        n[i + 1, i + 1] = i
     end
     return n
 end
-
 const n = b_num
 
 # Two site operators
@@ -106,18 +100,10 @@ const n = b_num
 
 The truncated bosonic pair-creation operator, with a maximum of `cutoff` bosons per site.
 """ b_plus_b_plus
-b_plus_b_plus(; kwargs...) = b_plus_b_plus(ComplexF64, Trivial; kwargs...)
-b_plus_b_plus(elt::Type{<:Number}; kwargs...) = b_plus_b_plus(elt, Trivial; kwargs...)
-b_plus_b_plus(symm::Type{<:Sector}; kwargs...) = b_plus_b_plus(ComplexF64, symm; kwargs...)
-function b_plus_b_plus(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    if symmetry === Trivial
-        b⁺ = b_plus(elt, Trivial; cutoff)
-        return b⁺ ⊗ b⁺
-    else
-        throw(ArgumentError("invalid symmetry `$symmetry`"))
-    end
+function b_plus_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    b⁺ = b_plus(elt, Trivial; cutoff)
+    return b⁺ ⊗ b⁺
 end
-
 const b⁺b⁺ = b_plus_b_plus
 
 @doc """
@@ -126,27 +112,11 @@ const b⁺b⁺ = b_plus_b_plus
 
 The truncated bosonic left-hopping operator, with a maximum of `cutoff` bosons per site.
 """ b_plus_b_min
-b_plus_b_min(; kwargs...) = b_plus_b_min(ComplexF64, Trivial; kwargs...)
-b_plus_b_min(elt::Type{<:Number}; kwargs...) = b_plus_b_min(elt, Trivial; kwargs...)
-b_plus_b_min(symm::Type{<:Sector}; kwargs...) = b_plus_b_min(ComplexF64, symm; kwargs...)
 function b_plus_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁺ ⊗ b⁻
 end
-function b_plus_b_min(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
-    pspace = boson_space(U1Irrep; cutoff)
-    b⁺b⁻ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
-    for (f1, f2) in fusiontrees(b⁺b⁻)
-        c_out, c_in = f1.uncoupled, f2.uncoupled
-        if c_in[1].charge + 1 == c_out[1].charge &&
-                c_in[2].charge - 1 == c_out[2].charge
-            b⁺b⁻[f1, f2] .= sqrt(c_out[1].charge) * sqrt(c_in[2].charge)
-        end
-    end
-    return b⁺b⁻
-end
-
 const b⁺b⁻ = b_plus_b_min
 
 @doc """
@@ -155,27 +125,11 @@ const b⁺b⁻ = b_plus_b_min
 
 The truncated bosonic right-hopping operator, with a maximum of `cutoff` bosons per site.
 """ b_min_b_plus
-b_min_b_plus(; kwargs...) = b_min_b_plus(ComplexF64, Trivial; kwargs...)
-b_min_b_plus(elt::Type{<:Number}; kwargs...) = b_min_b_plus(elt, Trivial; kwargs...)
-b_min_b_plus(symm::Type{<:Sector}; kwargs...) = b_min_b_plus(ComplexF64, symm; kwargs...)
 function b_min_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁻ ⊗ b⁺
 end
-function b_min_b_plus(elt::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
-    pspace = boson_space(U1Irrep; cutoff)
-    b⁻b⁺ = zeros(elt, pspace ⊗ pspace ← pspace ⊗ pspace)
-    for (f1, f2) in fusiontrees(b⁻b⁺)
-        c_out, c_in = f1.uncoupled, f2.uncoupled
-        if c_in[1].charge - 1 == c_out[1].charge &&
-                c_in[2].charge + 1 == c_out[2].charge
-            b⁻b⁺[f1, f2] .= sqrt(c_in[1].charge) * sqrt(c_out[2].charge)
-        end
-    end
-    return b⁻b⁺
-end
-
 const b⁻b⁺ = b_min_b_plus
 
 @doc """
@@ -184,30 +138,41 @@ const b⁻b⁺ = b_min_b_plus
 
 The truncated bosonic pair-annihilation operator, with a maximum of `cutoff` bosons per site.
 """ b_min_b_min
-b_min_b_min(; kwargs...) = b_min_b_min(ComplexF64, Trivial; kwargs...)
-b_min_b_min(elt::Type{<:Number}; kwargs...) = b_min_b_min(elt, Trivial; kwargs...)
-b_min_b_min(symm::Type{<:Sector}; kwargs...) = b_min_b_min(ComplexF64, symm; kwargs...)
-function b_min_b_min(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    if symmetry === Trivial
-        b⁻ = b_min(elt, Trivial; cutoff)
-        return b⁻ ⊗ b⁻
-    else
-        throw(ArgumentError("invalid symmetry `$symmetry`"))
-    end
+function b_min_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    b⁻ = b_min(elt, Trivial; cutoff)
+    return b⁻ ⊗ b⁻
 end
-
 const b⁻b⁻ = b_min_b_min
 
 @doc """
-    b_hopping([elt::Type{<:Number}])
-    b_hop([elt::Type{<:Number}])
+    b_hopping([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
+    b_hop([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
 """ b_hopping
-b_hopping(; kwargs...) = b_hopping(ComplexF64, Trivial; kwargs...)
-function b_hopping(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-    return b_plus_b_min(elt, symmetry; cutoff) + b_min_b_plus(elt, symmetry; cutoff)
+function b_hopping(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    return b_plus_b_min(elt, Trivial; cutoff) + b_min_b_plus(elt, Trivial; cutoff)
 end
 const b_hop = b_hopping
+
+# Symmetric operators and default arguments
+# -----------------------------------------
+# The symmetric operators are automatically generated from their `Trivial` counterparts
+# through `symmetrize` and `basis_transform`. Operators that are incompatible with a given
+# symmetry throw an `ArgumentError`.
+for opname in
+    (:b_min, :b_plus, :b_num, :b_plus_b_plus, :b_plus_b_min, :b_min_b_plus, :b_min_b_min, :b_hopping)
+    @eval begin
+        $opname(; kwargs...) = $opname(ComplexF64, Trivial; kwargs...)
+        $opname(elt::Type{<:Number}; kwargs...) = $opname(elt, Trivial; kwargs...)
+        $opname(symmetry::Type{<:Sector}; kwargs...) = $opname(ComplexF64, symmetry; kwargs...)
+        function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
+            O = $opname(complex(elt), Trivial; cutoff)
+            U = basis_transform(symmetry; cutoff)
+            O′ = symmetrize(O, U, boson_space(symmetry; cutoff); name = $(string(opname)))
+            return _restrict_scalartype(elt, O′; name = $(string(opname)))
+        end
+    end
+end
 
 end

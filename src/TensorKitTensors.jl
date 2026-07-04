@@ -1,5 +1,7 @@
 module TensorKitTensors
 
+export symmetrize
+
 export SpinOperators
 export BosonOperators
 export FermionOperators
