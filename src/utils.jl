@@ -89,9 +89,8 @@ function symmetrize(
         throw(ArgumentError("operator is not symmetric under `$(sectortype(V))` symmetry"))
     end
 end
-function symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; kwargs...)
-    return symmetrize(O, ntuple(Returns(U), numout(O)), V; kwargs...)
-end
+symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; kwargs...) =
+    symmetrize(O, ntuple(Returns(U), numout(O)), V; kwargs...)
 
 # `sqrt(eps)` of the scalar type, floored at the resolution of the sector scalar type,
 # i.e. the element type of the fusion-tensor data used by the projection

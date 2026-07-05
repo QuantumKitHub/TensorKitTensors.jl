@@ -3,14 +3,16 @@ uuid = "41b62e7d-e9d1-4e23-942c-79a97adf954b"
 version = "0.2.5"
 authors = ["QuantumKitHub"]
 
+[workspace]
+projects = ["test"]
+
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+RationalRoots = "308eb6b3-cc68-5ff3-9e97-c3c4da4fa681"
 TensorKit = "07d1fe3e-3e46-537d-9eac-e9e13d0d4cec"
 
 [compat]
 LinearAlgebra = "1"
+RationalRoots = "0.2.1"
 TensorKit = "0.14, 0.15, 0.16, 0.17"
 julia = "1.10"
-
-[workspace]
-projects = ["test"]

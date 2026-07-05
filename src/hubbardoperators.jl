@@ -75,7 +75,7 @@ function hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:
 end
 
 """
-    basis_transform([elt::Type{<:Number}], particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    basis_transform(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the unitary basis transformation that maps the basis ``\\{|0⟩, |↑↓⟩, |↑⟩, |↓⟩\\}`` of
 `hubbard_space(Trivial, Trivial)` (fermion-parity even states first) onto the basis of
@@ -105,15 +105,9 @@ order of the target space, where the states are identified as follows:
     physics on bipartite lattices but are not elementwise equal to them.
 
 The transformations have exact integer entries and are therefore returned with integer
-scalar type, irrespective of `elt`, such that they promote to any scalar type without loss
-of precision.
+scalar type, such that they promote to any scalar type without loss of precision.
 """
 function basis_transform(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
-    return basis_transform(Float64, particle_symmetry, spin_symmetry)
-end
-function basis_transform(
-        ::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}
-    )
     V = hubbard_space(particle_symmetry, spin_symmetry)
     U = zeros(Int, 4, 4)
     row = 1
@@ -611,7 +605,7 @@ for opname in (
                 spin_symmetry::Type{<:Sector}
             )
             O = $opname(elt, Trivial, Trivial)
-            U = basis_transform(elt, particle_symmetry, spin_symmetry)
+            U = basis_transform(particle_symmetry, spin_symmetry)
             G = _particle_gauge(particle_symmetry)
             Vref = domain(U)[1]
             Us = ntuple(k -> U * TensorMap(G^(k - 1), Vref ← Vref), numout(O))

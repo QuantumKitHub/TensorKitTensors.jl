@@ -25,7 +25,7 @@ function boson_space(symmetry::Type{<:Sector}; kwargs...)
 end
 
 """
-    basis_transform([elt::Type{<:Number}], symmetry::Type{<:Sector}; cutoff::Integer)
+    basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
 
 Return the unitary basis transformation that maps the occupation-number basis
 ``\\{|0⟩, |1⟩, …, |\\mathrm{cutoff}⟩\\}`` of `boson_space(Trivial; cutoff)` onto the basis
@@ -38,13 +38,9 @@ ordered as `0:cutoff`. This coincides with the occupation-number basis, such tha
 transformation is the identity.
 
 The transformations have exact integer entries and are therefore returned with integer
-scalar type, irrespective of `elt`, such that they promote to any scalar type without loss
-of precision.
+scalar type, such that they promote to any scalar type without loss of precision.
 """
-function basis_transform(symmetry::Type{<:Sector}; kwargs...)
-    return basis_transform(Float64, symmetry; kwargs...)
-end
-function basis_transform(::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
+function basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
     V = desymmetrize(boson_space(symmetry; cutoff))
     return TensorMap(Matrix{Int}(I, cutoff + 1, cutoff + 1), V ← boson_space(Trivial; cutoff))
 end
@@ -175,7 +171,7 @@ for opname in
         $opname(symmetry::Type{<:Sector}; kwargs...) = $opname(ComplexF64, symmetry; kwargs...)
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
             O = $opname(elt, Trivial; cutoff)
-            U = basis_transform(elt, symmetry; cutoff)
+            U = basis_transform(symmetry; cutoff)
             O′ = symmetrize(O, U, boson_space(symmetry; cutoff))
             return _restrict_scalartype(elt, O′)
         end

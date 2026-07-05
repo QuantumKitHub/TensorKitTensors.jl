@@ -2,6 +2,7 @@ module SpinOperators
 
 using TensorKit
 using LinearAlgebra: I
+using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
 
 export spin_space, basis_transform, casimir
@@ -33,7 +34,7 @@ spin_space(::Type{SU2Irrep}; spin = 1 // 2) = SU2Space(spin => 1)
 spin_space(symmetry::Type{<:Sector}; kwargs...) = throw(ArgumentError("invalid symmetry `$symmetry`"))
 
 """
-    basis_transform([elt::Type{<:Number}], symmetry::Type{<:Sector}; spin = 1 // 2)
+    basis_transform(symmetry::Type{<:Sector}; spin = 1 // 2)
 
 Return the unitary basis transformation that maps the standard spin basis ``\\{|s⟩, |s-1⟩, …, |-s⟩\\}``
 (the eigenbasis of ``S^z`` in descending order of ``m``, as used by the `Trivial` operators)
@@ -57,26 +58,19 @@ transformation is the permutation from descending-``m`` order to TensorKit's cha
 
 For `SU2Irrep`, TensorKit's basis convention within an irrep is descending ``m``, which
 coincides with the standard spin basis, such that the transformation is the identity.
-
-The identity and permutation transformations have exact integer entries and are returned
-with integer scalar type, irrespective of `elt`, such that they promote to any scalar type
-without loss of precision.
 """
-function basis_transform(symmetry::Type{<:Sector}; kwargs...)
-    return basis_transform(Float64, symmetry; kwargs...)
-end
-function basis_transform(::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+function basis_transform(::Type{Trivial}; spin = 1 // 2)
     V = spin_space(Trivial; spin)
     d = Int(2 * spin + 1)
     return TensorMap(Matrix{Int}(I, d, d), V ← V)
 end
-function basis_transform(elt::Type{<:Number}, ::Type{Z2Irrep}; spin = 1 // 2)
+function basis_transform(::Type{Z2Irrep}; spin = 1 // 2)
     spin == 1 // 2 || throw(ArgumentError("Z2 symmetry only implemented for spin 1//2"))
-    T = real(float(elt))
+    h = signedroot(1 // 2)
     V = spin_space(Trivial; spin)
-    return TensorMap([1 1; 1 -1] / sqrt(T(2)), desymmetrize(spin_space(Z2Irrep; spin)) ← V)
+    return TensorMap([h h; h -h], desymmetrize(spin_space(Z2Irrep; spin)) ← V)
 end
-function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; spin = 1 // 2)
+function basis_transform(::Type{U1Irrep}; spin = 1 // 2)
     V = spin_space(U1Irrep; spin)
     d = Int(2 * spin + 1)
     U = zeros(Int, d, d)
@@ -85,7 +79,7 @@ function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; spin = 1 // 2)
     end
     return TensorMap(U, desymmetrize(V) ← spin_space(Trivial; spin))
 end
-function basis_transform(::Type{<:Number}, ::Type{SU2Irrep}; spin = 1 // 2)
+function basis_transform(::Type{SU2Irrep}; spin = 1 // 2)
     V = spin_space(Trivial; spin)
     d = Int(2 * spin + 1)
     return TensorMap(Matrix{Int}(I, d, d), desymmetrize(spin_space(SU2Irrep; spin)) ← V)
@@ -395,7 +389,7 @@ for opname in (
         $opname(symmetry::Type{<:Sector}; kwargs...) = $opname(ComplexF64, symmetry; kwargs...)
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin = 1 // 2)
             O = $opname(elt, Trivial; spin)
-            U = basis_transform(elt, symmetry; spin)
+            U = basis_transform(symmetry; spin)
             O′ = symmetrize(O, U, spin_space(symmetry; spin))
             return _restrict_scalartype(elt, O′)
         end
