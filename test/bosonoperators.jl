@@ -10,8 +10,9 @@ using StableRNGs
     cutoff = 4
     for symmetry in (Trivial, U1Irrep)
         U = basis_transform(symmetry; cutoff)
-        @test U isa Matrix{Int}
-        @test U == I
+        @test U isa AbstractTensorMap
+        @test scalartype(U) === Int
+        @test U == one(U)
     end
     # real and wide scalar types are preserved
     @test scalartype(b_num(Float64, U1Irrep; cutoff)) === Float64

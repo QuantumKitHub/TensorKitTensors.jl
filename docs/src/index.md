@@ -24,4 +24,5 @@ an `ArgumentError`.
 
 ```@docs
 symmetrize
+desymmetrize
 ```

@@ -5,6 +5,31 @@ using TensorKitTensors
 using TensorKitTensors.SpinOperators
 using TensorKitTensors.FermionOperators
 
+@testset "desymmetrize" begin
+    # spaces: graded spaces map onto ComplexSpace, preserving dimension and duality
+    @test desymmetrize(spin_space(SU2Irrep; spin = 1)) == ℂ^3
+    @test desymmetrize(fermion_space(U1Irrep)) == ℂ^2
+    @test desymmetrize(spin_space(U1Irrep)') == (ℂ^2)'
+    @test desymmetrize(ℂ^4) == ℂ^4
+
+    # tensors over ComplexSpace are returned as-is
+    X = S_x()
+    @test desymmetrize(X) === X
+
+    # desymmetrize inverts symmetrize up to the basis transformation
+    U = SpinOperators.basis_transform(Z2Irrep)
+    @test desymmetrize(S_x(Z2Irrep)) ≈ U * S_x() * U'
+
+    # round trip with a trivial (identity) transformation
+    t = S_exchange(SU2Irrep)
+    Vd = desymmetrize(spin_space(SU2Irrep))
+    @test symmetrize(desymmetrize(t), id(Vd), spin_space(SU2Irrep)) ≈ t
+
+    # fermionic tensors desymmetrize consistently with their finer gradings
+    @test desymmetrize(f_hopping(ComplexF64, Trivial)) ≈
+        desymmetrize(f_hopping(ComplexF64, U1Irrep))
+end
+
 @testset "symmetrize" begin
     # single-site round trip: transverse-field Ising term with Z2 symmetry
     X = S_x()

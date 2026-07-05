@@ -2,7 +2,7 @@ module FermionOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
 
 export fermion_space, basis_transform
 export f_num
@@ -27,18 +27,22 @@ fermion_space(symmetry::Type{<:Sector}) = throw(ArgumentError("invalid symmetry 
     basis_transform([elt::Type{<:Number}], symmetry::Type{<:Sector})
 
 Return the unitary basis transformation that maps the basis ``\\{|0⟩, |1⟩\\}`` of
-`fermion_space(Trivial)` onto the basis of `fermion_space(symmetry)`, as required by
-[`symmetrize`](@ref TensorKitTensors.symmetrize).
+`fermion_space(Trivial)` onto the basis of `fermion_space(symmetry)`, as a `TensorMap` from
+`desymmetrize(fermion_space(Trivial))` to `desymmetrize(fermion_space(symmetry))`, as
+required by [`symmetrize`](@ref TensorKitTensors.symmetrize). Note that both sides are
+purely bosonic `ComplexSpace`s, since a `TensorMap` cannot mix different gradings.
 
-Note that even the `Trivial` fermionic space is graded by the fermion parity `fℤ₂`. For
-`U1Irrep`, the particle number is additionally used as a ``U(1)`` charge, which refines the
-grading without reordering the basis, such that the transformation is the identity. It is
-returned as an integer matrix, irrespective of `elt`, such that it promotes to any scalar
-type without loss of precision.
+Even the `Trivial` fermionic space is graded by the fermion parity `fℤ₂`. For `U1Irrep`,
+the particle number is additionally used as a ``U(1)`` charge, which refines the grading
+without reordering the basis, such that the transformation is the identity. It is returned
+with integer scalar type, irrespective of `elt`, such that it promotes to any scalar type
+without loss of precision.
 """
 basis_transform(symmetry::Type{<:Sector}) = basis_transform(Float64, symmetry)
-basis_transform(::Type{<:Number}, ::Type{Trivial}) = Matrix{Int}(I, 2, 2)
-basis_transform(::Type{<:Number}, ::Type{U1Irrep}) = Matrix{Int}(I, 2, 2)
+function basis_transform(::Type{<:Number}, symmetry::Type{<:Sector})
+    V = desymmetrize(fermion_space(symmetry))
+    return TensorMap(Matrix{Int}(I, 2, 2), V ← desymmetrize(fermion_space(Trivial)))
+end
 
 # Single-site operators
 # ---------------------

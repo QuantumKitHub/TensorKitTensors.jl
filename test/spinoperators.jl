@@ -16,19 +16,20 @@ end
     for spin in (1 // 2):(1 // 2):(5 // 2)
         for symmetry in (Trivial, U1Irrep, SU2Irrep)
             U = basis_transform(symmetry; spin)
-            @test U isa Matrix{Int} # exact entries promote without precision loss
-            @test U' * U == I
+            @test U isa AbstractTensorMap
+            @test scalartype(U) === Int # exact entries promote without precision loss
+            @test U' * U == one(U)
         end
-        @test basis_transform(Trivial; spin) == I
+        @test basis_transform(Trivial; spin) == one(basis_transform(Trivial; spin))
     end
     U = basis_transform(Z2Irrep)
-    @test U' * U ≈ I
-    @test U ≈ [1 1; 1 -1] / sqrt(2)
+    @test U' * U ≈ one(U)
+    @test convert(Array, U) ≈ [1 1; 1 -1] / sqrt(2)
     @test_throws ArgumentError basis_transform(Z2Irrep; spin = 1)
 
     # the Hadamard transformation is computed at the requested precision
     U_big = basis_transform(BigFloat, Z2Irrep)
-    @test U_big isa Matrix{BigFloat}
+    @test scalartype(U_big) === BigFloat
     @test abs(U_big[1, 1] - 1 / sqrt(big(2))) < eps(BigFloat)
 end
 

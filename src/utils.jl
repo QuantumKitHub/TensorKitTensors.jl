@@ -1,15 +1,45 @@
 """
-    symmetrize(O::AbstractTensorMap, U::AbstractMatrix, V::ElementarySpace; tol=..., name="operator")
-    symmetrize(O::AbstractTensorMap, Us::NTuple{N,AbstractMatrix}, V::ElementarySpace; tol=..., name="operator")
+    desymmetrize(V::VectorSpace)
+    desymmetrize(t::AbstractTensorMap)
+
+Map a symmetric (graded) vector space or tensor onto its non-symmetric counterpart over
+`ComplexSpace`.
+
+For an elementary space, this is `ComplexSpace(dim(V))` with the duality of `V` preserved;
+product and hom spaces are mapped elementwise. For a tensor, the result is the `TensorMap`
+over the desymmetrized spaces holding the dense representation of `t`, in which the basis
+vectors of each space are grouped per sector, in the order of `sectors(V)`. This is the
+inverse operation of [`symmetrize`](@ref) (with trivial basis transformations).
+
+!!! note
+    For tensors with fermionic gradings, the dense representation discards the fermionic
+    statistics: the resulting purely bosonic tensor incorporates the sign conventions of
+    TensorKit's fusion-tensor data, and is consistent with what [`symmetrize`](@ref)
+    expects, but permuting its indices is no longer equivalent to permuting the indices of
+    the original tensor.
+"""
+desymmetrize(V::ComplexSpace) = V
+desymmetrize(V::ElementarySpace) = isdual(V) ? ComplexSpace(dim(V))' : ComplexSpace(dim(V))
+desymmetrize(P::ProductSpace) = ProductSpace(map(desymmetrize, tuple(P...))...)
+desymmetrize(W::HomSpace) = desymmetrize(codomain(W)) ← desymmetrize(domain(W))
+function desymmetrize(t::AbstractTensorMap)
+    spacetype(t) === ComplexSpace && return t
+    return TensorMap(convert(Array, t), desymmetrize(space(t)))
+end
+
+"""
+    symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; tol=..., name="operator")
+    symmetrize(O::AbstractTensorMap, Us::NTuple{N,AbstractTensorMap}, V::ElementarySpace; tol=..., name="operator")
 
 Construct the symmetric version of an ``N``-site operator `O` on the space `V^N ← V^N`,
 given the basis transformation `U` that maps the basis of `O` onto the basis of `V`.
 
-The operator `O` is first converted to a dense array, then rotated by applying `U` to every
-site (or `Us[i]` to site `i`), and finally projected onto the symmetric tensor structure of
-`V^N ← V^N` using the `TensorMap` constructor. If the rotated operator is not symmetric,
-i.e. if it has nonzero entries (larger than `tol`) that are incompatible with the symmetry
-structure of `V`, an `ArgumentError` is thrown mentioning `name`.
+The operator `O` is first brought to its dense form (see [`desymmetrize`](@ref)), then
+rotated by applying `U` to every site (or `Us[i]` to site `i`), and finally projected onto
+the symmetric tensor structure of `V^N ← V^N` using the `TensorMap` constructor. If the
+rotated operator is not symmetric, i.e. if it has nonzero entries (larger than `tol`) that
+are incompatible with the symmetry structure of `V`, an `ArgumentError` is thrown mentioning
+`name`.
 
 The default `tol` is `sqrt(eps)` of the scalar type of the rotated operator, floored at
 `sqrt(eps(Float64))`. The floor reflects that the fusion-tensor data used by the projection
@@ -18,11 +48,10 @@ is computed at `Float64` precision for non-abelian sectors: abelian symmetries (
 while for non-abelian sectors (e.g. `SU2Irrep`) the result of wider scalar types such as
 `BigFloat` is only accurate up to `Float64` precision.
 
-Each basis transformation `Us[i]` should be a unitary matrix whose *rows* are indexed by the
-basis of `V`, in the order defined by TensorKit (grouped per sector, in the order of
-`sectors(V)`), and whose *columns* are indexed by the basis of `space(O, i)` in that same
-convention. In other words, the dense representation of the symmetrized operator is
-``(U_1 ⊗ ⋯ ⊗ U_N) O (U_1 ⊗ ⋯ ⊗ U_N)^†``.
+Each basis transformation `Us[i]` should be a unitary `TensorMap` over `ComplexSpace`s,
+with `desymmetrize(space(O, i))` as its domain and `desymmetrize(V)` as its codomain. In
+other words, the dense representation of the symmetrized operator is
+``(U_1 ⊗ ⋯ ⊗ U_N)\\, O\\, (U_1 ⊗ ⋯ ⊗ U_N)^†``.
 
 The basis transformations of the operator modules in this package are documented and exposed
 through their respective `basis_transform` functions.
@@ -38,7 +67,7 @@ julia> using TensorKit, TensorKitTensors, TensorKitTensors.SpinOperators;
 
 julia> X = S_x(); # single-site trivial operator
 
-julia> U = basis_transform(Z2Irrep); # Hadamard matrix
+julia> U = basis_transform(Z2Irrep); # Hadamard transformation
 
 julia> X_z2 = symmetrize(X, U, spin_space(Z2Irrep); name = "S_x");
 
@@ -47,29 +76,27 @@ true
 ```
 """
 function symmetrize(
-        O::AbstractTensorMap, Us::Tuple{Vararg{AbstractMatrix, N}}, V::ElementarySpace;
+        O::AbstractTensorMap, Us::Tuple{Vararg{AbstractTensorMap, N}}, V::ElementarySpace;
         tol = nothing, name = "operator"
     ) where {N}
     numout(O) == numin(O) == N ||
         throw(ArgumentError("number of basis transformations does not match the number of sites"))
 
-    A = convert(Array, O)
-    D = prod(ntuple(i -> size(A, i), N))
-    U = reduce(kron, reverse(Us)) # column-major: first site corresponds to fastest index
-    B = U * reshape(A, D, D) * U'
+    U = reduce(⊗, Us)
+    B = U * desymmetrize(O) * U'
     # the default tolerance is floored at the Float64 resolution, since the fusion-tensor
     # data used by the projection is itself computed at Float64 precision for non-abelian
     # sectors
-    tol′ = something(tol, sqrt(max(eps(real(float(eltype(B)))), eps(Float64))))
+    tol′ = something(tol, sqrt(max(eps(real(float(scalartype(B)))), eps(Float64))))
     P = ProductSpace(ntuple(Returns(V), Val(N))...)
     return try
-        TensorMap(B, P ← P; tol = tol′)
+        TensorMap(convert(Array, B), P ← P; tol = tol′)
     catch err
         err isa ArgumentError || rethrow()
         throw(ArgumentError("`$name` is not symmetric under `$(sectortype(V))` symmetry"))
     end
 end
-function symmetrize(O::AbstractTensorMap, U::AbstractMatrix, V::ElementarySpace; kwargs...)
+function symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; kwargs...)
     return symmetrize(O, ntuple(Returns(U), numout(O)), V; kwargs...)
 end
 

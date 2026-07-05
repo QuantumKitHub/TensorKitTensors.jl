@@ -2,7 +2,7 @@ module BosonOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
 
 export boson_space, basis_transform
 export b_plus, b_min, b_num
@@ -29,24 +29,24 @@ end
 
 Return the unitary basis transformation that maps the occupation-number basis
 ``\\{|0⟩, |1⟩, …, |\\mathrm{cutoff}⟩\\}`` of `boson_space(Trivial; cutoff)` onto the basis
-of `boson_space(symmetry; cutoff)`, as required by [`symmetrize`](@ref TensorKitTensors.symmetrize).
+of `boson_space(symmetry; cutoff)`, as a `TensorMap` from `boson_space(Trivial; cutoff)` to
+`desymmetrize(boson_space(symmetry; cutoff))`, as required by
+[`symmetrize`](@ref TensorKitTensors.symmetrize).
 
 For `U1Irrep`, the boson number is used as the ``U(1)`` charge, and the charge sectors are
 ordered as `0:cutoff`. This coincides with the occupation-number basis, such that the
 transformation is the identity.
 
-The transformations have exact integer entries and are therefore returned as integer
-matrices, irrespective of `elt`, such that they promote to any scalar type without loss of
-precision.
+The transformations have exact integer entries and are therefore returned with integer
+scalar type, irrespective of `elt`, such that they promote to any scalar type without loss
+of precision.
 """
 function basis_transform(symmetry::Type{<:Sector}; kwargs...)
     return basis_transform(Float64, symmetry; kwargs...)
 end
-function basis_transform(::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
-    return Matrix{Int}(I, cutoff + 1, cutoff + 1)
-end
-function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
-    return Matrix{Int}(I, cutoff + 1, cutoff + 1)
+function basis_transform(::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
+    V = desymmetrize(boson_space(symmetry; cutoff))
+    return TensorMap(Matrix{Int}(I, cutoff + 1, cutoff + 1), V ← boson_space(Trivial; cutoff))
 end
 
 # Single-site operators

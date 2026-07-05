@@ -29,11 +29,12 @@ has_triplet(P, S) = P === Trivial && S === Trivial
 @testset "basis transformations" begin
     for (P, S) in all_symmetries
         U = basis_transform(P, S)
-        @test U isa Matrix{Int} # exact entries promote without precision loss
-        @test U' * U == I
-        @test U * U' == I
+        @test U isa AbstractTensorMap
+        @test scalartype(U) === Int # exact entries promote without precision loss
+        @test U' * U == one(U)
+        @test U * U' == one(U)
     end
-    @test basis_transform(Trivial, Trivial) == I
+    @test basis_transform(Trivial, Trivial) == one(basis_transform(Trivial, Trivial))
 
     # real and wide scalar types are preserved; the staggered gauge only forces complex
     # entries where the operator is genuinely complex
@@ -98,9 +99,9 @@ end
     for (P, S) in all_symmetries
         has_e_pm(P, S) || continue
         A = convert(Array, e_plus_e_min(ComplexF64, P, S))
-        U = basis_transform(P, S)
-        i0 = findfirst(≈(1), U[:, 1]) # dense index of |0⟩
-        iu = findfirst(≈(1), U[:, 3]) # dense index of |↑⟩
+        U = convert(Array, basis_transform(P, S))
+        i0 = findfirst(==(1), U[:, 1]) # dense index of |0⟩
+        iu = findfirst(==(1), U[:, 3]) # dense index of |↑⟩
         @test A[iu, i0, i0, iu] ≈ 1
         @test abs(A[i0, iu, iu, i0]) < 1.0e-12
     end

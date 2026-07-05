@@ -2,7 +2,7 @@ module HubbardOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
 
 export hubbard_space, basis_transform
 export e_num, u_num, d_num, ud_num, half_ud_num, h_num
@@ -79,7 +79,9 @@ end
 
 Return the unitary basis transformation that maps the basis ``\\{|0⟩, |↑↓⟩, |↑⟩, |↓⟩\\}`` of
 `hubbard_space(Trivial, Trivial)` (fermion-parity even states first) onto the basis of
-`hubbard_space(particle_symmetry, spin_symmetry)`, as required by
+`hubbard_space(particle_symmetry, spin_symmetry)`, as a `TensorMap` between the
+desymmetrized versions of these spaces (see
+[`desymmetrize`](@ref TensorKitTensors.desymmetrize)), as required by
 [`symmetrize`](@ref TensorKitTensors.symmetrize).
 
 For all symmetry combinations the transformation is a permutation, determined by the sector
@@ -102,9 +104,9 @@ order of the target space, where the states are identified as follows:
     gauge-transformed versions of their `Trivial` counterparts: they generate the same
     physics on bipartite lattices but are not elementwise equal to them.
 
-The transformations have exact integer entries and are therefore returned as integer
-matrices, irrespective of `elt`, such that they promote to any scalar type without loss of
-precision.
+The transformations have exact integer entries and are therefore returned with integer
+scalar type, irrespective of `elt`, such that they promote to any scalar type without loss
+of precision.
 """
 function basis_transform(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     return basis_transform(Float64, particle_symmetry, spin_symmetry)
@@ -121,7 +123,7 @@ function basis_transform(
             row += 1
         end
     end
-    return U
+    return TensorMap(U, desymmetrize(V) ← desymmetrize(hubbard_space(Trivial, Trivial)))
 end
 
 # trivial-basis indices (|0⟩, |↑↓⟩, |↑⟩, |↓⟩) = (1, 2, 3, 4) contained in sector `c`,
@@ -611,7 +613,8 @@ for opname in (
             O = $opname(elt, Trivial, Trivial)
             U = basis_transform(elt, particle_symmetry, spin_symmetry)
             G = _particle_gauge(particle_symmetry)
-            Us = ntuple(k -> U * G^(k - 1), numout(O))
+            Vref = domain(U)[1]
+            Us = ntuple(k -> U * TensorMap(G^(k - 1), Vref ← Vref), numout(O))
             V = hubbard_space(particle_symmetry, spin_symmetry)
             O′ = symmetrize(O, Us, V; name = $(string(opname)))
             return _restrict_scalartype(elt, O′; name = $(string(opname)))

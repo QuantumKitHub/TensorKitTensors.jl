@@ -2,7 +2,7 @@ module SpinOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
 
 export spin_space, basis_transform, casimir
 export S_x, S_y, S_z, S_plus, S_min
@@ -37,8 +37,9 @@ spin_space(symmetry::Type{<:Sector}; kwargs...) = throw(ArgumentError("invalid s
 
 Return the unitary basis transformation that maps the standard spin basis
 ``\\{|s⟩, |s{-}1⟩, …, |{-}s⟩\\}`` (the eigenbasis of ``S^z`` in descending order of ``m``,
-as used by the `Trivial` operators) onto the basis of `spin_space(symmetry; spin)`, as
-required by [`symmetrize`](@ref TensorKitTensors.symmetrize).
+as used by the `Trivial` operators) onto the basis of `spin_space(symmetry; spin)`, as a
+`TensorMap` from `spin_space(Trivial; spin)` to `desymmetrize(spin_space(symmetry; spin))`,
+as required by [`symmetrize`](@ref TensorKitTensors.symmetrize).
 
 | Symmetry | Transformation |
 |---|---|
@@ -59,21 +60,23 @@ transformation is the permutation from descending-``m`` order to TensorKit's cha
 For `SU2Irrep`, TensorKit's basis convention within an irrep is descending ``m``, which
 coincides with the standard spin basis, such that the transformation is the identity.
 
-The identity and permutation transformations have exact integer entries and are returned as
-integer matrices, irrespective of `elt`, such that they promote to any scalar type without
-loss of precision.
+The identity and permutation transformations have exact integer entries and are returned
+with integer scalar type, irrespective of `elt`, such that they promote to any scalar type
+without loss of precision.
 """
 function basis_transform(symmetry::Type{<:Sector}; kwargs...)
     return basis_transform(Float64, symmetry; kwargs...)
 end
 function basis_transform(::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+    V = spin_space(Trivial; spin)
     d = Int(2 * spin + 1)
-    return Matrix{Int}(I, d, d)
+    return TensorMap(Matrix{Int}(I, d, d), V ← V)
 end
 function basis_transform(elt::Type{<:Number}, ::Type{Z2Irrep}; spin = 1 // 2)
     spin == 1 // 2 || throw(ArgumentError("Z2 symmetry only implemented for spin 1//2"))
     T = real(float(elt))
-    return [1 1; 1 -1] / sqrt(T(2))
+    V = spin_space(Trivial; spin)
+    return TensorMap([1 1; 1 -1] / sqrt(T(2)), desymmetrize(spin_space(Z2Irrep; spin)) ← V)
 end
 function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; spin = 1 // 2)
     V = spin_space(U1Irrep; spin)
@@ -82,11 +85,12 @@ function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; spin = 1 // 2)
     for (row, c) in enumerate(sectors(V))
         U[row, Int(spin - c.charge + 1)] = 1
     end
-    return U
+    return TensorMap(U, desymmetrize(V) ← spin_space(Trivial; spin))
 end
 function basis_transform(::Type{<:Number}, ::Type{SU2Irrep}; spin = 1 // 2)
+    V = spin_space(Trivial; spin)
     d = Int(2 * spin + 1)
-    return Matrix{Int}(I, d, d)
+    return TensorMap(Matrix{Int}(I, d, d), desymmetrize(spin_space(SU2Irrep; spin)) ← V)
 end
 
 # Pauli matrices
