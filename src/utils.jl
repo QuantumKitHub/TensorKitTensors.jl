@@ -101,29 +101,6 @@ function _default_tol(::Type{T}, I::Type{<:Sector}) where {T <: Number}
 end
 
 """
-    _restrict_scalartype(T::Type{<:Number}, t::AbstractTensorMap)
-
-Return a copy of `t` with scalar type `T`, or `t` itself if it already has scalar type `T`.
-Throws an `ArgumentError` if `T <: Real` while `t` has entries with a nonzero imaginary
-part.
-"""
-function _restrict_scalartype(::Type{T}, t::AbstractTensorMap) where {T <: Number}
-    scalartype(t) === T && return t
-    if T <: Real && !(scalartype(t) <: Real)
-        ε = sqrt(eps(real(float(scalartype(t)))))
-        for (_, b) in blocks(t)
-            all(x -> abs(imag(x)) <= ε * max(one(ε), abs(x)), b) ||
-                throw(ArgumentError("operator requires a complex scalar type, got `$T`"))
-        end
-    end
-    tdst = similar(t, T)
-    for (c, b) in blocks(t)
-        block(tdst, c) .= T <: Real ? real.(b) : b
-    end
-    return tdst
-end
-
-"""
     fuse_local_operators(O₁, O₂)
 
 Given two ``n``-body operators, acting on ``ℋ₁ = V₁ ⊗ ⋯ ⊗ Vₙ`` and ``ℋ₂ = W₁ ⊗ ⋯ ⊗ Wₙ``,

@@ -2,7 +2,7 @@ module HubbardOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize
 
 export hubbard_space, basis_transform
 export e_num, u_num, d_num, ud_num, half_ud_num, h_num
@@ -100,9 +100,11 @@ order of the target space, where the states are identified as follows:
     gauge transformation ``c_{j,σ} → i^j c_{j,σ}`` on a bipartite lattice. Accordingly, for
     `SU2Irrep` particle symmetry the operators of this module act on site ``k`` with the
     additional gauge factor ``G^{k-1}``, where ``G = i^n = \\mathrm{diag}(1, -1, i, i)`` in
-    the basis above. The resulting operators (e.g. [`e_hopping`](@ref)) are the
-    gauge-transformed versions of their `Trivial` counterparts: they generate the same
-    physics on bipartite lattices but are not elementwise equal to them.
+    the basis above. Operators that commute with the staggered gauge are unaffected by it;
+    the remaining ones (e.g. [`e_hopping`](@ref)) are genuinely complex, require a complex
+    scalar type, and are the gauge-transformed versions of their `Trivial` counterparts:
+    they generate the same physics on bipartite lattices but are not elementwise equal to
+    them.
 
 The transformations have exact integer entries and are therefore returned with integer
 scalar type, such that they promote to any scalar type without loss of precision.
@@ -144,10 +146,32 @@ end
 
 # staggered gauge i^n for the η-pairing SU(2) symmetry, in the trivial basis order;
 # exact (Gaussian) integer entries promote to any scalar type without loss of precision
-function _particle_gauge(::Type{SU2Irrep})
-    return Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
+const _PARTICLE_GAUGE = Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
+
+# Symmetrize a Hubbard operator, inserting the staggered gauge for `SU2Irrep` particle
+# symmetry only when the operator does not commute with it: for operators that do commute,
+# skipping the gauge is an exact identity that avoids complex intermediates, while the
+# remaining operators are genuinely complex and require a complex scalar type.
+function _symmetrize_hubbard(
+        O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}
+    )
+    U = basis_transform(particle_symmetry, spin_symmetry)
+    V = hubbard_space(particle_symmetry, spin_symmetry)
+    particle_symmetry === SU2Irrep || return symmetrize(O, U, V)
+
+    Vref = domain(U)[1]
+    Gs = ntuple(k -> TensorMap(_PARTICLE_GAUGE^(k - 1), Vref ← Vref), numout(O))
+    W = reduce(⊗, Gs)
+    Od = desymmetrize(O)
+    W * Od ≈ Od * W && return symmetrize(O, U, V)
+
+    O′ = symmetrize(O, map(g -> U * g, Gs), V)
+    scalartype(O) <: Real && throw(
+        ArgumentError("operator with `SU2Irrep` particle symmetry requires a complex scalar type")
+    )
+    return O′
 end
-_particle_gauge(::Type{<:Sector}) = Matrix{Int}(I, 4, 4)
 
 function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
     V = hubbard_space(Trivial, Trivial)
@@ -271,7 +295,7 @@ const Sˣ = S_x
 
 Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
 """ S_y
-function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+function S_y(elt::Type{<:Complex}, ::Type{Trivial}, ::Type{Trivial})
     return (S_plus(elt, Trivial, Trivial) - S_min(elt, Trivial, Trivial)) / (2im)
 end
 const Sʸ = S_y
@@ -605,13 +629,7 @@ for opname in (
                 spin_symmetry::Type{<:Sector}
             )
             O = $opname(elt, Trivial, Trivial)
-            U = basis_transform(particle_symmetry, spin_symmetry)
-            G = _particle_gauge(particle_symmetry)
-            Vref = domain(U)[1]
-            Us = ntuple(k -> U * TensorMap(G^(k - 1), Vref ← Vref), numout(O))
-            V = hubbard_space(particle_symmetry, spin_symmetry)
-            O′ = symmetrize(O, Us, V)
-            return _restrict_scalartype(elt, O′)
+            return _symmetrize_hubbard(O, particle_symmetry, spin_symmetry)
         end
     end
 end

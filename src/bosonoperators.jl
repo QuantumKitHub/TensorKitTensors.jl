@@ -2,7 +2,7 @@ module BosonOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize
 
 export boson_space, basis_transform
 export b_plus, b_min, b_num
@@ -172,8 +172,7 @@ for opname in
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
             O = $opname(elt, Trivial; cutoff)
             U = basis_transform(symmetry; cutoff)
-            O′ = symmetrize(O, U, boson_space(symmetry; cutoff))
-            return _restrict_scalartype(elt, O′)
+            return symmetrize(O, U, boson_space(symmetry; cutoff))
         end
     end
 end

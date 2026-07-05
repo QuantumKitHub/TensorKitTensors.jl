@@ -3,7 +3,7 @@ module SpinOperators
 using TensorKit
 using LinearAlgebra: I
 using RationalRoots: signedroot
-import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize
 
 export spin_space, basis_transform, casimir
 export S_x, S_y, S_z, S_plus, S_min
@@ -309,7 +309,11 @@ The two-site operator ``S^y \\otimes S^y``.
 Compatible symmetries: `Trivial`, `Z2Irrep`.
 """ S_y_S_y
 function S_y_S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
-    return S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
+    YY = S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
+    if elt <: Real
+        YY = real(YY)
+    end
+    return YY
 end
 const SʸSʸ = S_y_S_y
 
@@ -390,8 +394,7 @@ for opname in (
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; spin = 1 // 2)
             O = $opname(elt, Trivial; spin)
             U = basis_transform(symmetry; spin)
-            O′ = symmetrize(O, U, spin_space(symmetry; spin))
-            return _restrict_scalartype(elt, O′)
+            return symmetrize(O, U, spin_space(symmetry; spin))
         end
     end
 end

@@ -2,7 +2,7 @@ module FermionOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, desymmetrize, _restrict_scalartype
+import ..TensorKitTensors: symmetrize, desymmetrize
 
 export fermion_space, basis_transform
 export f_num
@@ -150,8 +150,7 @@ for opname in (:f_num, :f_plus_f_min, :f_min_f_plus, :f_plus_f_plus, :f_min_f_mi
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector})
             O = $opname(elt, Trivial)
             U = basis_transform(symmetry)
-            O′ = symmetrize(O, U, fermion_space(symmetry))
-            return _restrict_scalartype(elt, O′)
+            return symmetrize(O, U, fermion_space(symmetry))
         end
     end
 end

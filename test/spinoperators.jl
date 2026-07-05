@@ -38,6 +38,8 @@ end
     @test scalartype(S_z(Float64, U1Irrep)) === Float64
     @test scalartype(S_x(Float32, Z2Irrep)) === Float32
     @test scalartype(S_exchange(Float64, SU2Irrep)) === Float64
+    @test scalartype(S_y_S_y(Float64)) === Float64
+    @test scalartype(S_y_S_y(Float64, Z2Irrep)) === Float64
 
     # abelian symmetries preserve full precision
     Z = S_z(Complex{BigFloat}, U1Irrep; spin = 1)
