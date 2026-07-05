@@ -25,7 +25,7 @@ function boson_space(symmetry::Type{<:Sector}; kwargs...)
 end
 
 """
-    basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
+    basis_transform([elt::Type{<:Number}], symmetry::Type{<:Sector}; cutoff::Integer)
 
 Return the unitary basis transformation that maps the occupation-number basis
 ``\\{|0⟩, |1⟩, …, |\\mathrm{cutoff}⟩\\}`` of `boson_space(Trivial; cutoff)` onto the basis
@@ -34,12 +34,19 @@ of `boson_space(symmetry; cutoff)`, as required by [`symmetrize`](@ref TensorKit
 For `U1Irrep`, the boson number is used as the ``U(1)`` charge, and the charge sectors are
 ordered as `0:cutoff`. This coincides with the occupation-number basis, such that the
 transformation is the identity.
+
+The transformations have exact integer entries and are therefore returned as integer
+matrices, irrespective of `elt`, such that they promote to any scalar type without loss of
+precision.
 """
-function basis_transform(::Type{Trivial}; cutoff::Integer)
-    return Matrix{Float64}(I, cutoff + 1, cutoff + 1)
+function basis_transform(symmetry::Type{<:Sector}; kwargs...)
+    return basis_transform(Float64, symmetry; kwargs...)
 end
-function basis_transform(::Type{U1Irrep}; cutoff::Integer)
-    return Matrix{Float64}(I, cutoff + 1, cutoff + 1)
+function basis_transform(::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+    return Matrix{Int}(I, cutoff + 1, cutoff + 1)
+end
+function basis_transform(::Type{<:Number}, ::Type{U1Irrep}; cutoff::Integer)
+    return Matrix{Int}(I, cutoff + 1, cutoff + 1)
 end
 
 # Single-site operators
@@ -167,8 +174,8 @@ for opname in
         $opname(elt::Type{<:Number}; kwargs...) = $opname(elt, Trivial; kwargs...)
         $opname(symmetry::Type{<:Sector}; kwargs...) = $opname(ComplexF64, symmetry; kwargs...)
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-            O = $opname(complex(elt), Trivial; cutoff)
-            U = basis_transform(symmetry; cutoff)
+            O = $opname(elt, Trivial; cutoff)
+            U = basis_transform(elt, symmetry; cutoff)
             O′ = symmetrize(O, U, boson_space(symmetry; cutoff); name = $(string(opname)))
             return _restrict_scalartype(elt, O′; name = $(string(opname)))
         end

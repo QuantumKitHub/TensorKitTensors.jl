@@ -29,10 +29,19 @@ has_triplet(P, S) = P === Trivial && S === Trivial
 @testset "basis transformations" begin
     for (P, S) in all_symmetries
         U = basis_transform(P, S)
-        @test U' * U ≈ I
-        @test U * U' ≈ I
+        @test U isa Matrix{Int} # exact entries promote without precision loss
+        @test U' * U == I
+        @test U * U' == I
     end
     @test basis_transform(Trivial, Trivial) == I
+
+    # real and wide scalar types are preserved; the staggered gauge only forces complex
+    # entries where the operator is genuinely complex
+    @test scalartype(u_num(Float64, U1Irrep, U1Irrep)) === Float64
+    @test scalartype(half_ud_num(Float64, SU2Irrep, SU2Irrep)) === Float64
+    @test scalartype(e_hopping(Complex{BigFloat}, SU2Irrep, SU2Irrep)) === Complex{BigFloat}
+    N_big = u_num(BigFloat, U1Irrep, U1Irrep)
+    @test all(((c, b),) -> all(isinteger, b), blocks(N_big))
 end
 
 @testset "Compare symmetric with trivial tensors" begin

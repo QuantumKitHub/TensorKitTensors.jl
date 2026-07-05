@@ -11,6 +11,13 @@ site (or `Us[i]` to site `i`), and finally projected onto the symmetric tensor s
 i.e. if it has nonzero entries (larger than `tol`) that are incompatible with the symmetry
 structure of `V`, an `ArgumentError` is thrown mentioning `name`.
 
+The default `tol` is `sqrt(eps)` of the scalar type of the rotated operator, floored at
+`sqrt(eps(Float64))`. The floor reflects that the fusion-tensor data used by the projection
+is computed at `Float64` precision for non-abelian sectors: abelian symmetries (`Z2Irrep`,
+`U1Irrep`, `FermionParity`, and their products) preserve the full precision of the input,
+while for non-abelian sectors (e.g. `SU2Irrep`) the result of wider scalar types such as
+`BigFloat` is only accurate up to `Float64` precision.
+
 Each basis transformation `Us[i]` should be a unitary matrix whose *rows* are indexed by the
 basis of `V`, in the order defined by TensorKit (grouped per sector, in the order of
 `sectors(V)`), and whose *columns* are indexed by the basis of `space(O, i)` in that same
@@ -50,7 +57,10 @@ function symmetrize(
     D = prod(ntuple(i -> size(A, i), N))
     U = reduce(kron, reverse(Us)) # column-major: first site corresponds to fastest index
     B = U * reshape(A, D, D) * U'
-    tol′ = something(tol, sqrt(eps(real(float(eltype(B))))))
+    # the default tolerance is floored at the Float64 resolution, since the fusion-tensor
+    # data used by the projection is itself computed at Float64 precision for non-abelian
+    # sectors
+    tol′ = something(tol, sqrt(max(eps(real(float(eltype(B)))), eps(Float64))))
     P = ProductSpace(ntuple(Returns(V), Val(N))...)
     return try
         TensorMap(B, P ← P; tol = tol′)

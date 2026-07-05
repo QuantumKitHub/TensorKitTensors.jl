@@ -75,7 +75,7 @@ function hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:
 end
 
 """
-    basis_transform(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    basis_transform([elt::Type{<:Number}], particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Return the unitary basis transformation that maps the basis ``\\{|0⟩, |↑↓⟩, |↑⟩, |↓⟩\\}`` of
 `hubbard_space(Trivial, Trivial)` (fermion-parity even states first) onto the basis of
@@ -101,10 +101,19 @@ order of the target space, where the states are identified as follows:
     the basis above. The resulting operators (e.g. [`e_hopping`](@ref)) are the
     gauge-transformed versions of their `Trivial` counterparts: they generate the same
     physics on bipartite lattices but are not elementwise equal to them.
+
+The transformations have exact integer entries and are therefore returned as integer
+matrices, irrespective of `elt`, such that they promote to any scalar type without loss of
+precision.
 """
 function basis_transform(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
+    return basis_transform(Float64, particle_symmetry, spin_symmetry)
+end
+function basis_transform(
+        ::Type{<:Number}, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}
+    )
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    U = zeros(Float64, 4, 4)
+    U = zeros(Int, 4, 4)
     row = 1
     for c in sectors(V)
         for j in _state_indices(c, particle_symmetry, spin_symmetry)
@@ -137,11 +146,12 @@ function _state_indices(c, particle_symmetry::Type{<:Sector}, spin_symmetry::Typ
     end
 end
 
-# staggered gauge i^n for the η-pairing SU(2) symmetry, in the trivial basis order
+# staggered gauge i^n for the η-pairing SU(2) symmetry, in the trivial basis order;
+# exact (Gaussian) integer entries promote to any scalar type without loss of precision
 function _particle_gauge(::Type{SU2Irrep})
-    return ComplexF64[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
+    return Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
 end
-_particle_gauge(::Type{<:Sector}) = Matrix{ComplexF64}(I, 4, 4)
+_particle_gauge(::Type{<:Sector}) = Matrix{Int}(I, 4, 4)
 
 function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
     V = hubbard_space(Trivial, Trivial)
@@ -598,8 +608,8 @@ for opname in (
                 elt::Type{<:Number}, particle_symmetry::Type{<:Sector},
                 spin_symmetry::Type{<:Sector}
             )
-            O = $opname(complex(elt), Trivial, Trivial)
-            U = basis_transform(particle_symmetry, spin_symmetry)
+            O = $opname(elt, Trivial, Trivial)
+            U = basis_transform(elt, particle_symmetry, spin_symmetry)
             G = _particle_gauge(particle_symmetry)
             Us = ntuple(k -> U * G^(k - 1), numout(O))
             V = hubbard_space(particle_symmetry, spin_symmetry)

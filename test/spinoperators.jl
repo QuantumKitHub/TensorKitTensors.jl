@@ -16,7 +16,8 @@ end
     for spin in (1 // 2):(1 // 2):(5 // 2)
         for symmetry in (Trivial, U1Irrep, SU2Irrep)
             U = basis_transform(symmetry; spin)
-            @test U' * U ≈ I
+            @test U isa Matrix{Int} # exact entries promote without precision loss
+            @test U' * U == I
         end
         @test basis_transform(Trivial; spin) == I
     end
@@ -24,6 +25,29 @@ end
     @test U' * U ≈ I
     @test U ≈ [1 1; 1 -1] / sqrt(2)
     @test_throws ArgumentError basis_transform(Z2Irrep; spin = 1)
+
+    # the Hadamard transformation is computed at the requested precision
+    U_big = basis_transform(BigFloat, Z2Irrep)
+    @test U_big isa Matrix{BigFloat}
+    @test abs(U_big[1, 1] - 1 / sqrt(big(2))) < eps(BigFloat)
+end
+
+@testset "scalar types and precision" begin
+    # real scalar types stay real end-to-end
+    @test scalartype(S_z(Float64, U1Irrep)) === Float64
+    @test scalartype(S_x(Float32, Z2Irrep)) === Float32
+    @test scalartype(S_exchange(Float64, SU2Irrep)) === Float64
+
+    # abelian symmetries preserve full precision
+    Z = S_z(Complex{BigFloat}, U1Irrep; spin = 1)
+    @test all(c -> block(Z, c)[1] == big(c.charge), sectors(spin_space(U1Irrep; spin = 1)))
+    X = S_x(Complex{BigFloat}, Z2Irrep)
+    @test abs(block(X, Z2Irrep(0))[1] - big(1) / 2) < big(2.0)^-200
+
+    # non-abelian symmetries construct at wide scalar types, with Float64-limited
+    # accuracy set by TensorKit's fusion-tensor data
+    SS = S_exchange(Complex{BigFloat}, SU2Irrep)
+    @test abs(block(SS, SU2Irrep(1))[1] - 1 // 4) < 1.0e-14
 end
 
 @testset "Non-symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)

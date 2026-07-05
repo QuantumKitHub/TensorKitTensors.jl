@@ -10,9 +10,14 @@ using StableRNGs
     cutoff = 4
     for symmetry in (Trivial, U1Irrep)
         U = basis_transform(symmetry; cutoff)
-        @test U' * U ≈ I
+        @test U isa Matrix{Int}
         @test U == I
     end
+    # real and wide scalar types are preserved
+    @test scalartype(b_num(Float64, U1Irrep; cutoff)) === Float64
+    N_big = b_num(BigFloat, U1Irrep; cutoff)
+    @test scalartype(N_big) === BigFloat
+    @test all(c -> block(N_big, c)[1] == big(c.charge), sectors(boson_space(U1Irrep; cutoff)))
 end
 
 @testset "Non-symmetric bosonic operators" begin

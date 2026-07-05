@@ -44,4 +44,12 @@ using TensorKitTensors.FermionOperators
 
     # argument checks
     @test_throws ArgumentError symmetrize(XX, (U,), spin_space(Z2Irrep))
+
+    # the default tol is floored at Float64 resolution, such that wide scalar types work
+    # with non-abelian symmetries (whose fusion-tensor data is Float64)
+    SS_big = symmetrize(
+        S_exchange(Complex{BigFloat}), SpinOperators.basis_transform(SU2Irrep),
+        spin_space(SU2Irrep)
+    )
+    @test scalartype(SS_big) === Complex{BigFloat}
 end
