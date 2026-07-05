@@ -176,8 +176,8 @@ for opname in
         function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
             O = $opname(elt, Trivial; cutoff)
             U = basis_transform(elt, symmetry; cutoff)
-            O′ = symmetrize(O, U, boson_space(symmetry; cutoff); name = $(string(opname)))
-            return _restrict_scalartype(elt, O′; name = $(string(opname)))
+            O′ = symmetrize(O, U, boson_space(symmetry; cutoff))
+            return _restrict_scalartype(elt, O′)
         end
     end
 end

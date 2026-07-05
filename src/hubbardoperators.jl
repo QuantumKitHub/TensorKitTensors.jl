@@ -616,8 +616,8 @@ for opname in (
             Vref = domain(U)[1]
             Us = ntuple(k -> U * TensorMap(G^(k - 1), Vref ← Vref), numout(O))
             V = hubbard_space(particle_symmetry, spin_symmetry)
-            O′ = symmetrize(O, Us, V; name = $(string(opname)))
-            return _restrict_scalartype(elt, O′; name = $(string(opname)))
+            O′ = symmetrize(O, Us, V)
+            return _restrict_scalartype(elt, O′)
         end
     end
 end

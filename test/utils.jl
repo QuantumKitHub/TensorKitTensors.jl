@@ -44,15 +44,14 @@ end
     XX_z2 = symmetrize(XX, (U, U), spin_space(Z2Irrep))
     @test XX_z2 ≈ S_x_S_x(Z2Irrep)
 
-    # informative error naming the operator
+    # informative error naming the symmetry
     err = try
-        symmetrize(S_z(), U, spin_space(Z2Irrep); name = "S_z")
+        symmetrize(S_z(), U, spin_space(Z2Irrep))
         nothing
     catch e
         e
     end
     @test err isa ArgumentError
-    @test occursin("S_z", err.msg)
     @test occursin("Z2Irrep", err.msg)
 
     # tol kwarg: a slightly perturbed operator projects with loose tolerance
