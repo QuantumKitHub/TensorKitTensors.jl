@@ -58,17 +58,23 @@ Symmetrizing the transverse-field term of the Ising model with respect to its ``
 spin-flip symmetry, using the Hadamard transformation to map the ``S^z`` basis onto the
 ``S^x`` basis:
 
-```jldoctest
+```jldoctest; filter = r"([0-9]+[.][0-9]+?)(0{4,}[0-9]+)?" => s"\\1"
 julia> using TensorKit, TensorKitTensors, TensorKitTensors.SpinOperators;
 
 julia> X = S_x(); # single-site trivial operator
 
 julia> U = basis_transform(Z2Irrep); # Hadamard transformation
 
-julia> X_z2 = symmetrize(X, U, spin_space(Z2Irrep));
+julia> X_z2 = symmetrize(X, U, spin_space(Z2Irrep))
+2←2 TensorMap{ComplexF64, Rep[ℤ₂], 1, 1, Vector{ComplexF64}}:
+ codomain: ⊗(Rep[ℤ₂](0 => 1, 1 => 1))
+ domain: ⊗(Rep[ℤ₂](0 => 1, 1 => 1))
+ blocks:
+ * Irrep[ℤ₂](0) => 1×1 reshape(view(::Vector{ComplexF64}, 1:1), 1, 1) with eltype ComplexF64:
+ 0.5 + 0.0im
 
-julia> block(X_z2, Z2Irrep(0)) ≈ fill(1 / 2, 1, 1) && block(X_z2, Z2Irrep(1)) ≈ fill(-1 / 2, 1, 1)
-true
+ * Irrep[ℤ₂](1) => 1×1 reshape(view(::Vector{ComplexF64}, 2:2), 1, 1) with eltype ComplexF64:
+ -0.5 + 0.0im
 ```
 """
 function symmetrize(
