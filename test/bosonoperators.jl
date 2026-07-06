@@ -84,13 +84,13 @@ end
 @testset "Exact Diagonalization" begin
     cutoff = 1
     L = 2
-    for symmetry in [Trivial U1Irrep]
+    for symmetry in (Trivial, U1Irrep)
         rng = StableRNG(123)
         # inferrability
-        N = @inferred n(U1Irrep; cutoff)
-        B⁺B⁻ = @inferred b⁺b⁻(U1Irrep; cutoff)
-        B⁻B⁺ = @inferred b⁻b⁺(U1Irrep; cutoff)
-        V = @inferred boson_space(U1Irrep; cutoff)
+        N = @inferred n(symmetry; cutoff)
+        B⁺B⁻ = @inferred b⁺b⁻(symmetry; cutoff)
+        B⁻B⁺ = @inferred b⁻b⁺(symmetry; cutoff)
+        V = @inferred boson_space(symmetry; cutoff)
 
         b_pm, b_mp, b_n = rand(rng, 3)
         O = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm

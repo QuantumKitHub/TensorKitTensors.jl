@@ -1,7 +1,6 @@
 module HubbardOperators
 
 using TensorKit
-using LinearAlgebra: I
 import ..TensorKitTensors: symmetrize, desymmetrize
 
 export hubbard_space, basis_transform
@@ -154,10 +153,8 @@ end
 # exact (Gaussian) integer entries promote to any scalar type without loss of precision
 const _PARTICLE_GAUGE = Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
 
-# Symmetrize a Hubbard operator, inserting the staggered gauge for `SU2Irrep` particle
-# symmetry only when the operator does not commute with it: for operators that do commute,
-# skipping the gauge is an exact identity that avoids complex intermediates, while the
-# remaining operators are genuinely complex and require a complex scalar type.
+# Symmetrize a Hubbard operator, inserting the staggered gauge for `SU2Irrep` particle symmetry
+# If the staggered gauge commutes we don't incorporate it to retain the option for real tensors.
 function _symmetrize_hubbard(
         O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}
@@ -170,13 +167,13 @@ function _symmetrize_hubbard(
     Gs = ntuple(k -> TensorMap(_PARTICLE_GAUGE^(k - 1), Vref ← Vref), numout(O))
     W = reduce(⊗, Gs)
     Od = desymmetrize(O)
+
+    # check if commutes with the staggered gauge
     W * Od ≈ Od * W && return symmetrize(O, U, V)
 
-    O′ = symmetrize(O, map(g -> U * g, Gs), V)
-    scalartype(O) <: Real && throw(
-        ArgumentError("operator with `SU2Irrep` particle symmetry requires a complex scalar type")
-    )
-    return O′
+    scalartype(O) <: Real &&
+        throw(ArgumentError("operator with `SU2Irrep` particle symmetry that does not commute with the staggered gauge requires a complex scalar type"))
+    return symmetrize(O, map(g -> U * g, Gs), V)
 end
 
 function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
