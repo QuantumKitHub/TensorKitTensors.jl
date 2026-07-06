@@ -310,10 +310,7 @@ Compatible symmetries: `Trivial`, `Z2Irrep`.
 """ S_y_S_y
 function S_y_S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     YY = S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
-    if elt <: Real
-        YY = real(YY)
-    end
-    return YY
+    return elt <: Real ? real(YY) : YY
 end
 const SʸSʸ = S_y_S_y
 
