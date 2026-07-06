@@ -1,5 +1,4 @@
 using TensorKit
-using LinearAlgebra: tr, I
 using RationalRoots: RationalRoot
 using Test
 include("testsetup.jl")

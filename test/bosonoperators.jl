@@ -1,5 +1,4 @@
 using TensorKit
-using LinearAlgebra: tr, I
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
@@ -10,8 +9,7 @@ using StableRNGs
     cutoff = 4
     for symmetry in (Trivial, U1Irrep)
         U = basis_transform(symmetry; cutoff)
-        @test U isa AbstractTensorMap
-        @test scalartype(U) === Int
+        @test U isa AbstractTensorMap{Int}
         @test U == one(U)
     end
     # real and wide scalar types are preserved

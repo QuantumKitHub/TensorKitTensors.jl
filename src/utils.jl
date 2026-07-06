@@ -72,13 +72,13 @@ true
 ```
 """
 function symmetrize(
-        O::AbstractTensorMap, Us::Tuple{Vararg{AbstractTensorMap, N}}, V::ElementarySpace;
+        O::AbstractTensorMap, Us::NTuple{N, AbstractTensorMap}, V::ElementarySpace;
         tol = nothing
     ) where {N}
     numout(O) == numin(O) == N ||
         throw(ArgumentError("number of basis transformations does not match the number of sites"))
 
-    U = reduce(⊗, Us)
+    U = reduce(⊗, Us; init = id(one(ComplexSpace)))
     B = U * desymmetrize(O) * U'
     tol′ = something(tol, _default_tol(scalartype(B), sectortype(V)))
     P = ProductSpace(ntuple(Returns(V), Val(N))...)
