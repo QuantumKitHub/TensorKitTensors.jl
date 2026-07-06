@@ -4,7 +4,6 @@ using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.SpinOperators
-using StableRNGs
 
 const ε = zeros(Int, 3, 3, 3)
 for i in 1:3

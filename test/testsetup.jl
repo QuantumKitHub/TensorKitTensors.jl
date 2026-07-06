@@ -4,8 +4,8 @@ export test_operator, operator_sum, swap_2sites, expanded_eigenvalues
 
 using Test
 using TensorKit
-using TensorKit: scalartype
-using LinearAlgebra: eigvals
+using TensorKitTensors: desymmetrize
+using LinearAlgebra: eigvals, tr
 
 const default_x = 0.361 + 0.729im
 const default_L = 4

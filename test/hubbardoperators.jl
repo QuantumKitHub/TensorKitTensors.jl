@@ -1,5 +1,5 @@
 using TensorKit
-using LinearAlgebra: tr, eigvals, I, diag
+using LinearAlgebra: eigvals
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup

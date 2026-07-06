@@ -1,7 +1,8 @@
 using TensorKit
-using LinearAlgebra: I
+using LinearAlgebra: kron
 using Test
 using TensorKitTensors
+using TensorKitTensors: fuse_local_operators
 using TensorKitTensors.SpinOperators
 using TensorKitTensors.FermionOperators
 

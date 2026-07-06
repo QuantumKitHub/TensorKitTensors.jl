@@ -1,7 +1,6 @@
 using TensorKit
 using Test
 include("testsetup.jl")
-using TensorKitTensors
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.FermionOperators
 using StableRNGs
