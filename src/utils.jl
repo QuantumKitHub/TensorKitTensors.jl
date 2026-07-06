@@ -16,7 +16,7 @@ This is the inverse operation of [`symmetrize`](@ref) (with trivial basis transf
 """
 desymmetrize(V::ComplexSpace) = V
 desymmetrize(V::ElementarySpace) = isdual(V) ? ComplexSpace(dim(V))' : ComplexSpace(dim(V))
-desymmetrize(P::ProductSpace) = ProductSpace(map(desymmetrize, tuple(P...))...)
+desymmetrize(P::ProductSpace) = ProductSpace{ComplexSpace}(map(desymmetrize, P))
 desymmetrize(W::HomSpace) = desymmetrize(codomain(W)) ← desymmetrize(domain(W))
 function desymmetrize(t::AbstractTensorMap)
     spacetype(t) === ComplexSpace && return t
@@ -25,7 +25,7 @@ end
 
 """
     symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; tol=...)
-    symmetrize(O::AbstractTensorMap, Us::NTuple{N,AbstractTensorMap}, V::ElementarySpace; tol=...)
+    symmetrize(O::AbstractTensorMap, Us::NTuple{N, AbstractTensorMap}, V::ElementarySpace; tol=...)
 
 Construct the symmetric version of an ``N``-site operator `O` on the space `V^N ← V^N`,
 given the basis transformation `U` that maps the basis of `O` onto the basis of `V`.
