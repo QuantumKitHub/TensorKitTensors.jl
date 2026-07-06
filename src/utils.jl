@@ -30,15 +30,24 @@ end
 """
     symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; tol=...)
     symmetrize(O::AbstractTensorMap, Us::NTuple{N, AbstractTensorMap}, V::ElementarySpace; tol=...)
+    symmetrize(O::AbstractTensorMap, (Us, Uds)::Tuple{NTuple{M, AbstractTensorMap}, NTuple{N, AbstractTensorMap}}, V::HomSpace; tol=...)
 
-Construct the symmetric version of an ``N``-site operator `O` on the space `V^N ← V^N`,
-given the basis transformation `U` that maps the basis of `O` onto the basis of `V`.
+Construct the symmetric version of an ``M ← N`` operator `O` on the space `V`, given the
+basis transformations that map the basis of `O` onto the basis of `V`.
 
 The operator `O` is first brought to its dense form (see [`desymmetrize`](@ref)), then
-rotated by applying `U` to every site (or `Us[i]` to site `i`), and finally projected onto
-the symmetric tensor structure of `V^N ← V^N`. If the rotated operator is not symmetric,
-i.e. if it has nonzero entries (larger than `tol`) that are incompatible with the symmetry
-structure of `V`, an `ArgumentError` is thrown.
+rotated by applying the basis transformations to each of its legs, and finally projected onto
+the symmetric tensor structure of `V`. If the rotated operator is not symmetric, i.e. if it
+has nonzero entries (larger than `tol`) that are incompatible with the symmetry structure of
+`V`, an `ArgumentError` is thrown.
+
+The most general form takes `V::HomSpace` (`V_cod ← V_dom`) and a pair of tuples of basis
+transformations `(Us, Uds)` for each of the spaces of `V`. In other words, the dense
+representation of the symmetrized operator is ``(U_1 ⊗ ⋯ ⊗ U_M)\\, O\\, (Ũ_1 ⊗ ⋯ ⊗ Ũ_N)^†``.
+
+For the common case of a square operator over a single space `V::ElementarySpace`, a single
+transformation `U` (applied to every leg) or an `N`-tuple `Us` (one per site, applied to both
+codomain and domain) suffices, and the target space `V^N ← V^N` is constructed automatically.
 
 The default `tol` is `sqrt(eps)` of the scalar type of the rotated operator, floored at
 `sqrt(eps)` of the `TensorKit.sectorscalartype` of the symmetry, i.e. the element type of
@@ -47,11 +56,6 @@ data, such as `Z2Irrep`, `U1Irrep`, `FermionParity`, and their products, preserv
 precision of the input, while for sectors with floating-point data (e.g. `SU2Irrep`, whose
 Clebsch-Gordan coefficients are `Float64`) the result of wider scalar types such as
 `BigFloat` is only accurate up to that precision.
-
-Each basis transformation `Us[i]` should be a unitary `AbstractTensorMap` over `ComplexSpace`s,
-with `desymmetrize(space(O, i))` as its domain and `desymmetrize(V)` as its codomain. In
-other words, the dense representation of the symmetrized operator is
-``(U_1 ⊗ ⋯ ⊗ U_N)\\, O\\, (U_1 ⊗ ⋯ ⊗ U_N)^†``.
 
 The basis transformations of the operator modules in this package are documented and exposed
 through their respective `basis_transform` functions.
@@ -82,23 +86,34 @@ julia> X_z2 = symmetrize(X, U, spin_space(Z2Irrep))
 ```
 """
 function symmetrize(
-        O::AbstractTensorMap, Us::NTuple{N, AbstractTensorMap}, V::ElementarySpace;
+        O::AbstractTensorMap,
+        (Us, Uds)::Tuple{NTuple{M, AbstractTensorMap}, NTuple{N, AbstractTensorMap}},
+        V::HomSpace;
         tol = nothing
-    ) where {N}
-    numout(O) == numin(O) == N ||
-        throw(ArgumentError("number of basis transformations does not match the number of sites"))
+    ) where {M, N}
+    numout(O) == M && numin(O) == N ||
+        throw(ArgumentError("number of basis transformations does not match the number of indices"))
+    length(codomain(V)) == M && length(domain(V)) == N ||
+        throw(ArgumentError("target space `V` does not match the number of indices"))
 
-    U = reduce(⊗, Us; init = id(one(ComplexSpace)))
-    B = U * desymmetrize(O) * U'
+    Ucod = reduce(⊗, Us; init = id(one(ComplexSpace)))
+    Udom = reduce(⊗, Uds; init = id(one(ComplexSpace)))
+    B = Ucod * desymmetrize(O) * Udom'
     tol′ = something(tol, _default_tol(scalartype(B), sectortype(V)))
-    P = ProductSpace(ntuple(Returns(V), Val(N))...)
     return try
         # disable logging to suppress the fermionic `fusiontensor` warning, see `desymmetrize`
-        with_logger(() -> TensorMap(convert(Array, B), P ← P; tol = tol′), NullLogger())
+        with_logger(() -> TensorMap(convert(Array, B), V; tol = tol′), NullLogger())
     catch err
         err isa ArgumentError || rethrow()
         throw(ArgumentError("operator is not symmetric under `$(sectortype(V))` symmetry"))
     end
+end
+function symmetrize(
+        O::AbstractTensorMap, Us::NTuple{N, AbstractTensorMap}, V::ElementarySpace;
+        kwargs...
+    ) where {N}
+    P = ProductSpace(ntuple(Returns(V), Val(N))...)
+    return symmetrize(O, (Us, Us), P ← P; kwargs...)
 end
 symmetrize(O::AbstractTensorMap, U::AbstractTensorMap, V::ElementarySpace; kwargs...) =
     symmetrize(O, ntuple(Returns(U), numout(O)), V; kwargs...)

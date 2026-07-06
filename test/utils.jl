@@ -76,4 +76,18 @@ end
         spin_space(SU2Irrep)
     )
     @test scalartype(SS_big) === Complex{BigFloat}
+
+    # general HomSpace form: the (codomain, domain) tuple-of-tuples entry point reproduces
+    # the convenience form when the same space and transformation are used on every leg
+    XX = S_x() ⊗ S_x()
+    V = spin_space(Z2Irrep)
+    @test symmetrize(XX, ((U, U), (U, U)), V^2 ← V^2) ≈ symmetrize(XX, (U, U), V)
+
+    # non-square ``M ← N`` operator: permute a symmetric operator to a 3 ← 1 shape, densify,
+    # and symmetrize it back onto its own (HomSpace) structure with identity transformations
+    t = S_x_S_x(Z2Irrep)
+    tp = permute(t, ((1, 2, 4), (3,)))
+    cod_ids = ntuple(i -> id(desymmetrize(codomain(tp)[i])), numout(tp))
+    dom_ids = ntuple(j -> id(desymmetrize(domain(tp)[j])), numin(tp))
+    @test symmetrize(desymmetrize(tp), (cod_ids, dom_ids), space(tp)) ≈ tp
 end
