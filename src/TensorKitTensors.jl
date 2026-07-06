@@ -9,6 +9,7 @@ export TJOperators
 export HubbardOperators
 
 using TensorKit
+using Logging
 
 include("utils.jl")
 include("spinoperators.jl")

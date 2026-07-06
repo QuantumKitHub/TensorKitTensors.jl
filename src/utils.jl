@@ -20,7 +20,11 @@ desymmetrize(P::ProductSpace) = ProductSpace{ComplexSpace}(map(desymmetrize, P))
 desymmetrize(W::HomSpace) = desymmetrize(codomain(W)) ← desymmetrize(domain(W))
 function desymmetrize(t::AbstractTensorMap)
     spacetype(t) === ComplexSpace && return t
-    return TensorMap(convert(Array, t), desymmetrize(space(t)))
+    # `fusiontensor` warns that dense arrays of fermionic tensors do not preserve the
+    # categorical properties, but discarding the fermionic statistics is exactly the
+    # documented behavior here, so logging is disabled for the conversion
+    A = with_logger(() -> convert(Array, t), NullLogger())
+    return TensorMap(A, desymmetrize(space(t)))
 end
 
 """
@@ -89,7 +93,8 @@ function symmetrize(
     tol′ = something(tol, _default_tol(scalartype(B), sectortype(V)))
     P = ProductSpace(ntuple(Returns(V), Val(N))...)
     return try
-        TensorMap(convert(Array, B), P ← P; tol = tol′)
+        # disable logging to suppress the fermionic `fusiontensor` warning, see `desymmetrize`
+        with_logger(() -> TensorMap(convert(Array, B), P ← P; tol = tol′), NullLogger())
     catch err
         err isa ArgumentError || rethrow()
         throw(ArgumentError("operator is not symmetric under `$(sectortype(V))` symmetry"))
