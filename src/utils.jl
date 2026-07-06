@@ -96,8 +96,11 @@ function symmetrize(
     length(codomain(V)) == M && length(domain(V)) == N ||
         throw(ArgumentError("target space `V` does not match the number of indices"))
 
-    Ucod = reduce(⊗, Us; init = id(one(ComplexSpace)))
-    Udom = reduce(⊗, Uds; init = id(one(ComplexSpace)))
+    # only fall back to an identity seed for the empty-product case: seeding a non-empty
+    # `reduce` forces an extra `⊗`, which widens the scalar type of the basis-transform
+    # product (e.g. `RationalRoot{Int}` → `Float64`) and demotes the operator's precision
+    Ucod = isempty(Us) ? id(Bool, one(ComplexSpace)) : reduce(⊗, Us)
+    Udom = isempty(Uds) ? id(Bool, one(ComplexSpace)) : reduce(⊗, Uds)
     B = Ucod * desymmetrize(O) * Udom'
     tol′ = something(tol, _default_tol(scalartype(B), sectortype(V)))
     return try
