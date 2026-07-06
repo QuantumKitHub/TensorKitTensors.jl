@@ -3,6 +3,7 @@ using LinearAlgebra: eigvals
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
+using TensorKitTensors: desymmetrize
 using TensorKitTensors.HubbardOperators
 using StableRNGs
 
@@ -50,11 +51,34 @@ end
         space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
         @test dim(space) == 4
 
+        # element-wise comparison in the dense basis catches transposes and gauge errors
+        # that the spectral `test_operator` is blind to
+        U = basis_transform(particle_symmetry, spin_symmetry)
+
         # compatible with all symmetry combinations
-        for f in (half_ud_num, e_hopping, S_exchange)
+        for f in (half_ud_num, S_exchange)
             O = f(ComplexF64, particle_symmetry, spin_symmetry)
             O_triv = f(ComplexF64, Trivial, Trivial)
-            test_operator(O, O_triv)
+            test_operator_dense(O, O_triv, U)
+        end
+
+        # e_hopping uses the staggered η-pairing gauge c_{j,σ} → iʲ c_{j,σ} under SU2 particle
+        # symmetry (Yang & Zhang, Mod. Phys. Lett. B 4, 759 (1990), the SO₄ symmetry of the
+        # Hubbard model), so site k carries the extra factor G^(k-1) with G = iⁿ = diag(1, -1,
+        # i, i) in the (|0⟩, |↑↓⟩, |↑⟩, |↓⟩) basis. Making the site-dependent transform explicit
+        # lets the element-wise comparison apply here too, rather than falling back to the spectrum.
+        if particle_symmetry === SU2Irrep
+            Vref = desymmetrize(hubbard_space(Trivial, Trivial))
+            G = TensorMap(Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im], Vref ← Vref)
+            test_operator_dense(
+                e_hopping(ComplexF64, particle_symmetry, spin_symmetry),
+                e_hopping(ComplexF64, Trivial, Trivial), (U, U * G)
+            )
+        else
+            test_operator_dense(
+                e_hopping(ComplexF64, particle_symmetry, spin_symmetry),
+                e_hopping(ComplexF64, Trivial, Trivial), U
+            )
         end
 
         for (available, fs) in (
@@ -68,7 +92,7 @@ end
                 if available
                     O = f(ComplexF64, particle_symmetry, spin_symmetry)
                     O_triv = f(ComplexF64, Trivial, Trivial)
-                    test_operator(O, O_triv)
+                    test_operator_dense(O, O_triv, U)
                 else
                     @test_throws ArgumentError f(
                         ComplexF64, particle_symmetry, spin_symmetry
@@ -199,23 +223,11 @@ end
 
         # test spin operator
         if has_spin_ops(particle_symmetry, spin_symmetry)
-            ε = zeros(ComplexF64, 3, 3, 3)
-            for i in 1:3
-                ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
-                ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
-            end
-            Svec = [
+            test_spin_algebra(
                 S_x(particle_symmetry, spin_symmetry),
                 S_y(particle_symmetry, spin_symmetry),
                 S_z(particle_symmetry, spin_symmetry),
-            ]
-            # Hermiticity
-            for s in Svec
-                @test s' ≈ s
-            end
-            # operators should be normalized
-            S = 1 / 2
-            @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
+            )
             # test S_plus and S_min
             @test S_plus_S_min(particle_symmetry, spin_symmetry) ≈
                 S_plus(particle_symmetry, spin_symmetry) ⊗
@@ -223,11 +235,6 @@ end
             @test S_min_S_plus(particle_symmetry, spin_symmetry) ≈
                 S_min(particle_symmetry, spin_symmetry) ⊗
                 S_plus(particle_symmetry, spin_symmetry)
-            # commutation relations
-            for i in 1:3, j in 1:3
-                @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
-                    sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
-            end
         else
             @test_throws ArgumentError S_plus(particle_symmetry, spin_symmetry)
             @test_throws ArgumentError S_min(particle_symmetry, spin_symmetry)
@@ -274,29 +281,14 @@ function hubbard_hamiltonian_ph(particle_symmetry, spin_symmetry; t, U)
 end
 
 @testset "spectrum" begin
+    rng = StableRNG(123)
     L = 4
-    t = randn(L - 1)
-    U = randn(L)
-    mu = randn(L)
+    t = randn(rng, L - 1)
+    U = randn(rng, L)
 
-    H_triv = hubbard_hamiltonian(Trivial, Trivial; t, U, mu)
-    vals_triv = mapreduce(vcat, pairs(eigvals(H_triv))) do (c, v)
-        return repeat(real.(v), dim(c))
-    end
-    sort!(vals_triv)
-
-    for (particle_symmetry, spin_symmetry) in all_symmetries
-        has_e_num(particle_symmetry, spin_symmetry) || continue
-        particle_symmetry == spin_symmetry == Trivial && continue
-        H_symm = hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
-        vals_symm = mapreduce(vcat, pairs(eigvals(H_symm))) do (c, v)
-            return repeat(real.(v), dim(c))
-        end
-        sort!(vals_symm)
-        @test vals_triv ≈ vals_symm
-    end
-
-    # particle-hole symmetric spectrum: compatible with all symmetry combinations
+    # particle-hole symmetric spectrum across all symmetry combinations: a many-body
+    # integration check that the staggered η-gauge e_hopping (verified element-wise per-bond
+    # above) assembles correctly into a chain under SU2 particle symmetry.
     H_triv = hubbard_hamiltonian_ph(Trivial, Trivial; t, U)
     vals_triv = mapreduce(vcat, pairs(eigvals(H_triv))) do (c, v)
         return repeat(real.(v), dim(c))

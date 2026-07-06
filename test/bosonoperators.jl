@@ -61,7 +61,6 @@ end
 @testset "U1-symmetric bosonic operators" begin
     cutoff = 4
 
-    rng = StableRNG(123)
     # inferrability
     N = @inferred n(U1Irrep; cutoff)
     B⁺B⁻ = @inferred b⁺b⁻(U1Irrep; cutoff)
@@ -75,17 +74,11 @@ end
     @test_throws ArgumentError b_plus_b_plus(U1Irrep; cutoff)
     @test_throws ArgumentError b_min_b_min(U1Irrep; cutoff)
 
-    L = 4
-    b_pm, b_mp, b_n = rand(rng, 3)
-    O_u1 = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
-
-    O_triv = (
-        n(; cutoff) ⊗ id(boson_space(Trivial; cutoff)) +
-            id(boson_space(Trivial; cutoff)) ⊗ n(; cutoff)
-    ) * b_n +
-        b⁺b⁻(; cutoff) * b_pm + b⁻b⁺(; cutoff) * b_mp
-
-    test_operator(O_u1, O_triv; L)
+    # element-wise comparison against the trivial operators in the dense basis
+    U = basis_transform(U1Irrep; cutoff)
+    test_operator_dense(N, n(; cutoff), U)
+    test_operator_dense(B⁺B⁻, b⁺b⁻(; cutoff), U)
+    test_operator_dense(B⁻B⁺, b⁻b⁺(; cutoff), U)
 end
 
 @testset "Exact Diagonalization" begin

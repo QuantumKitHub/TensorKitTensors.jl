@@ -5,12 +5,6 @@ include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.SpinOperators
 
-const ε = zeros(Int, 3, 3, 3)
-for i in 1:3
-    ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
-    ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
-end
-
 @testset "basis transformations" begin
     for spin in (1 // 2):(1 // 2):(5 // 2)
         for symmetry in (Trivial, U1Irrep, SU2Irrep)
@@ -64,21 +58,9 @@ end
     YY = @inferred S_y_S_y(; spin)
     ZZ = @inferred S_z_S_z(; spin)
     SS = @inferred S_exchange(; spin)
-    Svec = [X Y Z]
 
-    # operators should be hermitian
-    for s in Svec
-        @test s' ≈ s
-    end
-
-    # operators should be normalized
-    @test sum(tr(Svec[i]^2) for i in 1:3) / (2spin + 1) ≈ spin * (spin + 1)
-
-    # commutation relations
-    for i in 1:3, j in 1:3
-        @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
-            sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
-    end
+    # hermiticity, normalization, and su(2) commutation relations
+    test_spin_algebra(X, Y, Z; spin)
 
     # definition of +-
     @test (X + im * Y) ≈ S⁺
@@ -97,8 +79,6 @@ end
 end
 
 @testset "Z2-Symmetric spin 1//2 operators" begin
-    rng = StableRNG(123)
-
     # inferrability
     X = @inferred S_x(Z2Irrep)
     XX = @inferred S_x_S_x(Z2Irrep)
@@ -119,20 +99,16 @@ end
     @test_throws ArgumentError S_y(Z2Irrep)
     @test_throws ArgumentError S_z(Z2Irrep)
 
-    L = 4
-    a_x, a_xx, a_yy, a_zz, a_exchange = rand(rng, 5)
-    O_z2 = (X ⊗ id(domain(X)) + id(domain(X)) ⊗ X) * a_x +
-        XX * a_xx + YY * a_yy + ZZ * a_zz + exchange * a_exchange
-
-    O_triv = (S_x() ⊗ id(domain(S_x())) + id(domain(S_x())) ⊗ S_x()) * a_x +
-        S_x_S_x() * a_xx + S_y_S_y() * a_yy + S_z_S_z() * a_zz + S_exchange() * a_exchange
-
-    test_operator(O_z2, O_triv; L)
+    # element-wise comparison against the trivial operators in the dense basis
+    U = basis_transform(Z2Irrep)
+    test_operator_dense(X, S_x(), U)
+    test_operator_dense(XX, S_x_S_x(), U)
+    test_operator_dense(YY, S_y_S_y(), U)
+    test_operator_dense(ZZ, S_z_S_z(), U)
+    test_operator_dense(exchange, S_exchange(), U)
 end
 
 @testset "U1-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
-    rng = StableRNG(123)
-
     # inferrability
     Z = @inferred S_z(U1Irrep; spin)
     ZZ = @inferred S_z_S_z(U1Irrep; spin)
@@ -147,34 +123,16 @@ end
     @test_throws ArgumentError S_x_S_x(U1Irrep; spin)
     @test_throws ArgumentError S_y_S_y(U1Irrep; spin)
 
-    L = 4
+    # element-wise comparison against the trivial operators in the dense basis
+    U = basis_transform(U1Irrep; spin)
     for f in (S_z, S_z_S_z, S_plus_S_min, S_min_S_plus, S_exchange)
-        test_operator(f(U1Irrep; spin), f(; spin); L)
+        test_operator_dense(f(U1Irrep; spin), f(; spin), U)
     end
-
-    a_z, a_zz, a_plusmin, a_minplus, a_exchange = rand(rng, 5)
-    O_u1 = (Z ⊗ id(domain(Z)) + id(domain(Z)) ⊗ Z) * a_z +
-        ZZ * a_zz +
-        plusmin * a_plusmin +
-        minplus * a_minplus +
-        exchange * a_exchange
-    O_triv = (
-        S_z(; spin) ⊗ id(domain(S_z(; spin))) +
-            id(domain(S_z(; spin))) ⊗ S_z(; spin)
-    ) * a_z +
-        S_z_S_z(; spin) * a_zz +
-        S_plus_S_min(; spin) * a_plusmin +
-        S_min_S_plus(; spin) * a_minplus +
-        S_exchange(; spin) * a_exchange
-    test_operator(O_u1, O_triv; L)
 end
 
 @testset "SU2-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
-    rng = StableRNG(123)
-
     # inferrability
     V = @inferred spin_space(SU2Irrep; spin)
-    I = id(V)
     SS = @inferred S_exchange(SU2Irrep; spin)
 
     @test_throws ArgumentError S_x(SU2Irrep; spin)
@@ -188,15 +146,10 @@ end
     @test_throws ArgumentError S_y_S_y(SU2Irrep; spin)
     @test_throws ArgumentError S_z_S_z(SU2Irrep; spin)
 
-    L = 4
     SS_triv = S_exchange(; spin)
-    I_triv = id(spin_space(; spin))
-    test_operator(SS, SS_triv; L)
-    a = rand(rng, 3)
-    O_su2 = a[1] * SS ⊗ I ⊗ I + a[2] * I ⊗ SS ⊗ I + a[3] * I ⊗ I ⊗ SS
-    O_triv = a[1] * SS_triv ⊗ I_triv ⊗ I_triv + a[2] * I_triv ⊗ SS_triv ⊗ I_triv +
-        a[3] * I_triv ⊗ I_triv ⊗ SS_triv
-    test_operator(O_su2, O_triv)
+
+    # element-wise comparison against the trivial operator in the dense basis
+    test_operator_dense(SS, SS_triv, basis_transform(SU2Irrep; spin))
 end
 
 @testset "Exact diagonalisation for $sector symmetry" for sector in [Trivial, U1Irrep]

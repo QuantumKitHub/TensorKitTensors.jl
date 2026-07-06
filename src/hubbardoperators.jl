@@ -106,6 +106,12 @@ order of the target space, where the states are identified as follows:
     they generate the same physics on bipartite lattices but are not elementwise equal to
     them.
 
+    The ``η``-pairing SU(2) and the gauge transformation making it a symmetry of the Hubbard
+    model are due to C. N. Yang and S. C. Zhang, *SO₄ symmetry in a Hubbard model*, Mod. Phys.
+    Lett. B **4**, 759 (1990), [doi:10.1142/S0217984990000933](https://doi.org/10.1142/S0217984990000933);
+    see also C. N. Yang, *η pairing and off-diagonal long-range order in a Hubbard model*,
+    Phys. Rev. Lett. **63**, 2144 (1989), [doi:10.1103/PhysRevLett.63.2144](https://doi.org/10.1103/PhysRevLett.63.2144).
+
 The transformations have exact integer entries and are therefore returned with integer
 scalar type, such that they promote to any scalar type without loss of precision.
 """

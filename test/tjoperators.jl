@@ -190,23 +190,11 @@ end
 
                 # test spin operator
                 if spin_symmetry == Trivial
-                    ε = zeros(ComplexF64, 3, 3, 3)
-                    for i in 1:3
-                        ε[mod1(i, 3), mod1(i + 1, 3), mod1(i + 2, 3)] = 1
-                        ε[mod1(i, 3), mod1(i - 1, 3), mod1(i - 2, 3)] = -1
-                    end
-                    Svec = [
+                    test_spin_algebra(
                         S_x(particle_symmetry, spin_symmetry; slave_fermion),
                         S_y(particle_symmetry, spin_symmetry; slave_fermion),
                         S_z(particle_symmetry, spin_symmetry; slave_fermion),
-                    ]
-                    # Hermiticity
-                    for s in Svec
-                        @test s' ≈ s
-                    end
-                    # operators should be normalized
-                    S = 1 / 2
-                    @test sum(tr(Svec[i]^2) for i in 1:3) / (2S + 1) ≈ S * (S + 1)
+                    )
                     # test S_plus and S_min
                     @test S_plus_S_min(particle_symmetry, spin_symmetry; slave_fermion) ≈
                         S_plus(particle_symmetry, spin_symmetry; slave_fermion) ⊗
@@ -214,11 +202,6 @@ end
                     @test S_min_S_plus(particle_symmetry, spin_symmetry; slave_fermion) ≈
                         S_min(particle_symmetry, spin_symmetry; slave_fermion) ⊗
                         S_plus(particle_symmetry, spin_symmetry; slave_fermion)
-                    # commutation relations
-                    for i in 1:3, j in 1:3
-                        @test Svec[i] * Svec[j] - Svec[j] * Svec[i] ≈
-                            sum(im * ε[i, j, k] * Svec[k] for k in 1:3)
-                    end
                 else
                     @test_throws ArgumentError S_plus(
                         particle_symmetry, spin_symmetry;

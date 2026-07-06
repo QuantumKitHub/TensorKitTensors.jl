@@ -92,3 +92,25 @@ end
     dom_ids = ntuple(j -> id(desymmetrize(domain(tp)[j])), numin(tp))
     @test symmetrize(desymmetrize(tp), (cod_ids, dom_ids), space(tp)) ≈ tp
 end
+
+@testset "fuse_local_operators" begin
+    # single-site: the fused operator is the Kronecker product in the fused basis.
+    # TensorKit's `fuse` groups the second space as the major (slower) index, so the
+    # dense representation is `kron(B, A)`.
+    A = S_x()
+    B = S_z()
+    fused = fuse_local_operators(A, B)
+    @test space(fused, 1) == fuse(space(A, 1) ⊗ space(B, 1))
+    @test convert(Array, fused) ≈ kron(convert(Array, B), convert(Array, A))
+
+    # site-wise factorization: fusing products of single-site operators must factorize,
+    # which exercises the multi-site interleaving/permutation logic
+    A′ = S_z()
+    B′ = S_x()
+    @test fuse_local_operators(A ⊗ A′, B ⊗ B′) ≈
+        fuse_local_operators(A, B) ⊗ fuse_local_operators(A′, B′)
+
+    # argument checks
+    @test_throws ArgumentError fuse_local_operators(S_x(), f_num(ComplexF64, Trivial))
+    @test_throws ArgumentError fuse_local_operators(S_x(), S_x_S_x())
+end
