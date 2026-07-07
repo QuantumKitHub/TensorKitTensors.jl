@@ -2,7 +2,7 @@ module BosonOperators
 
 using TensorKit
 using LinearAlgebra: I
-import ..TensorKitTensors: symmetrize, desymmetrize
+import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
 export boson_space, basis_transform
 export b_plus, b_min, b_num
@@ -45,14 +45,19 @@ function basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
     return TensorMap(Matrix{Int}(I, cutoff + 1, cutoff + 1), V ← boson_space(Trivial; cutoff))
 end
 
+# Symmetrize a boson operator through its basis transformation
+_symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
+    symmetrize(O, basis_transform(symmetry; kwargs...), boson_space(symmetry; kwargs...))
+
 # Single-site operators
 # ---------------------
-@doc """
+"""
     b_min([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic annihilation operator, with a maximum of `cutoff` bosons per site.
-""" b_min
+"""
+@operator b⁻ b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     b⁻ = zeros(elt, pspace ← pspace)
@@ -61,14 +66,14 @@ function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     end
     return b⁻
 end
-const b⁻ = b_min
 
-@doc """
+"""
     b_plus([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic creation operator, with a maximum of `cutoff` bosons per site.
-""" b_plus
+"""
+@operator b⁺ b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     b⁺ = zeros(elt, pspace ← pspace)
@@ -77,14 +82,14 @@ function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     end
     return b⁺
 end
-const b⁺ = b_plus
 
-@doc """
+"""
     b_num([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     n([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic number operator, with a maximum of `cutoff` bosons per site.
-""" b_num
+"""
+@operator n b_num(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     n = zeros(elt, pspace ← pspace)
@@ -93,88 +98,68 @@ function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     end
     return n
 end
-const n = b_num
 
 # Two site operators
 # ------------------
-@doc """
+"""
     b_plus_b_plus([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁺b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic pair-creation operator, with a maximum of `cutoff` bosons per site.
-""" b_plus_b_plus
+"""
+@operator b⁺b⁺ b_plus_b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_plus_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     return b⁺ ⊗ b⁺
 end
-const b⁺b⁺ = b_plus_b_plus
 
-@doc """
+"""
     b_plus_b_min([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁺b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic left-hopping operator, with a maximum of `cutoff` bosons per site.
-""" b_plus_b_min
+"""
+@operator b⁺b⁻ b_plus_b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_plus_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁺ ⊗ b⁻
 end
-const b⁺b⁻ = b_plus_b_min
 
-@doc """
+"""
     b_min_b_plus([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁻b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic right-hopping operator, with a maximum of `cutoff` bosons per site.
-""" b_min_b_plus
+"""
+@operator b⁻b⁺ b_min_b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_min_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁻ ⊗ b⁺
 end
-const b⁻b⁺ = b_min_b_plus
 
-@doc """
+"""
     b_min_b_min([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁻b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic pair-annihilation operator, with a maximum of `cutoff` bosons per site.
-""" b_min_b_min
+"""
+@operator b⁻b⁻ b_min_b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_min_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁻ ⊗ b⁻
 end
-const b⁻b⁻ = b_min_b_min
 
-@doc """
+"""
     b_hopping([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b_hop([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
-""" b_hopping
+"""
+@operator b_hop b_hopping(::Type{<:Number}, ::Type{<:Sector}; cutoff)
 function b_hopping(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     return b_plus_b_min(elt, Trivial; cutoff) + b_min_b_plus(elt, Trivial; cutoff)
-end
-const b_hop = b_hopping
-
-# Symmetric operators and default arguments
-# -----------------------------------------
-# The symmetric operators are automatically generated from their `Trivial` counterparts
-# through `symmetrize` and `basis_transform`. Operators that are incompatible with a given
-# symmetry throw an `ArgumentError`.
-for opname in
-    (:b_min, :b_plus, :b_num, :b_plus_b_plus, :b_plus_b_min, :b_min_b_plus, :b_min_b_min, :b_hopping)
-    @eval begin
-        $opname(; kwargs...) = $opname(ComplexF64, Trivial; kwargs...)
-        $opname(elt::Type{<:Number}; kwargs...) = $opname(elt, Trivial; kwargs...)
-        $opname(symmetry::Type{<:Sector}; kwargs...) = $opname(ComplexF64, symmetry; kwargs...)
-        function $opname(elt::Type{<:Number}, symmetry::Type{<:Sector}; cutoff::Integer)
-            O = $opname(elt, Trivial; cutoff)
-            U = basis_transform(symmetry; cutoff)
-            return symmetrize(O, U, boson_space(symmetry; cutoff))
-        end
-    end
 end
 
 end
