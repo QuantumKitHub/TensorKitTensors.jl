@@ -14,6 +14,8 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
+export singlet_plus_singlet_min_3site
+export singlet_plus_singlet_min_4site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -571,6 +573,45 @@ end
 const singlet⁻ = singlet_min
 
 @doc """
+    singlet_plus_singlet_min_3site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Returns the 3-site term ``O_{ijk} = A^†_{ij} A_{jk}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It describes the hopping of a singlet pair from bond `(j,k)`
+to a nearest neighbor bond `(i,j)` sharing site `j`.
+""" singlet_plus_singlet_min_3site
+function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    #=
+                -5      -6
+            ┌---┴-------┴---┐
+            |     A_{jk}    |
+            └---┬-------┬---┘
+        -4      1       -3
+    ┌---┴-------┴---┐
+    |    A†_{ij}    |
+    └---┬-------┬---┘
+        -1      -2
+        i       j       k
+    =#
+    singp = singlet_plus(elt, Trivial, Trivial)
+    singm = singp'
+    return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
+end
+
+
+@doc """
+    singlet_plus_singlet_min_4site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
+
+Returns the 4-site term ``O_{ijkl} = A^†_{ij} A_{kl}``, where
+``A^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
+""" singlet_plus_singlet_min_4site
+function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    singp = singlet_plus(elt, Trivial, Trivial)
+    return singp ⊗ singp'
+end
+
+@doc """
     S_plus_S_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
     S⁺S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}], [spin_symmetry::Type{<:Sector}])
 
@@ -622,6 +663,7 @@ for opname in (
         :u_min_u_min, :d_min_d_min, :u_plus_u_plus, :d_plus_d_plus,
         :e_plus_e_min, :e_min_e_plus, :e_hopping,
         :singlet_plus, :singlet_min,
+        :singlet_plus_singlet_min_3site, :singlet_plus_singlet_min_4site,
         :S_plus_S_min, :S_min_S_plus, :S_exchange,
     )
     @eval begin

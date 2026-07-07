@@ -12,7 +12,7 @@ spin_syms = (Trivial, U1Irrep, SU2Irrep)
 
 # operator availability, as determined by the symmetries each operator breaks:
 # - u_num, d_num, S_z and the u/d hopping pairs break SU2 spin symmetry
-# - e_num, ud_num, h_num and e_plus_e_min/e_min_e_plus break SU2 particle symmetry
+# - e_num, ud_num, h_num, e_plus_e_min/e_min_e_plus and singlet_plus_singlet_min_3/4site break SU2 particle symmetry
 # - the pair (charge non-conserving) operators break U1 and SU2 particle symmetry
 # - half_ud_num, e_hopping, S_exchange are compatible with all symmetries
 has_u_num(P, S) = P !== SU2Irrep && S !== SU2Irrep
@@ -22,6 +22,7 @@ has_S_z(P, S) = S !== SU2Irrep
 has_e_pm(P, S) = P !== SU2Irrep
 has_pair(P, S) = P === Trivial && S !== SU2Irrep
 has_singlet(P, S) = P === Trivial
+has_paircor(P, S) = P !== SU2Irrep
 has_triplet(P, S) = P === Trivial && S === Trivial
 
 @testset "basis transformations" begin
@@ -82,6 +83,7 @@ end
                 (has_u_num(particle_symmetry, spin_symmetry), (u_num, d_num)),
                 (has_e_pm(particle_symmetry, spin_symmetry), (e_plus_e_min,)),
                 (has_singlet(particle_symmetry, spin_symmetry), (singlet_plus,)),
+                (has_paircor(partialsort, spin_symmetry), (singlet_plus_singlet_min_3site, singlet_plus_singlet_min_4site)),
                 (has_S_z(particle_symmetry, spin_symmetry), (S_plus_S_min, S_min_S_plus)),
             )
             for f in fs
