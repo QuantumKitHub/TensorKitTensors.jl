@@ -176,7 +176,9 @@ Compatible symmetries: `Trivial`.
 
 See also [`σʸ`](@ref) (Pauli version ``\\sigma^y = 2S^y``).
 """ S_y
-function S_y(elt::Type{<:Complex}, ::Type{Trivial}; spin = 1 // 2)
+function S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+    # explicit error to avoid infinite recursion:
+    elt <: Real && throw(ArgumentError("S_y requires `elt <: Complex`"))
     _, S_y_mat, _ = spinmatrices(spin, elt)
     pspace = spin_space(Trivial; spin)
     return TensorMap(S_y_mat, pspace ← pspace)

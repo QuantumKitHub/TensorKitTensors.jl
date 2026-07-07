@@ -298,7 +298,9 @@ const Sˣ = S_x
 
 Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
 """ S_y
-function S_y(elt::Type{<:Complex}, ::Type{Trivial}, ::Type{Trivial})
+function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    # explicit error to avoid infinite recursion:
+    elt <: Real && throw(ArgumentError("S_y requires `elt <: Complex`"))
     return (S_plus(elt, Trivial, Trivial) - S_min(elt, Trivial, Trivial)) / (2im)
 end
 const Sʸ = S_y
