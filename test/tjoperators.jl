@@ -10,6 +10,7 @@ particle_syms = (Trivial, U1Irrep)
 spin_syms = (Trivial, U1Irrep, SU2Irrep)
 
 @testset "Compare symmetric with trivial tensors" begin
+    L = 4
     for (particle_symmetry, spin_symmetry, slave_fermion) in Iterators.product(particle_syms, spin_syms, (false, true))
         space = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
 
@@ -18,20 +19,20 @@ spin_syms = (Trivial, U1Irrep, SU2Irrep)
             slave_fermion
         )
         O_triv = e_plus_e_min(ComplexF64, Trivial, Trivial; slave_fermion)
-        test_operator(O, O_triv)
+        test_operator(O, O_triv; L)
 
         O = e_num(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
         O_triv = e_num(ComplexF64, Trivial, Trivial; slave_fermion)
-        test_operator(O, O_triv)
+        test_operator(O, O_triv; L)
 
         O = S_exchange(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
         O_triv = S_exchange(ComplexF64, Trivial, Trivial; slave_fermion)
-        test_operator(O, O_triv)
+        test_operator(O, O_triv; L)
 
         if particle_symmetry == Trivial
             O = singlet_plus(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
             O_triv = singlet_plus(ComplexF64, Trivial, Trivial; slave_fermion)
-            test_operator(O, O_triv)
+            test_operator(O, O_triv; L)
         end
     end
 end

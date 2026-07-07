@@ -66,9 +66,9 @@ function swap_2sites(op::AbstractTensorMap{T, S, 2, 2}) where {T, S}
 end
 
 """
-    test_operator(O1, O2; x, isapproxkwargs...)
+    test_operator(O1, O2; x, L, isapproxkwargs...)
 
-Compare two operators through the spectrum of the many-body Hamiltonian `O + x * O'`.
+Compare two operators through the spectrum of the many-body Hamiltonian `O + x * O'` on an L-site chain.
 This is basis-independent, so it happily compares a symmetric operator with its
 trivial counterpart in a different basis ordering.
 
@@ -78,10 +78,10 @@ cannot distinguish an operator from a unitarily-rotated version of itself. Use
 """
 function test_operator(
         O1::AbstractTensorMap, O2::AbstractTensorMap;
-        x::Number = default_x, isapproxkwargs...
+        x::Number = default_x, L::Int = 4, isapproxkwargs...
     )
-    eigenvals1 = round_and_sort(expanded_eigenvalues(O1 + x * O1'))
-    eigenvals2 = round_and_sort(expanded_eigenvalues(O2 + x * O2'))
+    eigenvals1 = round_and_sort(expanded_eigenvalues(O1 + x * O1'; L))
+    eigenvals2 = round_and_sort(expanded_eigenvalues(O2 + x * O2'; L))
     return @test isapprox(eigenvals1, eigenvals2; isapproxkwargs...)
 end
 
