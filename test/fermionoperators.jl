@@ -49,8 +49,6 @@ end
 
 @testset "Exact Diagonalization" begin
     rng = StableRNG(123)
-
-    L = 2
     t, V, mu = rand(rng, 3)
     # Values based on https://arxiv.org/abs/1610.05003v1. Half-Chain Entanglement Entropy in the One-Dimensional Spinless Fermion Model
     true_eigenvals = sort([V / 4, V / 4 - mu, -V / 4 - mu / 2 + t, -V / 4 - mu / 2 - t])
@@ -60,7 +58,7 @@ end
         H = -t * (f⁺f⁻(sym) - f⁻f⁺(sym)) +
             V * ((n(sym) - 0.5 * id(pspace)) ⊗ (n(sym) - 0.5 * id(pspace))) -
             0.5 * mu * (n(sym) ⊗ id(pspace) + id(pspace) ⊗ n(sym))
-        eigenvals = expanded_eigenvalues(H; L)
+        eigenvals = expanded_eigenvalues(H)
         @test eigenvals ≈ true_eigenvals
     end
 end

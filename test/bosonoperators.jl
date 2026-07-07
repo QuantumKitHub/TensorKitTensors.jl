@@ -83,7 +83,6 @@ end
 
 @testset "Exact Diagonalization" begin
     cutoff = 1
-    L = 2
     for symmetry in (Trivial, U1Irrep)
         rng = StableRNG(123)
         # inferrability
@@ -98,7 +97,7 @@ end
         true_eigenvals = sort(
             [0, 2 * b_n, b_n + sqrt(b_mp * b_pm), b_n - sqrt(b_mp * b_pm)]
         )
-        eigenvals = expanded_eigenvalues(O; L)
+        eigenvals = expanded_eigenvalues(O)
         @test eigenvals ≈ true_eigenvals
     end
 end

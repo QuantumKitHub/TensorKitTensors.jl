@@ -7,11 +7,8 @@ using TensorKitTensors: desymmetrize
 using TensorKitTensors.HubbardOperators
 using StableRNGs
 
-all_symmetries = [
-    (Trivial, Trivial), (Trivial, U1Irrep), (Trivial, SU2Irrep),
-    (U1Irrep, Trivial), (U1Irrep, U1Irrep), (U1Irrep, SU2Irrep),
-    (SU2Irrep, Trivial), (SU2Irrep, U1Irrep), (SU2Irrep, SU2Irrep),
-]
+particle_syms = (Trivial, U1Irrep, SU2Irrep)
+spin_syms = (Trivial, U1Irrep, SU2Irrep)
 
 # operator availability, as determined by the symmetries each operator breaks:
 # - u_num, d_num, S_z and the u/d hopping pairs break SU2 spin symmetry
@@ -28,7 +25,7 @@ has_singlet(P, S) = P === Trivial
 has_triplet(P, S) = P === Trivial && S === Trivial
 
 @testset "basis transformations" begin
-    for (P, S) in all_symmetries
+    for (P, S) in Iterators.product(particle_syms, spin_syms)
         U = basis_transform(P, S)
         @test U isa AbstractTensorMap
         @test scalartype(U) === Int # exact entries promote without precision loss
@@ -47,7 +44,7 @@ has_triplet(P, S) = P === Trivial && S === Trivial
 end
 
 @testset "Compare symmetric with trivial tensors" begin
-    for (particle_symmetry, spin_symmetry) in all_symmetries
+    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
         space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
         @test dim(space) == 4
 
@@ -120,7 +117,7 @@ end
     # e_plus_e_min moves a particle from the second site to the first:
     # ⟨↑,0|e⁺e⁻|0,↑⟩ = 1 while ⟨0,↑|e⁺e⁻|↑,0⟩ = 0, in every symmetric version
     # (regression check: the hand-written SU2-spin versions used to be transposed)
-    for (P, S) in all_symmetries
+    for (P, S) in Iterators.product(particle_syms, spin_syms)
         has_e_pm(P, S) || continue
         A = convert(Array, e_plus_e_min(ComplexF64, P, S))
         U = convert(Array, basis_transform(P, S))
@@ -132,7 +129,7 @@ end
 end
 
 @testset "basic properties" begin
-    for (particle_symmetry, spin_symmetry) in all_symmetries
+    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
         # test hopping operator
         if has_e_pm(particle_symmetry, spin_symmetry)
             epem = e_plus_e_min(particle_symmetry, spin_symmetry)
@@ -248,35 +245,23 @@ end
 end
 
 function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
-    L = length(t) + 1
     @assert length(t) + 1 == length(U) == length(mu)
     hopping = e_hopping(particle_symmetry, spin_symmetry)
     interaction = ud_num(particle_symmetry, spin_symmetry)
     chemical_potential = e_num(particle_symmetry, spin_symmetry)
-    I = id(hubbard_space(particle_symmetry, spin_symmetry))
-    H = sum(1:(L - 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping * -t[i]))
-    end +
-        sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction * U[i]))
-    end +
-        sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, chemical_potential * -mu[i]))
-    end
+    H = operator_sum(hopping, -t) +
+        operator_sum(interaction, U) +
+        operator_sum(chemical_potential, -mu)
+
     return H
 end
 # particle-hole symmetric Hamiltonian (mu = U/2), compatible with all symmetries
 function hubbard_hamiltonian_ph(particle_symmetry, spin_symmetry; t, U)
-    L = length(t) + 1
     @assert length(t) + 1 == length(U)
     hopping = e_hopping(particle_symmetry, spin_symmetry)
     interaction = half_ud_num(particle_symmetry, spin_symmetry)
-    I = id(hubbard_space(particle_symmetry, spin_symmetry))
-    H = sum(1:(L - 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 2)), i, hopping * -t[i]))
-    end + sum(1:L) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - 1)), i, interaction * U[i]))
-    end
+    H = operator_sum(hopping, -t) +
+        operator_sum(interaction, U)
     return H
 end
 
@@ -290,24 +275,18 @@ end
     # integration check that the staggered η-gauge e_hopping (verified element-wise per-bond
     # above) assembles correctly into a chain under SU2 particle symmetry.
     H_triv = hubbard_hamiltonian_ph(Trivial, Trivial; t, U)
-    vals_triv = mapreduce(vcat, pairs(eigvals(H_triv))) do (c, v)
-        return repeat(real.(v), dim(c))
-    end
-    sort!(vals_triv)
+    vals_triv = expanded_eigenvalues(H_triv)
 
-    for (particle_symmetry, spin_symmetry) in all_symmetries
+    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
         particle_symmetry == spin_symmetry == Trivial && continue
         H_symm = hubbard_hamiltonian_ph(particle_symmetry, spin_symmetry; t, U)
-        vals_symm = mapreduce(vcat, pairs(eigvals(H_symm))) do (c, v)
-            return repeat(real.(v), dim(c))
-        end
-        sort!(vals_symm)
+        vals_symm = expanded_eigenvalues(H_symm)
         @test vals_triv ≈ vals_symm
     end
 end
 
 @testset "Exact diagonalisation" begin
-    for (particle_symmetry, spin_symmetry) in all_symmetries
+    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
         has_e_num(particle_symmetry, spin_symmetry) || continue
         rng = StableRNG(123)
 
@@ -330,7 +309,7 @@ end
                 [2 * U]
             )
         )
-        eigenvals = expanded_eigenvalues(H_triv; L)
+        eigenvals = expanded_eigenvalues(H_triv)
         @test eigenvals ≈ true_eigenvals
     end
 end

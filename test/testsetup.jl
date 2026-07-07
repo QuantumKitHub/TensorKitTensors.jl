@@ -1,7 +1,7 @@
 module TensorKitTensorsTestSetup
 
 export test_operator, test_operator_dense, test_spin_algebra
-export swap_2sites, expanded_eigenvalues
+export swap_2sites, expanded_eigenvalues, operator_sum
 
 using Test
 using TensorKit
@@ -9,7 +9,6 @@ using TensorKitTensors: desymmetrize
 using LinearAlgebra: eigvals, tr
 
 const default_x = 0.361 + 0.729im
-const default_L = 4
 
 # su(2) structure constants εᵢⱼₖ, shared by the spin-algebra tests
 const levicivita = let ε = zeros(Int, 3, 3, 3)
@@ -27,11 +26,38 @@ function round_and_sort(evs::Vector{<:Number}; digits = 12)
     return sort!(evs2; by = z -> (real(z), imag(z)))
 end
 
-function operator_sum(O::AbstractTensorMap; L::Int = default_L)
-    I = id(space(O, 1))
-    n = numin(O)
-    return sum(1:(L - n + 1)) do i
-        return reduce(⊗, insert!(collect(Any, fill(I, L - n)), i, O))
+"""
+    operator_sum(
+        O::AbstractTensorMap{<:Any, <:Any, N, N}, L::Int = N
+    ) where {N}
+
+Return `O ⊗ 1 ⊗ ⋯ ⊗ 1 + 1 ⊗ O ⊗ ⋯ ⊗ 1 + ... + 1 ⊗ 1 ⊗ ⋯ ⊗ O` on an L-site chain.
+"""
+function operator_sum(
+        O::AbstractTensorMap{<:Any, <:Any, N, N}, L::Int = N
+    ) where {N}
+    L < N && error("Chain length `L` cannot be smaller than size of operator `O`.")
+    coeffs = fill(1, L - N + 1)
+    return operator_sum(O, coeffs)
+end
+"""
+    operator_sum(
+        O::AbstractTensorMap{<:Any, <:Any, N, N}, coeffs::Vector{<:Number}
+    ) where {N}
+
+Return `(coeffs[1] * O) ⊗ 1 ⊗ ⋯ ⊗ 1 + 1 ⊗ (coeffs[2] * O) ⊗ ⋯ ⊗ 1 + ... + 1 ⊗ 1 ⊗ ⋯ ⊗ (coeffs[end] * O)`.
+"""
+function operator_sum(
+        O::AbstractTensorMap{<:Any, <:Any, N, N}, coeffs::Vector{<:Number}
+    ) where {N}
+    n_term = length(coeffs)
+    @assert n_term > 0
+    if n_term == 1 # fast track
+        return only(coeffs) * O
+    end
+    I = id(codomain(O, 1))
+    return sum(enumerate(coeffs)) do (i, c)
+        return reduce(⊗, insert!(collect(Any, fill(I, n_term - 1)), i, c * O))
     end
 end
 
@@ -40,11 +66,11 @@ function swap_2sites(op::AbstractTensorMap{T, S, 2, 2}) where {T, S}
 end
 
 """
-    test_operator(O1, O2; x, L, isapproxkwargs...)
+    test_operator(O1, O2; x, isapproxkwargs...)
 
-Compare two operators through the spectrum of the many-body Hamiltonian `O + x * O'`
-summed over an `L`-site chain. This is basis-independent, so it happily compares a
-symmetric operator with its trivial counterpart in a different basis ordering.
+Compare two operators through the spectrum of the many-body Hamiltonian `O + x * O'`.
+This is basis-independent, so it happily compares a symmetric operator with its
+trivial counterpart in a different basis ordering.
 
 The spectrum is invariant under unitary conjugation (and transposition), so this test
 cannot distinguish an operator from a unitarily-rotated version of itself. Use
@@ -52,10 +78,10 @@ cannot distinguish an operator from a unitarily-rotated version of itself. Use
 """
 function test_operator(
         O1::AbstractTensorMap, O2::AbstractTensorMap;
-        x::Number = default_x, L::Int = default_L, isapproxkwargs...
+        x::Number = default_x, isapproxkwargs...
     )
-    eigenvals1 = round_and_sort(expanded_eigenvalues(O1 + x * O1'; L))
-    eigenvals2 = round_and_sort(expanded_eigenvalues(O2 + x * O2'; L))
+    eigenvals1 = round_and_sort(expanded_eigenvalues(O1 + x * O1'))
+    eigenvals2 = round_and_sort(expanded_eigenvalues(O2 + x * O2'))
     return @test isapprox(eigenvals1, eigenvals2; isapproxkwargs...)
 end
 
@@ -114,8 +140,10 @@ function test_spin_algebra(Sx, Sy, Sz; spin = 1 // 2)
     return nothing
 end
 
-function expanded_eigenvalues(O::AbstractTensorMap; L::Int = default_L)
-    H = operator_sum(O; L)
+function expanded_eigenvalues(
+        O::AbstractTensorMap{<:Any, <:Any, N, N}; L::Int = N
+    ) where {N}
+    H = operator_sum(O, L)
     eigenvals = mapreduce(vcat, pairs(eigvals(H))) do (c, vals)
         return repeat(vals, dim(c))
     end
