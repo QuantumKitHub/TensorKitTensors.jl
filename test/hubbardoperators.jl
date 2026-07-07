@@ -27,8 +27,7 @@ has_triplet(P, S) = P === Trivial && S === Trivial
 @testset "basis transformations" begin
     for (P, S) in Iterators.product(particle_syms, spin_syms)
         U = basis_transform(P, S)
-        @test U isa AbstractTensorMap
-        @test scalartype(U) === Int # exact entries promote without precision loss
+        @test U isa AbstractTensorMap{Int}
         @test U' * U == one(U)
         @test U * U' == one(U)
     end

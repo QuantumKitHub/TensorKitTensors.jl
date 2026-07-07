@@ -14,8 +14,7 @@ const symmetries = (Trivial, U1Irrep)
 @testset "basis transformations" begin
     for sym in symmetries
         U = basis_transform(sym)
-        @test U isa AbstractTensorMap
-        @test scalartype(U) === Int
+        @test U isa AbstractTensorMap{Int}
         @test U == one(U)
     end
     # real and wide scalar types are preserved

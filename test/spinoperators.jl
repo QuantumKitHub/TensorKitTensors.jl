@@ -9,8 +9,7 @@ using TensorKitTensors.SpinOperators
     for spin in (1 // 2):(1 // 2):(5 // 2)
         for symmetry in (Trivial, U1Irrep, SU2Irrep)
             U = basis_transform(symmetry; spin)
-            @test U isa AbstractTensorMap
-            @test scalartype(U) === Int # exact entries promote without precision loss
+            @test U isa AbstractTensorMap{Int}
             @test U' * U == one(U)
         end
         @test basis_transform(Trivial; spin) == one(basis_transform(Trivial; spin))
