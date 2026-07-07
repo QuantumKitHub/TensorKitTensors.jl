@@ -157,3 +157,125 @@ function fuse_local_operators(O₁::AbstractTensorMap, O₂::AbstractTensorMap)
 
     return fuser * O₁₂ * fuser'
 end
+
+"""
+    @operator [alias] op(::Type{<:Number}[=default], ::Type{<:Sector}[=default], …; kwargs...)
+
+Generate the public default-argument interface for an operator whose non-symmetric reference
+implementation `op(elt, Trivial, …; kwargs...)` (with a concrete `::Type{Trivial}` for each
+symmetry slot) is written separately.
+
+The signature is a *template* describing the public interface: an element type as the first
+positional argument, followed by one or more symmetry arguments, and optionally some keyword
+arguments. Each argument's type annotation constrains the corresponding generated method, and
+each `= default` supplies the value filled in when the argument is omitted (the element type
+defaults to `ComplexF64` and symmetries to `Trivial`). `@operator` emits the boilerplate so
+that all of the following resolve:
+
+- `op()`
+- `op(eltype)`
+- `op(symmetry₁, …, symmetryₙ)` (any prefix; remaining symmetries take their defaults)
+- `op(eltype, symmetry₁, …, symmetryₙ)`
+
+The last of these, the *symmetric terminal*, delegates to the module-local hook
+`_symmetrize_operator(op(elt, Trivial, …; kwargs...), symmetry₁, …; kwargs...)`, which each
+operator module defines once (typically wrapping [`symmetrize`](@ref) with the module's
+`basis_transform` and local space). Keyword arguments (`spin`, `cutoff`, …) are forwarded
+generically to both the reference call and the hook; the `kwargs` in the template are only for
+documentation.
+
+If an `alias` symbol is supplied, a `const alias = op` binding is emitted as well (e.g. the
+Unicode name `Sᶻ` for `S_z`).
+
+The first generated method is wrapped in `Core.@__doc__`, so a docstring written directly
+above the `@operator` line is attached to the operator function. Write the reference
+method(s) as ordinary definitions, either above or below the `@operator` line:
+
+```julia
+\"\"\"
+    S_z([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+
+The spin-z operator.
+\"\"\"
+@operator Sᶻ S_z(::Type{<:Number}, ::Type{<:Sector}; spin)
+function S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+    ...
+end
+```
+"""
+macro operator(args...)
+    (1 <= length(args) <= 2) ||
+        error("`@operator` expects `[alias] op(signature)`")
+    if length(args) == 2
+        alias, sig = args[1], args[2]
+        (alias isa Symbol) || error("`@operator`: the alias must be a symbol")
+    else
+        alias, sig = nothing, args[1]
+    end
+
+    (sig isa Expr && sig.head === :call) ||
+        error("`@operator` expects a signature template `op(::Type{...}, …)`")
+    fname = sig.args[1]
+    (fname isa Symbol) || error("`@operator`: the operator name must be a symbol")
+    posargs = filter(a -> !(a isa Expr && a.head === :parameters), sig.args[2:end])
+    length(posargs) >= 2 ||
+        error("`@operator` expects an element type plus at least one symmetry argument")
+
+    # parse an argument into (type constraint, default-or-nothing)
+    function parse_arg(a)
+        inner, default = (a isa Expr && a.head === :kw) ? (a.args[1], a.args[2]) : (a, nothing)
+        (inner isa Expr && inner.head === :(::)) ||
+            error("`@operator`: each argument must be `::Type{...}` (optionally `= default`)")
+        return inner.args[end], default
+    end
+
+    # set default values if not given: `elt = ComplexF64` and `symmetry = Trivial`
+    eltconstraint, eltdefault = parse_arg(posargs[1])
+    eltdefault === nothing && (eltdefault = :ComplexF64)
+    syms = map(parse_arg, posargs[2:end])
+    symconstraints = first.(syms)
+    symdefaults = map(s -> s[2] === nothing ? :Trivial : s[2], syms)
+    N = length(syms)
+
+    kw = gensym(:kwargs)
+    kwparam = Expr(:parameters, Expr(:(...), kw))
+
+    # `op(s₁::<c₁> = <d₁>, …; kwargs...) = op(<eltdefault>, s₁, …; kwargs...)`
+    snames = [gensym(:S) for _ in 1:N]
+    symsig = Expr(
+        :call, fname, kwparam,
+        (Expr(:kw, Expr(:(::), snames[i], symconstraints[i]), symdefaults[i]) for i in 1:N)...
+    )
+    symcall = Expr(:call, fname, kwparam, eltdefault, snames...)
+    method_sym = Expr(:(=), symsig, symcall)
+
+    # `op(elt::<eltconstraint>; kwargs...) = op(elt, <d₁>, …; kwargs...)`
+    eltname = gensym(:elt)
+    eltsig = Expr(:call, fname, kwparam, Expr(:(::), eltname, eltconstraint))
+    eltcall = Expr(:call, fname, kwparam, eltname, symdefaults...)
+    method_elt = Expr(:(=), eltsig, eltcall)
+
+    # symmetric terminal:
+    # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
+    #      _symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
+    tname = gensym(:elt)
+    tsyms = [gensym(:S) for _ in 1:N]
+    tsig = Expr(
+        :call, fname, kwparam, Expr(:(::), tname, eltconstraint),
+        (Expr(:(::), tsyms[i], symconstraints[i]) for i in 1:N)...
+    )
+    refcall = Expr(:call, fname, kwparam, tname, ntuple(Returns(:Trivial), N)...)
+    hookcall = Expr(:call, :_symmetrize_operator, kwparam, refcall, tsyms...)
+    method_terminal = Expr(:(=), tsig, hookcall)
+
+    aliasdef = alias === nothing ? nothing : Expr(:const, Expr(:(=), alias, fname))
+
+    return esc(
+        quote
+            Core.@__doc__ $method_sym
+            $method_elt
+            $method_terminal
+            $aliasdef
+        end
+    )
+end
