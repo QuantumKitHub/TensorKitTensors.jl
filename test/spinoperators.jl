@@ -160,7 +160,7 @@ end
     minplus = @inferred S_min_S_plus(sector; spin)
     O = ZZ + 0.5 * (plusmin + minplus)
 
-    true_eigenvals = vcat([-2.0], repeat([-1.0], 3), repeat([1.0], 5))
+    true_eigenvals = vcat(-2.0, fill(-1.0, 3), fill(1.0, 5))
     eigenvals = expanded_eigenvalues(O; L = 2)
     @test eigenvals ≈ true_eigenvals
 
