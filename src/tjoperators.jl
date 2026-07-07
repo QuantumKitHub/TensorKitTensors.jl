@@ -1,6 +1,6 @@
 module TJOperators
 
-using LinearAlgebra
+using LinearAlgebra: diagind
 using TensorKit
 import ..HubbardOperators
 import ..TensorKitTensors: fuse_local_operators
