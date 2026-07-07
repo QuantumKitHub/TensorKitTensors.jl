@@ -1,10 +1,23 @@
 using TensorKit
-using LinearAlgebra: tr
 using Test
 include("testsetup.jl")
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.BosonOperators
 using StableRNGs
+
+@testset "basis transformations" begin
+    cutoff = 4
+    for symmetry in (Trivial, U1Irrep)
+        U = basis_transform(symmetry; cutoff)
+        @test U isa AbstractTensorMap{Int}
+        @test U == one(U)
+    end
+    # real and wide scalar types are preserved
+    @test scalartype(b_num(Float64, U1Irrep; cutoff)) === Float64
+    N_big = b_num(BigFloat, U1Irrep; cutoff)
+    @test scalartype(N_big) === BigFloat
+    @test all(c -> block(N_big, c)[1] == big(c.charge), sectors(boson_space(U1Irrep; cutoff)))
+end
 
 @testset "Non-symmetric bosonic operators" begin
     cutoff = 4
@@ -48,7 +61,6 @@ end
 @testset "U1-symmetric bosonic operators" begin
     cutoff = 4
 
-    rng = StableRNG(123)
     # inferrability
     N = @inferred n(U1Irrep; cutoff)
     B⁺B⁻ = @inferred b⁺b⁻(U1Irrep; cutoff)
@@ -62,29 +74,22 @@ end
     @test_throws ArgumentError b_plus_b_plus(U1Irrep; cutoff)
     @test_throws ArgumentError b_min_b_min(U1Irrep; cutoff)
 
-    L = 4
-    b_pm, b_mp, b_n = rand(rng, 3)
-    O_u1 = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
-
-    O_triv = (
-        n(; cutoff) ⊗ id(boson_space(Trivial; cutoff)) +
-            id(boson_space(Trivial; cutoff)) ⊗ n(; cutoff)
-    ) * b_n +
-        b⁺b⁻(; cutoff) * b_pm + b⁻b⁺(; cutoff) * b_mp
-
-    test_operator(O_u1, O_triv; L)
+    # element-wise comparison against the trivial operators in the dense basis
+    U = basis_transform(U1Irrep; cutoff)
+    test_operator_dense(N, n(; cutoff), U)
+    test_operator_dense(B⁺B⁻, b⁺b⁻(; cutoff), U)
+    test_operator_dense(B⁻B⁺, b⁻b⁺(; cutoff), U)
 end
 
 @testset "Exact Diagonalization" begin
     cutoff = 1
-    L = 2
-    for symmetry in [Trivial U1Irrep]
+    for symmetry in (Trivial, U1Irrep)
         rng = StableRNG(123)
         # inferrability
-        N = @inferred n(U1Irrep; cutoff)
-        B⁺B⁻ = @inferred b⁺b⁻(U1Irrep; cutoff)
-        B⁻B⁺ = @inferred b⁻b⁺(U1Irrep; cutoff)
-        V = @inferred boson_space(U1Irrep; cutoff)
+        N = @inferred n(symmetry; cutoff)
+        B⁺B⁻ = @inferred b⁺b⁻(symmetry; cutoff)
+        B⁻B⁺ = @inferred b⁻b⁺(symmetry; cutoff)
+        V = @inferred boson_space(symmetry; cutoff)
 
         b_pm, b_mp, b_n = rand(rng, 3)
         O = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm
@@ -92,7 +97,7 @@ end
         true_eigenvals = sort(
             [0, 2 * b_n, b_n + sqrt(b_mp * b_pm), b_n - sqrt(b_mp * b_pm)]
         )
-        eigenvals = expanded_eigenvalues(O; L)
+        eigenvals = expanded_eigenvalues(O)
         @test eigenvals ≈ true_eigenvals
     end
 end

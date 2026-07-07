@@ -1,5 +1,7 @@
 module TensorKitTensors
 
+export symmetrize, desymmetrize
+
 export SpinOperators
 export BosonOperators
 export FermionOperators
@@ -7,6 +9,7 @@ export TJOperators
 export HubbardOperators
 
 using TensorKit
+using Logging
 
 include("utils.jl")
 include("spinoperators.jl")

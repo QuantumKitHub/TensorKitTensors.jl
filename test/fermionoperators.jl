@@ -1,7 +1,6 @@
 using TensorKit
 using Test
 include("testsetup.jl")
-using TensorKitTensors
 using .TensorKitTensorsTestSetup
 using TensorKitTensors.FermionOperators
 using StableRNGs
@@ -11,6 +10,17 @@ using StableRNGs
 # {fᵢ, fⱼ†} = δᵢⱼ
 
 const symmetries = (Trivial, U1Irrep)
+
+@testset "basis transformations" begin
+    for sym in symmetries
+        U = basis_transform(sym)
+        @test U isa AbstractTensorMap{Int}
+        @test U == one(U)
+    end
+    # real and wide scalar types are preserved
+    @test scalartype(f_num(Float64, U1Irrep)) === Float64
+    @test scalartype(f_hopping(Complex{BigFloat}, U1Irrep)) === Complex{BigFloat}
+end
 
 @testset "fermion properties" begin
     @test f⁻f⁻() ≈ -swap_2sites(f⁻f⁻())
@@ -38,8 +48,6 @@ end
 
 @testset "Exact Diagonalization" begin
     rng = StableRNG(123)
-
-    L = 2
     t, V, mu = rand(rng, 3)
     # Values based on https://arxiv.org/abs/1610.05003v1. Half-Chain Entanglement Entropy in the One-Dimensional Spinless Fermion Model
     true_eigenvals = sort([V / 4, V / 4 - mu, -V / 4 - mu / 2 + t, -V / 4 - mu / 2 - t])
@@ -49,7 +57,7 @@ end
         H = -t * (f⁺f⁻(sym) - f⁻f⁺(sym)) +
             V * ((n(sym) - 0.5 * id(pspace)) ⊗ (n(sym) - 0.5 * id(pspace))) -
             0.5 * mu * (n(sym) ⊗ id(pspace) + id(pspace) ⊗ n(sym))
-        eigenvals = expanded_eigenvalues(H; L)
+        eigenvals = expanded_eigenvalues(H)
         @test eigenvals ≈ true_eigenvals
     end
 end
