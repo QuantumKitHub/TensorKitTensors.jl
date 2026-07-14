@@ -169,12 +169,15 @@ The signature is a *template* describing the public interface: an element type a
 positional argument, followed by one or more symmetry arguments, and optionally some keyword
 arguments. Each argument's type annotation constrains the corresponding generated method, and
 each `= default` supplies the value filled in when the argument is omitted (the element type
-defaults to `ComplexF64` and symmetries to `Trivial`). `@operator` emits the boilerplate so
-that all of the following resolve:
+defaults to `ComplexF64` and symmetries to `Trivial`). The element type is independently
+optional, but the symmetries are all-or-nothing: either all of them are given, or none are
+(in which case they take their defaults). This avoids silently defaulting the unspecified
+symmetries of a multi-symmetry operator. `@operator` emits the boilerplate so that all of the
+following resolve:
 
 - `op()`
 - `op(eltype)`
-- `op(symmetry₁, …, symmetryₙ)` (any prefix; remaining symmetries take their defaults)
+- `op(symmetry₁, …, symmetryₙ)` (all symmetries)
 - `op(eltype, symmetry₁, …, symmetryₙ)`
 
 The last of these, the *symmetric terminal*, delegates to the module-local hook
@@ -240,14 +243,25 @@ macro operator(args...)
     kw = gensym(:kwargs)
     kwparam = Expr(:parameters, Expr(:(...), kw))
 
-    # `op(s₁::<c₁> = <d₁>, …; kwargs...) = op(<eltdefault>, s₁, …; kwargs...)`
+    # symmetries are all-or-nothing: emit a no-symmetry method and an all-symmetries
+    # method rather than per-argument defaults, which would also accept partial prefixes
+    # (e.g. `op(sym₁)` for a two-symmetry operator) and thereby silently default the
+    # remaining symmetries to `Trivial`.
+
+    # `op(; kwargs...) = op(<eltdefault>, <d₁>, …; kwargs...)`
+    method_none = Expr(
+        :(=), Expr(:call, fname, kwparam),
+        Expr(:call, fname, kwparam, eltdefault, symdefaults...)
+    )
+
+    # `op(s₁::<c₁>, …, sₙ::<cₙ>; kwargs...) = op(<eltdefault>, s₁, …; kwargs...)`
     snames = [gensym(:S) for _ in 1:N]
     symsig = Expr(
         :call, fname, kwparam,
-        (Expr(:kw, Expr(:(::), snames[i], symconstraints[i]), symdefaults[i]) for i in 1:N)...
+        (Expr(:(::), snames[i], symconstraints[i]) for i in 1:N)...
     )
     symcall = Expr(:call, fname, kwparam, eltdefault, snames...)
-    method_sym = Expr(:(=), symsig, symcall)
+    method_allsyms = Expr(:(=), symsig, symcall)
 
     # `op(elt::<eltconstraint>; kwargs...) = op(elt, <d₁>, …; kwargs...)`
     eltname = gensym(:elt)
@@ -272,7 +286,8 @@ macro operator(args...)
 
     return esc(
         quote
-            Core.@__doc__ $method_sym
+            Core.@__doc__ $method_none
+            $method_allsyms
             $method_elt
             $method_terminal
             $aliasdef
