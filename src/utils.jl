@@ -242,6 +242,8 @@ macro operator(args...)
 
     kw = gensym(:kwargs)
     kwparam = Expr(:parameters, Expr(:(...), kw))
+    loc = LineNumberNode(__source__.line, __source__.file)
+    method_def(sig, body) = Expr(:function, sig, Expr(:block, loc, body))
 
     # symmetries are all-or-nothing: emit a no-symmetry method and an all-symmetries
     # method rather than per-argument defaults, which would also accept partial prefixes
@@ -249,8 +251,8 @@ macro operator(args...)
     # remaining symmetries to `Trivial`.
 
     # `op(; kwargs...) = op(<eltdefault>, <d₁>, …; kwargs...)`
-    method_none = Expr(
-        :(=), Expr(:call, fname, kwparam),
+    method_none = method_def(
+        Expr(:call, fname, kwparam),
         Expr(:call, fname, kwparam, eltdefault, symdefaults...)
     )
 
@@ -261,13 +263,13 @@ macro operator(args...)
         (Expr(:(::), snames[i], symconstraints[i]) for i in 1:N)...
     )
     symcall = Expr(:call, fname, kwparam, eltdefault, snames...)
-    method_allsyms = Expr(:(=), symsig, symcall)
+    method_allsyms = method_def(symsig, symcall)
 
     # `op(elt::<eltconstraint>; kwargs...) = op(elt, <d₁>, …; kwargs...)`
     eltname = gensym(:elt)
     eltsig = Expr(:call, fname, kwparam, Expr(:(::), eltname, eltconstraint))
     eltcall = Expr(:call, fname, kwparam, eltname, symdefaults...)
-    method_elt = Expr(:(=), eltsig, eltcall)
+    method_elt = method_def(eltsig, eltcall)
 
     # symmetric terminal:
     # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
@@ -280,7 +282,7 @@ macro operator(args...)
     )
     refcall = Expr(:call, fname, kwparam, tname, ntuple(Returns(:Trivial), N)...)
     hookcall = Expr(:call, :_symmetrize_operator, kwparam, refcall, tsyms...)
-    method_terminal = Expr(:(=), tsig, hookcall)
+    method_terminal = method_def(tsig, hookcall)
 
     aliasdef = alias === nothing ? nothing : Expr(:const, Expr(:(=), alias, fname))
 
@@ -290,6 +292,7 @@ macro operator(args...)
             $method_allsyms
             $method_elt
             $method_terminal
+            $loc
             $aliasdef
         end
     )
