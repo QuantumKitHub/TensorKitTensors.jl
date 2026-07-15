@@ -133,8 +133,8 @@ for (opname, alias) in zip(
             # compatibility with Julia 1.10 (hub_doc is a Markdown.MD object)
             string(hub_doc)
         end
-        tJ_doc = if occursin("[spin_symmetry::Type{<:Sector}])", tJ_doc)
-            replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)")
+        tJ_doc = if occursin("spin_symmetry::Type{<:Sector}])", tJ_doc)
+            replace(tJ_doc, "spin_symmetry::Type{<:Sector}])" => "spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)")
         else
             replace(tJ_doc, "spin_symmetry::Type{<:Sector})" => "spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)")
         end
