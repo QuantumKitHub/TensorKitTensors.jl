@@ -45,8 +45,11 @@ end
 @testset "type inference" begin
     @test (@inferred e_num()) isa AbstractTensorMap
     @test (@inferred e_num(Float64)) isa AbstractTensorMap
+    @test (@inferred e_num(U1Irrep, U1Irrep)) isa AbstractTensorMap
     @test (@inferred e_num(Float64, U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@inferred e_hopping(U1Irrep, U1Irrep)) isa AbstractTensorMap
     @test (@inferred e_hopping(Float64, U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@inferred S_exchange(U1Irrep, SU2Irrep)) isa AbstractTensorMap
     @test (@inferred S_exchange(Float64, U1Irrep, SU2Irrep)) isa AbstractTensorMap
 end
 

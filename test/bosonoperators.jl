@@ -24,7 +24,9 @@ end
 
     @test (@inferred b_num(; cutoff)) isa AbstractTensorMap
     @test (@inferred b_num(Float64; cutoff)) isa AbstractTensorMap
+    @test (@inferred b_num(U1Irrep; cutoff)) isa AbstractTensorMap
     @test (@inferred b_num(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
+    @test (@inferred b_hopping(U1Irrep; cutoff)) isa AbstractTensorMap
     @test (@inferred b_hopping(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
 end
 

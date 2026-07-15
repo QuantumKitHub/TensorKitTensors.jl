@@ -47,7 +47,9 @@ end
 @testset "type inference" begin
     @test (@inferred S_z()) isa AbstractTensorMap
     @test (@inferred S_z(Float64)) isa AbstractTensorMap
+    @test (@inferred S_z(U1Irrep)) isa AbstractTensorMap
     @test (@inferred S_z(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@inferred S_exchange(SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
     @test (@inferred S_exchange(Float64, SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
 end
 

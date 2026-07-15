@@ -11,8 +11,11 @@ spin_syms = (Trivial, U1Irrep, SU2Irrep)
 
 @testset "type inference" begin
     @test (@inferred S_exchange()) isa AbstractTensorMap
+    @test (@inferred S_exchange(U1Irrep, SU2Irrep)) isa AbstractTensorMap
     @test (@inferred S_exchange(Float64, U1Irrep, SU2Irrep)) isa AbstractTensorMap
+    @test (@inferred S_exchange(U1Irrep, SU2Irrep; slave_fermion = true)) isa AbstractTensorMap
     @test (@inferred S_exchange(Float64, U1Irrep, SU2Irrep; slave_fermion = true)) isa AbstractTensorMap
+    @test (@inferred e_hopping(U1Irrep, U1Irrep; slave_fermion = true)) isa AbstractTensorMap
     @test (@inferred e_hopping(Float64, U1Irrep, U1Irrep; slave_fermion = true)) isa AbstractTensorMap
 end
 
