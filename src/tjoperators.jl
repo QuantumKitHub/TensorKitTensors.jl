@@ -25,7 +25,7 @@ export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁺, singlet⁻
-export S⁻S⁺, S⁺S⁻
+export S⁻S⁺, S⁺S⁻, SS
 
 export transform_slave_fermion
 
@@ -121,7 +121,7 @@ for (opname, alias) in zip(
             :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
             :e⁺e⁻, :e⁻e⁺, :e_hop,
             :singlet⁺, :singlet⁻,
-            :S⁻S⁺, :S⁺S⁻, nothing,
+            :S⁻S⁺, :S⁺S⁻, :SS,
         )
     )
     # copy over the docstrings
@@ -133,8 +133,8 @@ for (opname, alias) in zip(
             # compatibility with Julia 1.10 (hub_doc is a Markdown.MD object)
             string(hub_doc)
         end
-        tJ_doc = if occursin("[spin_symmetry::Type{<:Sector}])", tJ_doc)
-            replace(tJ_doc, "[spin_symmetry::Type{<:Sector}])" => "[spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)")
+        tJ_doc = if occursin("spin_symmetry::Type{<:Sector}])", tJ_doc)
+            replace(tJ_doc, "spin_symmetry::Type{<:Sector}])" => "spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)")
         else
             replace(tJ_doc, "spin_symmetry::Type{<:Sector})" => "spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false)")
         end
@@ -143,8 +143,10 @@ for (opname, alias) in zip(
     end
 
     # default arguments
+    @eval $opname(; slave_fermion::Bool = false) =
+        $opname(ComplexF64, Trivial, Trivial; slave_fermion)
     @eval $opname(
-        particle_symmetry::Type{<:Sector} = Trivial, spin_symmetry::Type{<:Sector} = Trivial;
+        particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
         slave_fermion::Bool = false
     ) = $opname(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
     @eval $opname(elt::Type{<:Number}; slave_fermion::Bool = false) =

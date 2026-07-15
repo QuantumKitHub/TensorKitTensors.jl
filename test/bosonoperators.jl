@@ -19,19 +19,30 @@ using StableRNGs
     @test all(c -> block(N_big, c)[1] == big(c.charge), sectors(boson_space(U1Irrep; cutoff)))
 end
 
+@testset "type inference" begin
+    cutoff = 2
+
+    @test (@testinferred b_num(; cutoff)) isa AbstractTensorMap
+    @test (@testinferred b_num(Float64; cutoff)) isa AbstractTensorMap
+    @test (@testinferred b_num(U1Irrep; cutoff)) isa AbstractTensorMap
+    @test (@testinferred b_num(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
+    @test (@testinferred b_hopping(U1Irrep; cutoff)) isa AbstractTensorMap
+    @test (@testinferred b_hopping(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
+end
+
 @testset "Non-symmetric bosonic operators" begin
     cutoff = 4
 
     # inferrability
-    B⁻ = @inferred b⁻(; cutoff)
-    B⁺ = @inferred b⁺(; cutoff)
-    N = @inferred n(; cutoff)
-    B⁻B⁻ = @inferred b⁻b⁻(; cutoff)
-    B⁺B⁻ = @inferred b⁺b⁻(; cutoff)
-    B⁻B⁺ = @inferred b⁻b⁺(; cutoff)
-    B⁺B⁺ = @inferred b⁺b⁺(; cutoff)
-    Bhop = @inferred b_hop(; cutoff)
-    V = @inferred boson_space(Trivial; cutoff)
+    B⁻ = @testinferred b⁻(; cutoff)
+    B⁺ = @testinferred b⁺(; cutoff)
+    N = @testinferred n(; cutoff)
+    B⁻B⁻ = @testinferred b⁻b⁻(; cutoff)
+    B⁺B⁻ = @testinferred b⁺b⁻(; cutoff)
+    B⁻B⁺ = @testinferred b⁻b⁺(; cutoff)
+    B⁺B⁺ = @testinferred b⁺b⁺(; cutoff)
+    Bhop = @testinferred b_hop(; cutoff)
+    V = @testinferred boson_space(Trivial; cutoff)
 
     # test adjoints
     @test B⁻' ≈ B⁺
@@ -62,10 +73,10 @@ end
     cutoff = 4
 
     # inferrability
-    N = @inferred n(U1Irrep; cutoff)
-    B⁺B⁻ = @inferred b⁺b⁻(U1Irrep; cutoff)
-    B⁻B⁺ = @inferred b⁻b⁺(U1Irrep; cutoff)
-    V = @inferred boson_space(U1Irrep; cutoff)
+    N = @testinferred n(U1Irrep; cutoff)
+    B⁺B⁻ = @testinferred b⁺b⁻(U1Irrep; cutoff)
+    B⁻B⁺ = @testinferred b⁻b⁺(U1Irrep; cutoff)
+    V = @testinferred boson_space(U1Irrep; cutoff)
 
     # non-symmetric operators throw error
     @test_throws ArgumentError b⁻(U1Irrep; cutoff)
@@ -86,10 +97,10 @@ end
     for symmetry in (Trivial, U1Irrep)
         rng = StableRNG(123)
         # inferrability
-        N = @inferred n(symmetry; cutoff)
-        B⁺B⁻ = @inferred b⁺b⁻(symmetry; cutoff)
-        B⁻B⁺ = @inferred b⁻b⁺(symmetry; cutoff)
-        V = @inferred boson_space(symmetry; cutoff)
+        N = @testinferred n(symmetry; cutoff)
+        B⁺B⁻ = @testinferred b⁺b⁻(symmetry; cutoff)
+        B⁻B⁺ = @testinferred b⁻b⁺(symmetry; cutoff)
+        V = @testinferred boson_space(symmetry; cutoff)
 
         b_pm, b_mp, b_n = rand(rng, 3)
         O = (N ⊗ id(V) + id(V) ⊗ N) * b_n + B⁻B⁺ * b_mp + B⁺B⁻ * b_pm

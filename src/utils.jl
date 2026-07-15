@@ -135,25 +135,175 @@ end
 Given two ``n``-body operators, acting on ``ℋ₁ = V₁ ⊗ ⋯ ⊗ Vₙ`` and ``ℋ₂ = W₁ ⊗ ⋯ ⊗ Wₙ``,
 return the operator acting on the fused local spaces, i.e. on ``ℋ = fuse(V₁ ⊗ W₁) ⊗ ⋯ ⊗ fuse(Vₙ ⊗ Wₙ)``.
 """
-function fuse_local_operators(O₁::AbstractTensorMap, O₂::AbstractTensorMap)
-    spacetype(O₁) == spacetype(O₂) ||
-        throw(ArgumentError("operators have incompatible space types"))
-    (N = numout(O₁)) == numin(O₁) == numout(O₂) == numin(O₂) ||
-        throw(ArgumentError("operators have incompatible number of indices"))
-
-    fuser = mapreduce(⊗, 1:N) do i
+function fuse_local_operators(O₁::AbstractTensorMap{<:Any, S₁, N₁, N₂}, O₂::AbstractTensorMap{<:Any, S₂, N₃, N₄}) where {S₁, S₂, N₁, N₂, N₃, N₄}
+    S₁ == S₂ || throw(ArgumentError("operators have incompatible space types"))
+    (N₁ == N₂ == N₃ == N₄) || throw(ArgumentError("operators have incompatible number of indices"))
+    fuser = mapreduce(⊗, ntuple(identity, Val(N₁))) do i
         Vᵢ = space(O₁, i)
         Wᵢ = space(O₂, i)
         VWᵢ = fuse(Vᵢ, Wᵢ)
         return isomorphism(VWᵢ ← Vᵢ ⊗ Wᵢ)
     end
-
     O₁₂ = permute(
         O₁ ⊗ O₂, (
-            ntuple(i -> iseven(i) ? N + (i ÷ 2) : (i + 1) ÷ 2, 2N),
-            ntuple(i -> iseven(i) ? 3N + (i ÷ 2) : 2N + (i + 1) ÷ 2, 2N),
+            ntuple(i -> iseven(i) ? N₁ + (i ÷ 2) : (i + 1) ÷ 2, Val(2N₁)),
+            ntuple(i -> iseven(i) ? 3N₁ + (i ÷ 2) : 2N₁ + (i + 1) ÷ 2, Val(2N₁)),
         )
     )
-
     return fuser * O₁₂ * fuser'
+end
+
+# type annotation of a positional argument, from either `name::Type` or `::Type`
+function _operator_type_arg(a)
+    Meta.isexpr(a, :(::)) ||
+        throw(Meta.ParseError("`@operator`: positional arguments must be annotated as `name::Type` or `::Type`"))
+    return a.args[end]
+end
+
+# Build the block of forwarding methods (and optional alias) from the parsed reference
+# definition. Returned unescaped; the macro escapes it.
+function _operator_defs(alias, def, source)
+    Meta.isexpr(def, :function) ||
+        throw(Meta.ParseError("`@operator` expects `[alias] function op(...) ... end`"))
+    sig = def.args[1]
+    Meta.isexpr(sig, :call) ||
+        throw(Meta.ParseError("`@operator`: the wrapped definition must be a function call signature"))
+    fname = sig.args[1]
+    (fname isa Symbol) ||
+        throw(ArgumentError("`@operator`: the operator name must be a symbol"))
+
+    posargs = filter(a -> !Meta.isexpr(a, :parameters), sig.args[2:end])
+    length(posargs) >= 1 ||
+        throw(ArgumentError("`@operator` expects at least an element type argument"))
+
+    eltconstraint = _operator_type_arg(posargs[1])
+    N = length(posargs) - 1  # number of symmetry arguments; may be zero
+
+    loc = LineNumberNode(source.line, source.file)
+    # every generated method takes and forwards `kwargs...` verbatim; only the wrapped
+    # reference method validates keyword names, defaults, and types. signatures and calls
+    # share the same `f(args...; kwargs...)` shape, so a single builder covers both.
+    kwargs = gensym(:kwargs)
+    call_expr(f, cargs...) = Expr(:call, f, Expr(:parameters, Expr(:..., kwargs)), cargs...)
+    method_def(msig, body) = Expr(:function, msig, Expr(:block, loc, body))
+
+    # `op(; kwargs...) = op(ComplexF64, Trivial, …; kwargs...)` — always emitted; fills the
+    # element type default (and any symmetry defaults). This is the doc'd method.
+    method_none = method_def(
+        call_expr(fname),
+        call_expr(fname, :ComplexF64, ntuple(Returns(:Trivial), N)...)
+    )
+
+    # With no symmetry arguments the wrapped reference method is itself the terminal, so
+    # `method_none` (plus the reference's own `op(elt; …)`) is all that is needed. With one
+    # or more symmetries, symmetries are all-or-nothing and we additionally emit the
+    # symmetry-first, elt-only, and symmetric-terminal methods.
+    extra_methods = if N == 0
+        ()
+    else
+        # `op(s₁::Type{<:Sector}, …, sₙ::Type{<:Sector}; kwargs...) =
+        #      op(ComplexF64, s₁, …, sₙ; kwargs...)`
+        snames = [gensym(:S) for _ in 1:N]
+        symsig = call_expr(
+            fname, (Expr(:(::), snames[i], :(Type{<:Sector})) for i in 1:N)...
+        )
+        symcall = call_expr(fname, :ComplexF64, snames...)
+        method_allsyms = method_def(symsig, symcall)
+
+        # `op(elt::<eltconstraint>; kwargs...) = op(elt, Trivial, …; kwargs...)`
+        eltname = gensym(:elt)
+        eltsig = call_expr(fname, Expr(:(::), eltname, eltconstraint))
+        eltcall = call_expr(fname, eltname, ntuple(Returns(:Trivial), N)...)
+        method_elt = method_def(eltsig, eltcall)
+
+        # symmetric terminal:
+        # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
+        #      _symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
+        tname = gensym(:elt)
+        tsyms = [gensym(:S) for _ in 1:N]
+        tsig = call_expr(
+            fname, Expr(:(::), tname, eltconstraint),
+            (Expr(:(::), tsyms[i], :(Type{<:Sector})) for i in 1:N)...
+        )
+        refcall = call_expr(fname, tname, ntuple(Returns(:Trivial), N)...)
+        hookcall = call_expr(:_symmetrize_operator, refcall, tsyms...)
+        method_terminal = method_def(tsig, hookcall)
+
+        (method_allsyms, method_elt, method_terminal)
+    end
+
+    aliasdef = alias === nothing ? nothing : Expr(:const, Expr(:(=), alias, fname))
+
+    return quote
+        $def
+        Core.@__doc__ $method_none
+        $(extra_methods...)
+        $loc
+        $aliasdef
+    end
+end
+
+"""
+    @operator [alias] function op(elt::Type{<:Number}[, ::Type{Trivial}, …]; kwargs...)
+        ...
+    end
+
+Generate the public default-argument interface for an operator from its non-symmetric
+reference implementation. The wrapped method is the single source of truth for the operator's
+element type constraint, number of symmetry slots, keyword names, keyword defaults, and
+keyword type annotations.
+
+The wrapped signature must have an element type as its first positional argument, optionally
+followed by one or more symmetry arguments (conventionally annotated `::Type{Trivial}`).
+`@operator` emits the boilerplate so that all of the following resolve:
+
+- `op()`
+- `op(eltype)`
+- `op(symmetry₁, …, symmetryₙ)` (all symmetries)
+- `op(eltype, symmetry₁, …, symmetryₙ)`
+
+The element type defaults to `ComplexF64`, and omitted symmetries default to `Trivial`.
+Symmetries are all-or-nothing: either all of them are given, or none are. This avoids silently
+defaulting the unspecified symmetries of a multi-symmetry operator.
+
+If the reference method takes no symmetry arguments, it is itself the terminal: only the
+`op()` element-type default is generated (the symmetry-first, elt-only, and symmetric-terminal
+methods, including the `_symmetrize_operator` hook, are omitted).
+
+Otherwise, the last generated method, the *symmetric terminal*, delegates to the module-local
+hook
+`_symmetrize_operator(op(elt, Trivial, …; kwargs...), symmetry₁, …; kwargs...)`, which each
+operator module defines once (typically wrapping [`symmetrize`](@ref) with the module's
+`basis_transform` and local space). Every generated method simply accepts `kwargs...` and
+forwards them verbatim to both the reference call and the hook; the wrapped reference method
+is the only place that validates keyword names, defaults, and types.
+
+If an `alias` symbol is supplied, a `const alias = op` binding is emitted as well (e.g. the
+Unicode name `Sᶻ` for `S_z`).
+
+The first generated method is wrapped in `Core.@__doc__`, so a docstring written directly
+above the `@operator` line is attached to the operator function:
+
+```julia
+\"\"\"
+    S_z([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
+
+The spin-z operator.
+\"\"\"
+@operator Sᶻ function S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+    ...
+end
+```
+"""
+macro operator(args...)
+    (1 <= length(args) <= 2) ||
+        throw(Meta.ParseError("`@operator` expects `[alias] function op(...) ... end`"))
+    if length(args) == 2
+        alias, def = args[1], args[2]
+        (alias isa Symbol) ||
+            throw(ArgumentError("`@operator`: the alias must be a symbol"))
+    else
+        alias, def = nothing, args[1]
+    end
+    return esc(_operator_defs(alias, def, __source__))
 end

@@ -22,6 +22,15 @@ const symmetries = (Trivial, U1Irrep)
     @test scalartype(f_hopping(Complex{BigFloat}, U1Irrep)) === Complex{BigFloat}
 end
 
+@testset "type inference" begin
+    @test (@testinferred f_num()) isa AbstractTensorMap
+    @test (@testinferred f_num(Float64)) isa AbstractTensorMap
+    @test (@testinferred f_num(U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_num(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_hopping(U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_hopping(Float64, U1Irrep)) isa AbstractTensorMap
+end
+
 @testset "fermion properties" begin
     @test f⁻f⁻() ≈ -swap_2sites(f⁻f⁻())
     @test f⁺f⁺() ≈ -swap_2sites(f⁺f⁺())
