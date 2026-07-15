@@ -8,9 +8,11 @@ export qubit_space
 export pauli_x, pauli_y, pauli_z, proj_0, proj_1, hadamard, s_gate, t_gate
 export phase_shift, rotation_x, rotation_y, rotation_z
 export cnot, cy, cz, cphase, ch, cs, swap, iswap, dcx, ecr
+export rotation_xx, rotation_yy, rotation_zz, rotation_zx
 export toffoli, fredkin
 export X, Y, Z, P0, P1, H, S, T, P, Rx, Ry, Rz
 export CNOT, CX, CY, CZ, CP, CH, CS, SWAP, ISWAP, DCX, ECR
+export Rxx, Ryy, Rzz, Rzx
 export TOFFOLI, CCX, FREDKIN, CSWAP
 
 """
@@ -340,6 +342,68 @@ Supported symmetries: `Trivial`.
     q = qubit_space()
     x, y = pauli_x(elt, Trivial), pauli_y(elt, Trivial)
     return (id(q) ⊗ x - x ⊗ y) / sqrt(2)
+end
+
+# Two-qubit rotation gates
+# ------------------------
+"""
+    rotation_xx([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+    Rxx([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+
+The XX-rotation (Ising coupling) gate ``e^{-i\\theta\\, X \\otimes X / 2} = \\cos\\tfrac{\\theta}{2}\\,I \\otimes I - i\\sin\\tfrac{\\theta}{2}\\,X \\otimes X``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+
+Supported symmetries: `Trivial`.
+"""
+@operator Rxx function rotation_xx(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
+    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
+    xx = pauli_x(elt, Trivial) ⊗ pauli_x(elt, Trivial)
+    return cos(α / 2) * one(xx) - im * sin(α / 2) * xx
+end
+
+"""
+    rotation_yy([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+    Ryy([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+
+The YY-rotation gate ``e^{-i\\theta\\, Y \\otimes Y / 2} = \\cos\\tfrac{\\theta}{2}\\,I \\otimes I - i\\sin\\tfrac{\\theta}{2}\\,Y \\otimes Y``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+
+Supported symmetries: `Trivial`.
+"""
+@operator Ryy function rotation_yy(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
+    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
+    yy = pauli_y(elt, Trivial) ⊗ pauli_y(elt, Trivial)
+    return cos(α / 2) * one(yy) - im * sin(α / 2) * yy
+end
+
+"""
+    rotation_zz([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+    Rzz([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+
+The ZZ-rotation gate ``e^{-i\\theta\\, Z \\otimes Z / 2} = \\cos\\tfrac{\\theta}{2}\\,I \\otimes I - i\\sin\\tfrac{\\theta}{2}\\,Z \\otimes Z``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+
+Supported symmetries: `Trivial`, `U1Irrep`.
+"""
+@operator Rzz function rotation_zz(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
+    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
+    zz = pauli_z(elt, Trivial) ⊗ pauli_z(elt, Trivial)
+    return cos(α / 2) * one(zz) - im * sin(α / 2) * zz
+end
+
+"""
+    rotation_zx([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+    Rzx([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
+
+The ZX-rotation gate ``e^{-i\\theta\\, Z \\otimes X / 2} = \\cos\\tfrac{\\theta}{2}\\,I \\otimes I - i\\sin\\tfrac{\\theta}{2}\\,Z \\otimes X``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+
+Supported symmetries: `Trivial`.
+"""
+@operator Rzx function rotation_zx(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
+    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
+    zx = pauli_z(elt, Trivial) ⊗ pauli_x(elt, Trivial)
+    return cos(α / 2) * one(zx) - im * sin(α / 2) * zx
 end
 
 # Three-qubit gates
