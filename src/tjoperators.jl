@@ -143,8 +143,10 @@ for (opname, alias) in zip(
     end
 
     # default arguments
+    @eval $opname(; slave_fermion::Bool = false) =
+        $opname(ComplexF64, Trivial, Trivial; slave_fermion)
     @eval $opname(
-        particle_symmetry::Type{<:Sector} = Trivial, spin_symmetry::Type{<:Sector} = Trivial;
+        particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector};
         slave_fermion::Bool = false
     ) = $opname(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
     @eval $opname(elt::Type{<:Number}; slave_fermion::Bool = false) =
