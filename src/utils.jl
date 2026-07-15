@@ -268,10 +268,8 @@ macro operator(args...)
     call_expr(f, args...) = Expr(:call, f, kwforward()..., args...)
     sig_expr(f, args...) = Expr(:call, f, kwparams()..., args...)
 
-    # symmetries are all-or-nothing: emit a no-symmetry method and an all-symmetries
-    # method rather than per-argument defaults, which would also accept partial prefixes
-    # (e.g. `op(sym₁)` for a two-symmetry operator) and thereby silently default the
-    # remaining symmetries to `Trivial`.
+    # symmetries are all-or-nothing:
+    # emit a no-symmetry method and an all-symmetries method
 
     # `op(; kwargs...) = op(ComplexF64, Trivial, …; kwargs...)`
     method_none = method_def(
@@ -280,7 +278,7 @@ macro operator(args...)
     )
 
     # `op(s₁::Type{<:Sector}, …, sₙ::Type{<:Sector}; kwargs...) =
-    #      op(ComplexF64, s₁, …; kwargs...)`
+    #      op(ComplexF64, s₁, …, sₙ; kwargs...)`
     snames = [gensym(:S) for _ in 1:N]
     symsig = sig_expr(
         fname, (Expr(:(::), snames[i], :(Type{<:Sector})) for i in 1:N)...
