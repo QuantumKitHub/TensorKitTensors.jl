@@ -7,6 +7,7 @@ export BosonOperators
 export FermionOperators
 export TJOperators
 export HubbardOperators
+export QuantumGates
 
 using TensorKit
 using Logging
@@ -17,5 +18,6 @@ include("bosonoperators.jl")
 include("fermionoperators.jl")
 include("hubbardoperators.jl")
 include("tjoperators.jl")
+include("quantumgates.jl")
 
 end
