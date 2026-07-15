@@ -9,6 +9,16 @@ using StableRNGs
 particle_syms = (Trivial, U1Irrep)
 spin_syms = (Trivial, U1Irrep, SU2Irrep)
 
+@testset "type inference" begin
+    @test (@testinferred S_exchange()) isa AbstractTensorMap
+    @test (@testinferred S_exchange(U1Irrep, SU2Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(Float64, U1Irrep, SU2Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(U1Irrep, SU2Irrep; slave_fermion = true)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(Float64, U1Irrep, SU2Irrep; slave_fermion = true)) isa AbstractTensorMap
+    @test (@testinferred e_hopping(U1Irrep, U1Irrep; slave_fermion = true)) isa AbstractTensorMap
+    @test (@testinferred e_hopping(Float64, U1Irrep, U1Irrep; slave_fermion = true)) isa AbstractTensorMap
+end
+
 @testset "Compare symmetric with trivial tensors" begin
     L = 4
     for (particle_symmetry, spin_symmetry, slave_fermion) in Iterators.product(particle_syms, spin_syms, (false, true))

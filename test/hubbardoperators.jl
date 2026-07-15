@@ -42,9 +42,20 @@ has_triplet(P, S) = P === Trivial && S === Trivial
     @test all(((c, b),) -> all(isinteger, b), blocks(N_big))
 end
 
+@testset "type inference" begin
+    @test (@testinferred e_num()) isa AbstractTensorMap
+    @test (@testinferred e_num(Float64)) isa AbstractTensorMap
+    @test (@testinferred e_num(U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred e_num(Float64, U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred e_hopping(U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred e_hopping(Float64, U1Irrep, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(U1Irrep, SU2Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(Float64, U1Irrep, SU2Irrep)) isa AbstractTensorMap
+end
+
 @testset "Compare symmetric with trivial tensors" begin
     for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
-        space = @inferred hubbard_space(particle_symmetry, spin_symmetry)
+        space = @testinferred hubbard_space(particle_symmetry, spin_symmetry)
         @test dim(space) == 4
 
         # element-wise comparison in the dense basis catches transposes and gauge errors
