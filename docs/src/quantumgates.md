@@ -28,7 +28,7 @@ Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tenso
 
 !!! note "U(1) charge = excitation number"
     Under `U1Irrep` the two sectors of a qubit carry charge ``0`` (``|0\rangle``) and ``1`` (``|1\rangle``), i.e. the conserved quantity is the number of excited qubits.
-    Only number-conserving gates are representable in this symmetry: [`pauli_z`](@ref), [`proj_0`](@ref), [`proj_1`](@ref), [`s_gate`](@ref), [`t_gate`](@ref), [`phase_shift`](@ref), [`rotation_z`](@ref), [`cz`](@ref), [`cs`](@ref), [`cphase`](@ref), [`swap`](@ref), [`iswap`](@ref) and [`fredkin`](@ref).
+    Only number-conserving gates are representable in this symmetry: [`pauli_z`](@ref), [`proj_0`](@ref), [`proj_1`](@ref), [`s_gate`](@ref), [`t_gate`](@ref), [`phase_shift`](@ref), [`rotation_z`](@ref), [`cz`](@ref), [`cs`](@ref), [`cphase`](@ref), [`swap`](@ref), [`iswap`](@ref), [`rotation_zz`](@ref) and [`fredkin`](@ref).
     Gates that flip qubits (X, Y, H, CNOT, Toffoli, …) throw an `ArgumentError` when requested with `U1Irrep`.
 
 ## Gate overview
@@ -58,6 +58,10 @@ Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tenso
 | [`iswap`](@ref) | `ISWAP` | 2 | `Trivial`, `U1Irrep` |
 | [`dcx`](@ref) | `DCX` | 2 | `Trivial` |
 | [`ecr`](@ref) | `ECR` | 2 | `Trivial` |
+| [`rotation_xx`](@ref) | `Rxx` | 2 | `Trivial` |
+| [`rotation_yy`](@ref) | `Ryy` | 2 | `Trivial` |
+| [`rotation_zz`](@ref) | `Rzz` | 2 | `Trivial`, `U1Irrep` |
+| [`rotation_zx`](@ref) | `Rzx` | 2 | `Trivial` |
 | [`toffoli`](@ref) | `TOFFOLI`, `CCX` | 3 | `Trivial` |
 | [`fredkin`](@ref) | `FREDKIN`, `CSWAP` | 3 | `Trivial`, `U1Irrep` |
 

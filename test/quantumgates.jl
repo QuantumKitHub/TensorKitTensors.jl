@@ -33,11 +33,15 @@ using TensorKitTensors.QuantumGates
     isw = @inferred iswap()
     d = @inferred dcx()
     e = @inferred ecr()
+    rxx = @inferred rotation_xx(; θ = 0.7)
+    ryy = @inferred rotation_yy(; θ = 0.7)
+    rzz = @inferred rotation_zz(; θ = 0.7)
+    rzx = @inferred rotation_zx(; θ = 0.7)
     tof = @inferred toffoli()
     fred = @inferred fredkin()
 
     # all gates are unitary
-    for g in (x, y, z, h, s, t, rx, ry, rz, p, cnotg, cyg, czg, chg, csg, cpg, sw, isw, d, e, tof, fred)
+    for g in (x, y, z, h, s, t, rx, ry, rz, p, cnotg, cyg, czg, chg, csg, cpg, sw, isw, d, e, rxx, ryy, rzz, rzx, tof, fred)
         @test g' * g ≈ id(domain(g))
     end
 
@@ -98,6 +102,14 @@ using TensorKitTensors.QuantumGates
     @test e * e ≈ I2               # ECR is an involution
     @test e' ≈ e                   # ECR is Hermitian
     @test e ≈ (I1 ⊗ x - x ⊗ y) / sqrt(2)
+
+    # two-qubit rotations
+    @test rotation_xx(; θ = π) ≈ -im * (x ⊗ x)
+    @test rotation_yy(; θ = π) ≈ -im * (y ⊗ y)
+    @test rotation_zz(; θ = π) ≈ -im * (z ⊗ z)
+    @test rotation_zx(; θ = π) ≈ -im * (z ⊗ x)
+    @test rotation_zz(; theta = 0.7) ≈ rotation_zz(; θ = 0.7)
+    @test_throws ArgumentError rotation_zz()
 end
 
 @testset "U1-symmetric qubit gates" begin
@@ -109,12 +121,13 @@ end
     @inferred iswap(U1Irrep)
     @inferred fredkin(U1Irrep)
     @inferred phase_shift(U1Irrep; θ = 0.7)
+    @inferred rotation_zz(U1Irrep; θ = 0.7)
 
     # the symmetric gates match their trivial versions
     for f in (pauli_z, proj_0, proj_1, s_gate, t_gate, cz, cs, swap, iswap, fredkin)
         test_operator(f(U1Irrep), f(Trivial))
     end
-    for f in (phase_shift, rotation_z, cphase)
+    for f in (phase_shift, rotation_z, cphase, rotation_zz)
         test_operator(f(U1Irrep; θ = 0.7), f(Trivial; θ = 0.7))
     end
 end
@@ -126,6 +139,9 @@ end
     end
     @test_throws ArgumentError rotation_x(U1Irrep; θ = 0.5)
     @test_throws ArgumentError rotation_y(U1Irrep; θ = 0.5)
+    @test_throws ArgumentError rotation_xx(U1Irrep; θ = 0.5)
+    @test_throws ArgumentError rotation_yy(U1Irrep; θ = 0.5)
+    @test_throws ArgumentError rotation_zx(U1Irrep; θ = 0.5)
 
     # Z2 and SU2 are not implemented for any gate
     for symm in (Z2Irrep, SU2Irrep)
