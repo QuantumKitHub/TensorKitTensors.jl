@@ -152,8 +152,7 @@ Compatible symmetries: `Trivial`, `Z2Irrep`.
 
 See also [`σˣ`](@ref) (Pauli version ``\\sigma^x = 2S^x``).
 """
-@operator Sˣ S_x(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator Sˣ function S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S_x_mat, = spinmatrices(spin, elt)
     pspace = spin_space(Trivial; spin)
     return TensorMap(S_x_mat, pspace ← pspace)
@@ -180,8 +179,7 @@ Compatible symmetries: `Trivial`.
 
 See also [`σʸ`](@ref) (Pauli version ``\\sigma^y = 2S^y``).
 """
-@operator Sʸ S_y(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator Sʸ function S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     # explicit error to avoid infinite recursion:
     elt <: Real && throw(ArgumentError("S_y requires `elt <: Complex`"))
     _, S_y_mat, _ = spinmatrices(spin, elt)
@@ -211,8 +209,7 @@ Compatible symmetries: `Trivial`, `U1Irrep`.
 
 See also [`σᶻ`](@ref) (Pauli version ``\\sigma^z = 2S^z``).
 """
-@operator Sᶻ S_z(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator Sᶻ function S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     _, _, S_z_mat = spinmatrices(spin, elt)
     pspace = spin_space(Trivial; spin)
     return TensorMap(S_z_mat, pspace ← pspace)
@@ -240,8 +237,7 @@ Compatible symmetries: `Trivial`.
 
 See also [`σ⁺`](@ref) (Pauli version ``\\sigma^+ = 2S^+``).
 """
-@operator S⁺ S_plus(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator S⁺ function S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S⁺ = S_x(elt, Trivial; spin) + 1im * S_y(complex(elt), Trivial; spin)
     if elt <: Real
         S⁺ = real(S⁺)
@@ -271,8 +267,7 @@ Compatible symmetries: `Trivial`.
 
 See also [`σ⁻`](@ref) (Pauli version ``\\sigma^- = 2S^-``).
 """
-@operator S⁻ S_min(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator S⁻ function S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S⁻ = S_x(elt, Trivial; spin) - 1im * S_y(complex(elt), Trivial; spin)
     if elt <: Real
         S⁻ = real(S⁻)
@@ -301,8 +296,7 @@ The two-site operator ``S^x \\otimes S^x``.
 
 Compatible symmetries: `Trivial`, `Z2Irrep`.
 """
-@operator SˣSˣ S_x_S_x(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_x_S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator SˣSˣ function S_x_S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_x(elt, Trivial; spin) ⊗ S_x(elt, Trivial; spin)
 end
 
@@ -314,8 +308,7 @@ The two-site operator ``S^y \\otimes S^y``.
 
 Compatible symmetries: `Trivial`, `Z2Irrep`.
 """
-@operator SʸSʸ S_y_S_y(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_y_S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator SʸSʸ function S_y_S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     YY = S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
     return elt <: Real ? real(YY) : YY
 end
@@ -328,8 +321,7 @@ The two-site operator ``S^z \\otimes S^z``.
 
 Compatible symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`.
 """
-@operator SᶻSᶻ S_z_S_z(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_z_S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator SᶻSᶻ function S_z_S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_z(elt, Trivial; spin) ⊗ S_z(elt, Trivial; spin)
 end
 
@@ -341,8 +333,7 @@ The two-site operator ``S^+ \\otimes S^-``.
 
 Compatible symmetries: `Trivial`, `U1Irrep`.
 """
-@operator S⁺S⁻ S_plus_S_min(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator S⁺S⁻ function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_plus(elt, Trivial; spin) ⊗ S_min(elt, Trivial; spin)
 end
 
@@ -354,8 +345,7 @@ The two-site operator ``S^- \\otimes S^+``.
 
 Compatible symmetries: `Trivial`, `U1Irrep`.
 """
-@operator S⁻S⁺ S_min_S_plus(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_min_S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator S⁻S⁺ function S_min_S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_min(elt, Trivial; spin) ⊗ S_plus(elt, Trivial; spin)
 end
 
@@ -375,8 +365,7 @@ For `SU2Irrep` the operator is diagonal in the total-spin basis with eigenvalue
 
 Compatible symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`, `SU2Irrep`.
 """
-@operator SS S_exchange(::Type{<:Number}, ::Type{<:Sector}; spin)
-function S_exchange(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
+@operator SS function S_exchange(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return (S_plus_S_min(elt, Trivial; spin) + S_min_S_plus(elt, Trivial; spin)) / 2 +
         S_z_S_z(elt, Trivial; spin)
 end

@@ -25,7 +25,7 @@ export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁺, singlet⁻
-export S⁻S⁺, S⁺S⁻
+export S⁻S⁺, S⁺S⁻, SS
 
 export transform_slave_fermion
 
@@ -121,7 +121,7 @@ for (opname, alias) in zip(
             :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
             :e⁺e⁻, :e⁻e⁺, :e_hop,
             :singlet⁺, :singlet⁻,
-            :S⁻S⁺, :S⁺S⁻, nothing,
+            :S⁻S⁺, :S⁺S⁻, :SS,
         )
     )
     # copy over the docstrings

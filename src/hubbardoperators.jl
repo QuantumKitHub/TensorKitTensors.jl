@@ -23,7 +23,7 @@ export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁺, singlet⁻
-export S⁻S⁺, S⁺S⁻
+export S⁻S⁺, S⁺S⁻, SS
 
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
@@ -193,8 +193,7 @@ end
 
 Return the one-body operator that counts the number of spin-up particles.
 """
-@operator nꜛ u_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator nꜛ function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt)
     I = sectortype(t)
     t[(I(1), I(1))][1, 1] = 1
@@ -208,8 +207,7 @@ end
 
 Return the one-body operator that counts the number of spin-down particles.
 """
-@operator nꜜ d_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator nꜜ function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt)
     I = sectortype(t)
     t[(I(1), I(1))][2, 2] = 1
@@ -223,8 +221,7 @@ end
 
 Return the one-body operator that counts the number of particles.
 """
-@operator n e_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function e_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator n function e_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return u_num(elt, Trivial, Trivial) + d_num(elt, Trivial, Trivial)
 end
 
@@ -234,8 +231,7 @@ end
 
 Return the one-body operator that counts the number of doubly occupied sites.
 """
-@operator nꜛꜜ ud_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator nꜛꜜ function ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return u_num(elt, Trivial, Trivial) * d_num(elt, Trivial, Trivial)
 end
 
@@ -244,8 +240,7 @@ end
 
 Return the the one-body operator that is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, which respects the particle-hole symmetry.
 """
-@operator half_ud_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function half_ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator function half_ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     I = id(hubbard_space(Trivial, Trivial))
     return (u_num(elt, Trivial, Trivial) - I / 2) * (d_num(elt, Trivial, Trivial) - I / 2)
 end
@@ -256,8 +251,7 @@ end
 
 Return the one-body operator that counts the number of holes, i.e. the number of non-occupied sites.
 """
-@operator nʰ h_num(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function h_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator nʰ function h_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return id(elt, hubbard_space(Trivial, Trivial)) - e_num(elt, Trivial, Trivial)
 end
 
@@ -267,8 +261,7 @@ end
 
 Return the spin-plus operator `S⁺ = e†_↑ e_↓` (only compatible with `Trivial` spin symmetry).
 """
-@operator S⁺ S_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator S⁺ function S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt)
     I = sectortype(t)
     t[(I(1), dual(I(1)))][1, 2] = 1.0
@@ -281,8 +274,7 @@ end
 
 Return the spin-minus operator `S⁻ = e†_↓ e_↑` (only compatible with `Trivial` spin symmetry).
 """
-@operator S⁻ S_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator S⁻ function S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return copy(adjoint(S_plus(elt, Trivial, Trivial)))
 end
 
@@ -292,8 +284,7 @@ end
 
 Return the one-body spin-1/2 x-operator on the electrons (only compatible with `Trivial` spin symmetry).
 """
-@operator Sˣ S_x(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_x(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator Sˣ function S_x(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (S_plus(elt, Trivial, Trivial) + S_min(elt, Trivial, Trivial)) / 2
 end
 
@@ -303,8 +294,7 @@ end
 
 Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
 """
-@operator Sʸ S_y(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator Sʸ function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     # explicit error to avoid infinite recursion:
     elt <: Real && throw(ArgumentError("S_y requires `elt <: Complex`"))
     return (S_plus(elt, Trivial, Trivial) - S_min(elt, Trivial, Trivial)) / (2im)
@@ -316,8 +306,7 @@ end
 
 Return the one-body spin-1/2 z-operator on the electrons.
 """
-@operator Sᶻ S_z(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_z(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator Sᶻ function S_z(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (u_num(elt, Trivial, Trivial) - d_num(elt, Trivial, Trivial)) / 2
 end
 
@@ -329,8 +318,7 @@ end
 
 Return the two-body operator ``e†_{1,↑}, e_{2,↑}`` that creates a spin-up particle at the first site and annihilates a spin-up particle at the second.
 """
-@operator u⁺u⁻ u_plus_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁺u⁻ function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))][1, 1, 1, 1] = 1
@@ -346,8 +334,7 @@ end
 
 Return the two-body operator ``e†_{1,↓}, e_{2,↓}`` that creates a spin-down particle at the first site and annihilates a spin-down particle at the second.
 """
-@operator d⁺d⁻ d_plus_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁺d⁻ function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))][2, 1, 1, 2] = 1
@@ -363,8 +350,7 @@ end
 
 Return the two-body operator ``e_{1,↑}, e†_{2,↑}`` that annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
 """
-@operator u⁻u⁺ u_min_u_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_min_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁻u⁺ function u_min_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_plus_u_min(elt, Trivial, Trivial)))
 end
 
@@ -374,8 +360,7 @@ end
 
 Return the two-body operator ``e_{1,↓}, e†_{2,↓}`` that annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
 """
-@operator d⁻d⁺ d_min_d_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_min_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁻d⁺ function d_min_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_plus_d_min(elt, Trivial, Trivial)))
 end
 
@@ -386,8 +371,7 @@ end
 Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
 This is the sum of `u_plus_u_min` and `d_plus_d_min`.
 """
-@operator e⁺e⁻ e_plus_e_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator e⁺e⁻ function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return u_plus_u_min(elt, Trivial, Trivial) + d_plus_d_min(elt, Trivial, Trivial)
 end
 
@@ -398,8 +382,7 @@ end
 Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
 This is the sum of `u_min_u_plus` and `d_min_d_plus`.
 """
-@operator e⁻e⁺ e_min_e_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function e_min_e_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator e⁻e⁺ function e_min_e_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(e_plus_e_min(elt, Trivial, Trivial)))
 end
 
@@ -413,8 +396,7 @@ For `SU2Irrep` particle symmetry, the hopping operator is expressed in the stagg
 ``c_{j,σ} → i^j c_{j,σ}`` and requires a complex scalar type; see
 [`basis_transform`](@ref HubbardOperators.basis_transform) for details.
 """
-@operator e_hop e_hopping(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function e_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator e_hop function e_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return e_plus_e_min(elt, Trivial, Trivial) - e_min_e_plus(elt, Trivial, Trivial)
 end
 
@@ -429,8 +411,7 @@ The nonzero matrix elements are
     +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
 ```
 """
-@operator u⁻d⁻ u_min_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁻d⁻ function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 2] = -1
@@ -446,8 +427,7 @@ end
 
 Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up particle at the first site and a spin-down particle at the second site.
 """
-@operator u⁺d⁺ u_plus_d_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁺d⁺ function u_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_min_d_min(elt, Trivial, Trivial)))
 end
 
@@ -462,8 +442,7 @@ The nonzero matrix elements are
     -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
 ```
 """
-@operator d⁻u⁻ d_min_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁻u⁻ function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 1] = -1
@@ -479,8 +458,7 @@ end
 
 Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down particle at the first site and a spin-up particle at the second site.
 """
-@operator d⁺u⁺ d_plus_u_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁺u⁺ function d_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_min_u_min(elt, Trivial, Trivial)))
 end
 
@@ -495,8 +473,7 @@ The nonzero matrix elements are
     +|↓,0⟩ ↤ |↑↓,↑⟩,    +|↓,↓⟩ ↤ |↑↓,↑↓⟩
 ```
 """
-@operator u⁻u⁻ u_min_u_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁻u⁻ function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 1] = -1
@@ -512,8 +489,7 @@ end
 
 Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up particle at both sites.
 """
-@operator u⁺u⁺ u_plus_u_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function u_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator u⁺u⁺ function u_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_min_u_min(elt, Trivial, Trivial)))
 end
 
@@ -528,8 +504,7 @@ The nonzero matrix elements are
     -|↑,0⟩ ↤ |↑↓,↓⟩,    +|↑,↑⟩ ↤ |↑↓,↑↓⟩
 ```
 """
-@operator d⁻d⁻ d_min_d_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁻d⁻ function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 2] = -1
@@ -545,8 +520,7 @@ end
 
 Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down particle at both sites.
 """
-@operator d⁺d⁺ d_plus_d_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function d_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator d⁺d⁺ function d_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_min_d_min(elt, Trivial, Trivial)))
 end
 
@@ -557,8 +531,7 @@ end
 Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``,
 which creates the singlet state when acting on vaccum.
 """
-@operator singlet⁺ singlet_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function singlet_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator singlet⁺ function singlet_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (u_plus_d_plus(elt, Trivial, Trivial) - d_plus_u_plus(elt, Trivial, Trivial)) /
         sqrt(2)
 end
@@ -570,8 +543,7 @@ end
 Return the adjoint of `singlet_plus` operator, which is
 ``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``.
 """
-@operator singlet⁻ singlet_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator singlet⁻ function singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return copy(adjoint(singlet_plus(elt, Trivial, Trivial)))
 end
 
@@ -582,8 +554,7 @@ end
 Return the two-body operator S⁺S⁻.
 The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
 """
-@operator S⁺S⁻ S_plus_S_min(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator S⁺S⁻ function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
     I = sectortype(t)
     t[(I(1), I(1), dual(I(1)), dual(I(1)))][1, 2, 2, 1] = 1
@@ -597,8 +568,7 @@ end
 Return the two-body operator S⁻S⁺.
 The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
 """
-@operator S⁻S⁺ S_min_S_plus(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_min_S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator S⁻S⁺ function S_min_S_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return copy(adjoint(S_plus_S_min(elt, Trivial, Trivial)))
 end
 
@@ -607,8 +577,7 @@ end
 
 Return the spin exchange operator S⋅S.
 """
-@operator S_exchange(::Type{<:Number}, ::Type{<:Sector}, ::Type{<:Sector})
-function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+@operator SS function S_exchange(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     Sz = S_z(elt, Trivial, Trivial)
     return Sz ⊗ Sz +
         (S_plus_S_min(elt, Trivial, Trivial) + S_min_S_plus(elt, Trivial, Trivial)) / 2

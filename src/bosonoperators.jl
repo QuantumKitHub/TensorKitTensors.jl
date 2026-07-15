@@ -57,8 +57,7 @@ _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) 
 
 The truncated bosonic annihilation operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁻ b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁻ function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     b⁻ = zeros(elt, pspace ← pspace)
     for i in 1:cutoff
@@ -73,8 +72,7 @@ end
 
 The truncated bosonic creation operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁺ b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁺ function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     b⁺ = zeros(elt, pspace ← pspace)
     for i in 1:cutoff
@@ -89,8 +87,7 @@ end
 
 The truncated bosonic number operator, with a maximum of `cutoff` bosons per site.
 """
-@operator n b_num(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator n function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
     n = zeros(elt, pspace ← pspace)
     for i in 0:cutoff
@@ -107,8 +104,7 @@ end
 
 The truncated bosonic pair-creation operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁺b⁺ b_plus_b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_plus_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁺b⁺ function b_plus_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     return b⁺ ⊗ b⁺
 end
@@ -119,8 +115,7 @@ end
 
 The truncated bosonic left-hopping operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁺b⁻ b_plus_b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_plus_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁺b⁻ function b_plus_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁺ ⊗ b⁻
@@ -132,8 +127,7 @@ end
 
 The truncated bosonic right-hopping operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁻b⁺ b_min_b_plus(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_min_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁻b⁺ function b_min_b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁺ = b_plus(elt, Trivial; cutoff)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁻ ⊗ b⁺
@@ -145,8 +139,7 @@ end
 
 The truncated bosonic pair-annihilation operator, with a maximum of `cutoff` bosons per site.
 """
-@operator b⁻b⁻ b_min_b_min(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_min_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b⁻b⁻ function b_min_b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     b⁻ = b_min(elt, Trivial; cutoff)
     return b⁻ ⊗ b⁻
 end
@@ -157,8 +150,7 @@ end
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
 """
-@operator b_hop b_hopping(::Type{<:Number}, ::Type{<:Sector}; cutoff)
-function b_hopping(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
+@operator b_hop function b_hopping(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     return b_plus_b_min(elt, Trivial; cutoff) + b_min_b_plus(elt, Trivial; cutoff)
 end
 

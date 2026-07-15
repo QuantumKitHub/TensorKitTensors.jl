@@ -60,8 +60,7 @@ end
 
 Return the one-body operator that counts the nunber of particles.
 """
-@operator n f_num(::Type{<:Number}, ::Type{<:Sector})
-function f_num(T::Type{<:Number}, ::Type{Trivial})
+@operator n function f_num(T::Type{<:Number}, ::Type{Trivial})
     t = single_site_operator(T, Trivial)
     block(t, fℤ₂(1)) .= one(T)
     return t
@@ -80,8 +79,7 @@ end
 
 Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
 """
-@operator f⁺f⁻ f_plus_f_min(::Type{<:Number}, ::Type{<:Sector})
-function f_plus_f_min(T::Type{<:Number}, ::Type{Trivial})
+@operator f⁺f⁻ function f_plus_f_min(T::Type{<:Number}, ::Type{Trivial})
     t = two_site_operator(T, Trivial)
     I = sectortype(t)
     t[(I(1), I(0), dual(I(0)), dual(I(1)))] .= 1
@@ -94,8 +92,7 @@ end
 
 Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
 """
-@operator f⁻f⁺ f_min_f_plus(::Type{<:Number}, ::Type{<:Sector})
-function f_min_f_plus(T::Type{<:Number}, ::Type{Trivial})
+@operator f⁻f⁺ function f_min_f_plus(T::Type{<:Number}, ::Type{Trivial})
     t = two_site_operator(T, Trivial)
     I = sectortype(t)
     t[(I(0), I(1), dual(I(1)), dual(I(0)))] .= -1
@@ -108,8 +105,7 @@ end
 
 Return the two-body operator that creates a particle at the first and at the second site. It only has `Trivial` symmetry.
 """
-@operator f⁺f⁺ f_plus_f_plus(::Type{<:Number}, ::Type{<:Sector})
-function f_plus_f_plus(T::Type{<:Number}, ::Type{Trivial})
+@operator f⁺f⁺ function f_plus_f_plus(T::Type{<:Number}, ::Type{Trivial})
     t = two_site_operator(T, Trivial)
     I = sectortype(t)
     t[(I(1), I(1), dual(I(0)), dual(I(0)))] .= 1
@@ -122,8 +118,7 @@ end
 
 Return the two-body operator that annihilates a particle at the first and at the second site. It only has `Trivial` symmetry.
 """
-@operator f⁻f⁻ f_min_f_min(::Type{<:Number}, ::Type{<:Sector})
-function f_min_f_min(T::Type{<:Number}, ::Type{Trivial})
+@operator f⁻f⁻ function f_min_f_min(T::Type{<:Number}, ::Type{Trivial})
     t = two_site_operator(T, Trivial)
     I = sectortype(t)
     t[(I(0), I(0), dual(I(1)), dual(I(1)))] .= -1
@@ -136,8 +131,7 @@ end
 
 Return the two-body operator that describes a particle that hops between the first and the second site.
 """
-@operator f_hop f_hopping(::Type{<:Number}, ::Type{<:Sector})
-function f_hopping(elt::Type{<:Number}, ::Type{Trivial})
+@operator f_hop function f_hopping(elt::Type{<:Number}, ::Type{Trivial})
     return f_plus_f_min(elt, Trivial) - f_min_f_plus(elt, Trivial)
 end
 
