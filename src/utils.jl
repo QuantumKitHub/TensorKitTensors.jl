@@ -158,8 +158,98 @@ function _fuse_local_operators(::Val{N}, O₁::AbstractTensorMap, O₂::Abstract
     return fuser * O₁₂ * fuser'
 end
 
+# type annotation of a positional argument, from either `name::Type` or `::Type`
+function _operator_type_arg(a)
+    Meta.isexpr(a, :(::)) ||
+        throw(Meta.ParseError("`@operator`: positional arguments must be annotated as `name::Type` or `::Type`"))
+    return a.args[end]
+end
+
+# Build the block of forwarding methods (and optional alias) from the parsed reference
+# definition. Returned unescaped; the macro escapes it.
+function _operator_defs(alias, def, source)
+    Meta.isexpr(def, :function) ||
+        throw(Meta.ParseError("`@operator` expects `[alias] function op(...) ... end`"))
+    sig = def.args[1]
+    Meta.isexpr(sig, :call) ||
+        throw(Meta.ParseError("`@operator`: the wrapped definition must be a function call signature"))
+    fname = sig.args[1]
+    (fname isa Symbol) ||
+        throw(ArgumentError("`@operator`: the operator name must be a symbol"))
+
+    posargs = filter(a -> !Meta.isexpr(a, :parameters), sig.args[2:end])
+    length(posargs) >= 1 ||
+        throw(ArgumentError("`@operator` expects at least an element type argument"))
+
+    eltconstraint = _operator_type_arg(posargs[1])
+    N = length(posargs) - 1  # number of symmetry arguments; may be zero
+
+    loc = LineNumberNode(source.line, source.file)
+    # every generated method takes and forwards `kwargs...` verbatim; only the wrapped
+    # reference method validates keyword names, defaults, and types. signatures and calls
+    # share the same `f(args...; kwargs...)` shape, so a single builder covers both.
+    kwargs = gensym(:kwargs)
+    call_expr(f, cargs...) = Expr(:call, f, Expr(:parameters, Expr(:..., kwargs)), cargs...)
+    method_def(msig, body) = Expr(:function, msig, Expr(:block, loc, body))
+
+    # `op(; kwargs...) = op(ComplexF64, Trivial, …; kwargs...)` — always emitted; fills the
+    # element type default (and any symmetry defaults). This is the doc'd method.
+    method_none = method_def(
+        call_expr(fname),
+        call_expr(fname, :ComplexF64, ntuple(Returns(:Trivial), N)...)
+    )
+
+    # With no symmetry arguments the wrapped reference method is itself the terminal, so
+    # `method_none` (plus the reference's own `op(elt; …)`) is all that is needed. With one
+    # or more symmetries, symmetries are all-or-nothing and we additionally emit the
+    # symmetry-first, elt-only, and symmetric-terminal methods.
+    extra_methods = if N == 0
+        ()
+    else
+        # `op(s₁::Type{<:Sector}, …, sₙ::Type{<:Sector}; kwargs...) =
+        #      op(ComplexF64, s₁, …, sₙ; kwargs...)`
+        snames = [gensym(:S) for _ in 1:N]
+        symsig = call_expr(
+            fname, (Expr(:(::), snames[i], :(Type{<:Sector})) for i in 1:N)...
+        )
+        symcall = call_expr(fname, :ComplexF64, snames...)
+        method_allsyms = method_def(symsig, symcall)
+
+        # `op(elt::<eltconstraint>; kwargs...) = op(elt, Trivial, …; kwargs...)`
+        eltname = gensym(:elt)
+        eltsig = call_expr(fname, Expr(:(::), eltname, eltconstraint))
+        eltcall = call_expr(fname, eltname, ntuple(Returns(:Trivial), N)...)
+        method_elt = method_def(eltsig, eltcall)
+
+        # symmetric terminal:
+        # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
+        #      _symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
+        tname = gensym(:elt)
+        tsyms = [gensym(:S) for _ in 1:N]
+        tsig = call_expr(
+            fname, Expr(:(::), tname, eltconstraint),
+            (Expr(:(::), tsyms[i], :(Type{<:Sector})) for i in 1:N)...
+        )
+        refcall = call_expr(fname, tname, ntuple(Returns(:Trivial), N)...)
+        hookcall = call_expr(:_symmetrize_operator, refcall, tsyms...)
+        method_terminal = method_def(tsig, hookcall)
+
+        (method_allsyms, method_elt, method_terminal)
+    end
+
+    aliasdef = alias === nothing ? nothing : Expr(:const, Expr(:(=), alias, fname))
+
+    return quote
+        $def
+        Core.@__doc__ $method_none
+        $(extra_methods...)
+        $loc
+        $aliasdef
+    end
+end
+
 """
-    @operator [alias] function op(elt::Type{<:Number}, ::Type{Trivial}, …; kwargs...)
+    @operator [alias] function op(elt::Type{<:Number}[, ::Type{Trivial}, …]; kwargs...)
         ...
     end
 
@@ -168,9 +258,9 @@ reference implementation. The wrapped method is the single source of truth for t
 element type constraint, number of symmetry slots, keyword names, keyword defaults, and
 keyword type annotations.
 
-The wrapped signature must have an element type as its first positional argument, followed by
-one or more concrete `::Type{Trivial}` symmetry arguments. `@operator` emits the boilerplate so
-that all of the following resolve:
+The wrapped signature must have an element type as its first positional argument, optionally
+followed by one or more symmetry arguments (conventionally annotated `::Type{Trivial}`).
+`@operator` emits the boilerplate so that all of the following resolve:
 
 - `op()`
 - `op(eltype)`
@@ -181,13 +271,17 @@ The element type defaults to `ComplexF64`, and omitted symmetries default to `Tr
 Symmetries are all-or-nothing: either all of them are given, or none are. This avoids silently
 defaulting the unspecified symmetries of a multi-symmetry operator.
 
-The last generated method, the *symmetric terminal*, delegates to the module-local hook
+If the reference method takes no symmetry arguments, it is itself the terminal: only the
+`op()` element-type default is generated (the symmetry-first, elt-only, and symmetric-terminal
+methods, including the `_symmetrize_operator` hook, are omitted).
+
+Otherwise, the last generated method, the *symmetric terminal*, delegates to the module-local
+hook
 `_symmetrize_operator(op(elt, Trivial, …; kwargs...), symmetry₁, …; kwargs...)`, which each
 operator module defines once (typically wrapping [`symmetrize`](@ref) with the module's
-`basis_transform` and local space). Keyword arguments are copied from the wrapped reference
-method and forwarded by name to both the reference call and the hook. Vararg keywords
-(`kwargs...`) are rejected because the public keyword interface is inferred from the concrete
-method signature.
+`basis_transform` and local space). Every generated method simply accepts `kwargs...` and
+forwards them verbatim to both the reference call and the hook; the wrapped reference method
+is the only place that validates keyword names, defaults, and types.
 
 If an `alias` symbol is supplied, a `const alias = op` binding is emitted as well (e.g. the
 Unicode name `Sᶻ` for `S_z`).
@@ -208,114 +302,13 @@ end
 """
 macro operator(args...)
     (1 <= length(args) <= 2) ||
-        error("`@operator` expects `[alias] function op(...) ... end`")
+        throw(Meta.ParseError("`@operator` expects `[alias] function op(...) ... end`"))
     if length(args) == 2
         alias, def = args[1], args[2]
-        (alias isa Symbol) || error("`@operator`: the alias must be a symbol")
+        (alias isa Symbol) ||
+            throw(ArgumentError("`@operator`: the alias must be a symbol"))
     else
         alias, def = nothing, args[1]
     end
-
-    (def isa Expr && def.head === :function) ||
-        error("`@operator` expects `[alias] function op(...) ... end`")
-    sig = def.args[1]
-    (sig isa Expr && sig.head === :call) ||
-        error("`@operator`: the wrapped definition must be a function call signature")
-    fname = sig.args[1]
-    (fname isa Symbol) || error("`@operator`: the operator name must be a symbol")
-    params = findfirst(a -> a isa Expr && a.head === :parameters, sig.args)
-    kwtemplate = params === nothing ? Any[] : sig.args[params].args
-    posargs = filter(a -> !(a isa Expr && a.head === :parameters), sig.args[2:end])
-    length(posargs) >= 2 ||
-        error("`@operator` expects an element type plus at least one symmetry argument")
-
-    function parse_type_arg(a)
-        (a isa Expr && a.head === :(::)) ||
-            error("`@operator`: positional arguments must be annotated as `name::Type` or `::Type`")
-        return a.args[end]
-    end
-
-    function is_trivial_type(t)
-        return t isa Expr && t.head === :curly && t.args == Any[:Type, :Trivial]
-    end
-
-    function kwname(kwarg)
-        kwarg isa Expr && kwarg.head === :(...) &&
-            error("`@operator`: keyword varargs `kwargs...` are not supported")
-        inner = kwarg isa Expr && kwarg.head === :kw ? kwarg.args[1] : kwarg
-        if inner isa Expr && inner.head === :(::)
-            (inner.args[1] isa Symbol) ||
-                error("`@operator`: keyword arguments must have a name")
-            return inner.args[1]
-        end
-        inner isa Symbol || error("`@operator`: keyword arguments must have a name")
-        return inner
-    end
-
-    eltconstraint = parse_type_arg(posargs[1])
-    for symarg in posargs[2:end]
-        is_trivial_type(parse_type_arg(symarg)) ||
-            error("`@operator`: symmetry arguments in the reference method must be `::Type{Trivial}`")
-    end
-    kwnames = map(kwname, kwtemplate)
-    N = length(posargs) - 1
-
-    loc = LineNumberNode(__source__.line, __source__.file)
-    method_def(sig, body) = Expr(:function, sig, Expr(:block, loc, body))
-    kwparams() = isempty(kwtemplate) ? () : (Expr(:parameters, deepcopy.(kwtemplate)...),)
-    kwforward() = isempty(kwnames) ? () :
-        (Expr(:parameters, (Expr(:kw, name, name) for name in kwnames)...),)
-    call_expr(f, args...) = Expr(:call, f, kwforward()..., args...)
-    sig_expr(f, args...) = Expr(:call, f, kwparams()..., args...)
-
-    # symmetries are all-or-nothing:
-    # emit a no-symmetry method and an all-symmetries method
-
-    # `op(; kwargs...) = op(ComplexF64, Trivial, …; kwargs...)`
-    method_none = method_def(
-        sig_expr(fname),
-        call_expr(fname, :ComplexF64, ntuple(Returns(:Trivial), N)...)
-    )
-
-    # `op(s₁::Type{<:Sector}, …, sₙ::Type{<:Sector}; kwargs...) =
-    #      op(ComplexF64, s₁, …, sₙ; kwargs...)`
-    snames = [gensym(:S) for _ in 1:N]
-    symsig = sig_expr(
-        fname, (Expr(:(::), snames[i], :(Type{<:Sector})) for i in 1:N)...
-    )
-    symcall = call_expr(fname, :ComplexF64, snames...)
-    method_allsyms = method_def(symsig, symcall)
-
-    # `op(elt::<eltconstraint>; kwargs...) = op(elt, Trivial, …; kwargs...)`
-    eltname = gensym(:elt)
-    eltsig = sig_expr(fname, Expr(:(::), eltname, eltconstraint))
-    eltcall = call_expr(fname, eltname, ntuple(Returns(:Trivial), N)...)
-    method_elt = method_def(eltsig, eltcall)
-
-    # symmetric terminal:
-    # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
-    #      _symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
-    tname = gensym(:elt)
-    tsyms = [gensym(:S) for _ in 1:N]
-    tsig = sig_expr(
-        fname, Expr(:(::), tname, eltconstraint),
-        (Expr(:(::), tsyms[i], :(Type{<:Sector})) for i in 1:N)...
-    )
-    refcall = call_expr(fname, tname, ntuple(Returns(:Trivial), N)...)
-    hookcall = call_expr(:_symmetrize_operator, refcall, tsyms...)
-    method_terminal = method_def(tsig, hookcall)
-
-    aliasdef = alias === nothing ? nothing : Expr(:const, Expr(:(=), alias, fname))
-
-    return esc(
-        quote
-            $def
-            Core.@__doc__ $method_none
-            $method_allsyms
-            $method_elt
-            $method_terminal
-            $loc
-            $aliasdef
-        end
-    )
+    return esc(_operator_defs(alias, def, __source__))
 end
