@@ -45,27 +45,27 @@ end
 end
 
 @testset "type inference" begin
-    @test (@inferred S_z()) isa AbstractTensorMap
-    @test (@inferred S_z(Float64)) isa AbstractTensorMap
-    @test (@inferred S_z(U1Irrep)) isa AbstractTensorMap
-    @test (@inferred S_z(Float64, U1Irrep)) isa AbstractTensorMap
-    @test (@inferred S_exchange(SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
-    @test (@inferred S_exchange(Float64, SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
+    @test (@testinferred S_z()) isa AbstractTensorMap
+    @test (@testinferred S_z(Float64)) isa AbstractTensorMap
+    @test (@testinferred S_z(U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_z(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
+    @test (@testinferred S_exchange(Float64, SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
 end
 
 @testset "Non-symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
     # inferrability
-    X = @inferred S_x(; spin)
-    Y = @inferred S_y(; spin)
-    Z = @inferred S_z(; spin)
-    S⁺ = @inferred S_plus(; spin)
-    S⁻ = @inferred S_min(; spin)
-    S⁺S⁻ = @inferred S_plus_S_min(; spin)
-    S⁻S⁺ = @inferred S_min_S_plus(; spin)
-    XX = @inferred S_x_S_x(; spin)
-    YY = @inferred S_y_S_y(; spin)
-    ZZ = @inferred S_z_S_z(; spin)
-    SS = @inferred S_exchange(; spin)
+    X = @testinferred S_x(; spin)
+    Y = @testinferred S_y(; spin)
+    Z = @testinferred S_z(; spin)
+    S⁺ = @testinferred S_plus(; spin)
+    S⁻ = @testinferred S_min(; spin)
+    S⁺S⁻ = @testinferred S_plus_S_min(; spin)
+    S⁻S⁺ = @testinferred S_min_S_plus(; spin)
+    XX = @testinferred S_x_S_x(; spin)
+    YY = @testinferred S_y_S_y(; spin)
+    ZZ = @testinferred S_z_S_z(; spin)
+    SS = @testinferred S_exchange(; spin)
 
     # hermiticity, normalization, and su(2) commutation relations
     test_spin_algebra(X, Y, Z; spin)
@@ -88,11 +88,11 @@ end
 
 @testset "Z2-Symmetric spin 1//2 operators" begin
     # inferrability
-    X = @inferred S_x(Z2Irrep)
-    XX = @inferred S_x_S_x(Z2Irrep)
-    YY = @inferred S_y_S_y(Z2Irrep)
-    ZZ = @inferred S_z_S_z(Z2Irrep)
-    exchange = @inferred S_exchange(Z2Irrep)
+    X = @testinferred S_x(Z2Irrep)
+    XX = @testinferred S_x_S_x(Z2Irrep)
+    YY = @testinferred S_y_S_y(Z2Irrep)
+    ZZ = @testinferred S_z_S_z(Z2Irrep)
+    exchange = @testinferred S_exchange(Z2Irrep)
 
     @test_throws ArgumentError S_x(Z2Irrep; spin = 1)
     @test_throws ArgumentError S_x_S_x(Z2Irrep; spin = 1)
@@ -118,11 +118,11 @@ end
 
 @testset "U1-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
     # inferrability
-    Z = @inferred S_z(U1Irrep; spin)
-    ZZ = @inferred S_z_S_z(U1Irrep; spin)
-    plusmin = @inferred S_plus_S_min(U1Irrep; spin)
-    minplus = @inferred S_min_S_plus(U1Irrep; spin)
-    exchange = @inferred S_exchange(U1Irrep; spin)
+    Z = @testinferred S_z(U1Irrep; spin)
+    ZZ = @testinferred S_z_S_z(U1Irrep; spin)
+    plusmin = @testinferred S_plus_S_min(U1Irrep; spin)
+    minplus = @testinferred S_min_S_plus(U1Irrep; spin)
+    exchange = @testinferred S_exchange(U1Irrep; spin)
 
     @test_throws ArgumentError S_x(U1Irrep; spin)
     @test_throws ArgumentError S_y(U1Irrep; spin)
@@ -140,8 +140,8 @@ end
 
 @testset "SU2-Symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
     # inferrability
-    V = @inferred spin_space(SU2Irrep; spin)
-    SS = @inferred S_exchange(SU2Irrep; spin)
+    V = @testinferred spin_space(SU2Irrep; spin)
+    SS = @testinferred S_exchange(SU2Irrep; spin)
 
     @test_throws ArgumentError S_x(SU2Irrep; spin)
     @test_throws ArgumentError S_y(SU2Irrep; spin)
@@ -163,9 +163,9 @@ end
 @testset "Exact diagonalisation for $sector symmetry" for sector in [Trivial, U1Irrep]
     spin = 1
 
-    ZZ = @inferred S_z_S_z(sector; spin)
-    plusmin = @inferred S_plus_S_min(sector; spin)
-    minplus = @inferred S_min_S_plus(sector; spin)
+    ZZ = @testinferred S_z_S_z(sector; spin)
+    plusmin = @testinferred S_plus_S_min(sector; spin)
+    minplus = @testinferred S_min_S_plus(sector; spin)
     O = ZZ + 0.5 * (plusmin + minplus)
 
     true_eigenvals = vcat(-2.0, fill(-1.0, 3), fill(1.0, 5))

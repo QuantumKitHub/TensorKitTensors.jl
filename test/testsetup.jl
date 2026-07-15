@@ -2,8 +2,10 @@ module TensorKitTensorsTestSetup
 
 export test_operator, test_operator_dense, test_spin_algebra
 export swap_2sites, expanded_eigenvalues, operator_sum
+export @testinferred
 
 using Test
+using TestExtras: @testinferred
 using TensorKit
 using TensorKitTensors: desymmetrize
 using LinearAlgebra: eigvals, tr

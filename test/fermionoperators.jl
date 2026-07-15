@@ -23,12 +23,12 @@ const symmetries = (Trivial, U1Irrep)
 end
 
 @testset "type inference" begin
-    @test (@inferred f_num()) isa AbstractTensorMap
-    @test (@inferred f_num(Float64)) isa AbstractTensorMap
-    @test (@inferred f_num(U1Irrep)) isa AbstractTensorMap
-    @test (@inferred f_num(Float64, U1Irrep)) isa AbstractTensorMap
-    @test (@inferred f_hopping(U1Irrep)) isa AbstractTensorMap
-    @test (@inferred f_hopping(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_num()) isa AbstractTensorMap
+    @test (@testinferred f_num(Float64)) isa AbstractTensorMap
+    @test (@testinferred f_num(U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_num(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_hopping(U1Irrep)) isa AbstractTensorMap
+    @test (@testinferred f_hopping(Float64, U1Irrep)) isa AbstractTensorMap
 end
 
 @testset "fermion properties" begin
