@@ -24,7 +24,7 @@ export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
 export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
-export singlet⁺, singlet⁻
+export singlet⁺, singlet⁻, Δ⁺ij_Δjk, Δ⁺ij_Δkl
 export S⁻S⁺, S⁺S⁻, SS
 
 """
@@ -547,6 +547,45 @@ Return the adjoint of `singlet_plus` operator, which is
 """
 @operator singlet⁻ function singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return copy(adjoint(singlet_plus(elt, Trivial, Trivial)))
+end
+
+"""
+    singlet_plus_singlet_min_3site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
+
+Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where
+``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It describes the hopping of a singlet pair from bond `(j,k)`
+to a nearest neighbor bond `(i,j)` sharing site `j`.
+"""
+@operator Δ⁺ij_Δjk function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    #=
+                -5      -6
+            ┌---┴-------┴---┐
+            |     A_{jk}    |
+            └---┬-------┬---┘
+        -4      1       -3
+    ┌---┴-------┴---┐
+    |    A†_{ij}    |
+    └---┬-------┬---┘
+        -1      -2
+        i       j       k
+    =#
+    singp = singlet_plus(elt, Trivial, Trivial)
+    singm = singp'
+    return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
+end
+
+
+"""
+    singlet_plus_singlet_min_4site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
+
+Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where
+``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
+"""
+@operator Δ⁺ij_Δkl function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
+    singp = singlet_plus(elt, Trivial, Trivial)
+    return singp ⊗ singp'
 end
 
 """
