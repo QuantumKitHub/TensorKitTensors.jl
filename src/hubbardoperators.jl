@@ -14,8 +14,7 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
-export singlet_plus_singlet_min_3site
-export singlet_plus_singlet_min_4site
+export singlet_plus_singlet_min_3site, singlet_plus_singlet_min_4site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export n, nꜛ, nꜜ, nꜛꜜ, nʰ
@@ -24,7 +23,8 @@ export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
 export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
-export singlet⁺, singlet⁻, Δ⁺ij_Δjk, Δ⁺ij_Δkl
+export singlet⁺, singlet⁻
+export Δ⁺ij_Δjk, Δ⁺ij_Δkl
 export S⁻S⁺, S⁺S⁻, SS
 
 """

@@ -16,6 +16,7 @@ export u_min_u_min, d_min_d_min
 export u_plus_u_plus, d_plus_d_plus
 export e_plus_e_min, e_min_e_plus, e_hopping
 export singlet_plus, singlet_min
+export singlet_plus_singlet_min_3site, singlet_plus_singlet_min_4site
 export S_plus_S_min, S_min_S_plus, S_exchange
 
 export nꜛ, nꜜ, nʰ, n
@@ -25,6 +26,7 @@ export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
 export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
 export e⁺e⁻, e⁻e⁺, e_hop
 export singlet⁺, singlet⁻
+export Δ⁺ij_Δjk, Δ⁺ij_Δkl
 export S⁻S⁺, S⁺S⁻, SS
 
 export transform_slave_fermion
@@ -112,6 +114,7 @@ for (opname, alias) in zip(
             :u_min_u_min, :d_min_d_min, :u_plus_u_plus, :d_plus_d_plus,
             :e_plus_e_min, :e_min_e_plus, :e_hopping,
             :singlet_plus, :singlet_min,
+            :singlet_plus_singlet_min_3site, :singlet_plus_singlet_min_4site,
             :S_plus_S_min, :S_min_S_plus, :S_exchange,
         ), (
             :n, :nꜛ, :nꜜ, :nʰ,
@@ -121,6 +124,7 @@ for (opname, alias) in zip(
             :u⁻u⁻, :u⁺u⁺, :d⁻d⁻, :d⁺d⁺,
             :e⁺e⁻, :e⁻e⁺, :e_hop,
             :singlet⁺, :singlet⁻,
+            :Δ⁺ij_Δjk, :Δ⁺ij_Δkl,
             :S⁻S⁺, :S⁺S⁻, :SS,
         )
     )
