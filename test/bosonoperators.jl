@@ -19,6 +19,15 @@ using StableRNGs
     @test all(c -> block(N_big, c)[1] == big(c.charge), sectors(boson_space(U1Irrep; cutoff)))
 end
 
+@testset "type inference" begin
+    cutoff = 2
+
+    @test (@inferred b_num(; cutoff)) isa AbstractTensorMap
+    @test (@inferred b_num(Float64; cutoff)) isa AbstractTensorMap
+    @test (@inferred b_num(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
+    @test (@inferred b_hopping(Float64, U1Irrep; cutoff)) isa AbstractTensorMap
+end
+
 @testset "Non-symmetric bosonic operators" begin
     cutoff = 4
 

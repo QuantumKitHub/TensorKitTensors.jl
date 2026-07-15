@@ -140,21 +140,21 @@ function fuse_local_operators(O₁::AbstractTensorMap, O₂::AbstractTensorMap)
         throw(ArgumentError("operators have incompatible space types"))
     (N = numout(O₁)) == numin(O₁) == numout(O₂) == numin(O₂) ||
         throw(ArgumentError("operators have incompatible number of indices"))
-
-    fuser = mapreduce(⊗, 1:N) do i
+    return _fuse_local_operators(Val(N), O₁, O₂)
+end
+function _fuse_local_operators(::Val{N}, O₁::AbstractTensorMap, O₂::AbstractTensorMap) where {N}
+    fuser = mapreduce(⊗, ntuple(identity, Val(N))) do i
         Vᵢ = space(O₁, i)
         Wᵢ = space(O₂, i)
         VWᵢ = fuse(Vᵢ, Wᵢ)
         return isomorphism(VWᵢ ← Vᵢ ⊗ Wᵢ)
     end
-
     O₁₂ = permute(
         O₁ ⊗ O₂, (
-            ntuple(i -> iseven(i) ? N + (i ÷ 2) : (i + 1) ÷ 2, 2N),
-            ntuple(i -> iseven(i) ? 3N + (i ÷ 2) : 2N + (i + 1) ÷ 2, 2N),
+            ntuple(i -> iseven(i) ? N + (i ÷ 2) : (i + 1) ÷ 2, Val(2N)),
+            ntuple(i -> iseven(i) ? 3N + (i ÷ 2) : 2N + (i + 1) ÷ 2, Val(2N)),
         )
     )
-
     return fuser * O₁₂ * fuser'
 end
 

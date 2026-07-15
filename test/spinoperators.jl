@@ -44,6 +44,13 @@ end
     @test abs(block(SS, SU2Irrep(1))[1] - 1 // 4) < 1.0e-14
 end
 
+@testset "type inference" begin
+    @test (@inferred S_z()) isa AbstractTensorMap
+    @test (@inferred S_z(Float64)) isa AbstractTensorMap
+    @test (@inferred S_z(Float64, U1Irrep)) isa AbstractTensorMap
+    @test (@inferred S_exchange(Float64, SU2Irrep; spin = 1 // 2)) isa AbstractTensorMap
+end
+
 @testset "Non-symmetric spin $spin operators" for spin in (1 // 2):(1 // 2):(5 // 2)
     # inferrability
     X = @inferred S_x(; spin)
