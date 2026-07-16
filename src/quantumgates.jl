@@ -47,16 +47,12 @@ function basis_transform(symmetry::Type{<:Sector})
     return TensorMap(Matrix{Int}(I, 2, 2), V ← qubit_space(Trivial))
 end
 
-# Symmetrize a gate through its basis transformation. `symmetrize` throws an `ArgumentError`
-# when the gate does not respect the requested symmetry, so gates that break excitation-number
-# conservation automatically reject `U1Irrep`. The qubit space does not depend on any gate
-# parameters, so forwarded keyword arguments (e.g. `θ`) are dropped here.
+# Symmetrize a gate through its basis transformation.
 _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
     symmetrize(O, basis_transform(symmetry), qubit_space(symmetry))
 
 # Resolve the rotation angle from the `θ`/`theta` keyword pair, erroring if neither is given.
-_gate_angle(theta) =
-    @something theta throw(ArgumentError("angle `θ` (or `theta`) is required"))
+_gate_angle(theta) = @something theta throw(ArgumentError("angle `θ` (or `theta`) is required"))
 
 # Pauli gates
 # -----------
@@ -143,8 +139,8 @@ end
     phase_shift([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
     P([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
 
-The phase-shift gate ``\\mathrm{diag}(1, e^{iθ}) = P_0 + e^{iθ} P_1``. The rotation
-angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+The phase-shift gate ``\\mathrm{diag}(1, e^{iθ}) = P_0 + e^{iθ} P_1``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
@@ -156,7 +152,8 @@ end
     s_gate([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
     S([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
 
-The phase gate ``S = \\sqrt Z = \\mathrm{diag}(1, i)``, i.e. `phase_shift(; θ=π/2)`. Its adjoint ``S^†`` is `s_gate()'`.
+The phase gate ``S = \\sqrt Z = \\mathrm{diag}(1, i)``, i.e. `phase_shift(; θ=π/2)`.
+Its adjoint ``S^†`` is `s_gate()'`.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
@@ -168,7 +165,8 @@ end
     t_gate([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
     T([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
 
-The ``T`` (π/8) gate ``T = \\sqrt S = \\mathrm{diag}(1, e^{iπ/4})``, i.e. `phase_shift(; θ=π/4)`. Its adjoint ``T^†`` is `t_gate()'`.
+The ``T`` (π/8) gate ``T = \\sqrt S = \\mathrm{diag}(1, e^{iπ/4})``, i.e. `phase_shift(; θ=π/4)`.
+Its adjoint ``T^†`` is `t_gate()'`.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
@@ -194,8 +192,8 @@ end
     rotation_y([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
     Ry([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
 
-The y-rotation gate ``e^{-iθY/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Y``. The rotation
-angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+The y-rotation gate ``e^{-iθY/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Y``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
 
 Supported symmetries: `Trivial`.
 """
@@ -208,8 +206,8 @@ end
     rotation_z([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
     Rz([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; θ)
 
-The z-rotation gate ``e^{-iθZ/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Z``. The rotation
-angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
+The z-rotation gate ``e^{-iθZ/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Z``.
+The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
