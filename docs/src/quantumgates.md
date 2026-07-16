@@ -24,10 +24,10 @@ Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tenso
 | Symmetry | Physical meaning | Sector label | Representable gates |
 |---|---|---|---|
 | `Trivial` | none | — | all gates, full ``2^n \times 2^n`` matrix |
-| `U1Irrep` | excitation-number conservation | charge ``\in \{0, 1\}`` per qubit | only gates that conserve the number of ``|1\rangle``'s |
+| `U1Irrep` | excitation-number conservation | charge ``∈ \{0, 1\}`` per qubit | only gates that conserve the number of ``|1⟩``'s |
 
 !!! note "U(1) charge = excitation number"
-    Under `U1Irrep` the two sectors of a qubit carry charge ``0`` (``|0\rangle``) and ``1`` (``|1\rangle``), i.e. the conserved quantity is the number of excited qubits.
+    Under `U1Irrep` the two sectors of a qubit carry charge ``0`` (``|0⟩``) and ``1`` (``|1⟩``), i.e. the conserved quantity is the number of excited qubits.
     Only number-conserving gates are representable in this symmetry: [`pauli_z`](@ref), [`proj_0`](@ref), [`proj_1`](@ref), [`s_gate`](@ref), [`t_gate`](@ref), [`phase_shift`](@ref), [`rotation_z`](@ref), [`cz`](@ref), [`cs`](@ref), [`cphase`](@ref), [`swap`](@ref), [`iswap`](@ref), [`rotation_zz`](@ref) and [`fredkin`](@ref).
     Gates that flip qubits (X, Y, H, CNOT, Toffoli, …) throw an `ArgumentError` when requested with `U1Irrep`.
 
