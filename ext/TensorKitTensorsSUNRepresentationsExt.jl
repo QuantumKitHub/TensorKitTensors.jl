@@ -5,7 +5,7 @@ using SUNRepresentations
 using LinearAlgebra: I, tr
 using TensorKitTensors: symmetrize, desymmetrize
 import TensorKitTensors: @operator
-import TensorKitTensors.SUNOperators: sun_space, basis_transform, exchange, swap
+import TensorKitTensors.SUNOperators: sun_space, basis_transform, exchange, swap, biquadratic
 
 _nsun(::SUNIrrep{N}) where {N} = N
 
@@ -110,6 +110,14 @@ end
     G2 = R1 == R2 ? G1 : [TensorMap(g, V2 ← V2) for g in _generators(elt, R2)]
     n = length(G1)
     return scale * sum(ginv[a, b] * (G1[a] ⊗ G2[b]) for a in 1:n, b in 1:n)
+end
+
+@operator function biquadratic(
+        elt::Type{<:Number}, ::Type{Trivial};
+        irrep = nothing, irreps = (irrep, irrep)
+    )
+    ex = exchange(elt, Trivial; irreps)
+    return ex * ex
 end
 
 @operator function swap(elt::Type{<:Number}, ::Type{Trivial}; irrep)

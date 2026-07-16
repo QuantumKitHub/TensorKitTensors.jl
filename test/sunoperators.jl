@@ -70,6 +70,18 @@ end
     test_operator_dense(ex_sun, ex_triv, (U1, U2))
 end
 
+@testset "biquadratic" begin
+    for irrep in [(1, 0, 0), (2, 1, 0)]
+        ex = exchange(Float64, SUNIrrep; irrep)
+        bq = biquadratic(Float64, SUNIrrep; irrep)
+        @test bq ≈ ex * ex
+        # dense vs symmetric round-trip
+        bq_triv = biquadratic(Float64, Trivial; irrep)
+        U = basis_transform(SUNIrrep; irrep)
+        test_operator_dense(bq, bq_triv, U)
+    end
+end
+
 @testset "swap dense vs symmetric" begin
     # the literal permutation, for a non-fundamental irrep too
     for irrep in [(1, 0, 0), (2, 1, 0)]
