@@ -39,6 +39,14 @@ end
         O_triv = S_exchange(ComplexF64, Trivial, Trivial; slave_fermion)
         test_operator(O, O_triv; L)
 
+        O = Δ⁺ij_Δjk(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+        O_triv = Δ⁺ij_Δjk(ComplexF64, Trivial, Trivial; slave_fermion)
+        test_operator(O, O_triv; L = 5)
+
+        O = Δ⁺ij_Δkl(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
+        O_triv = Δ⁺ij_Δkl(ComplexF64, Trivial, Trivial; slave_fermion)
+        test_operator(O, O_triv; L = 5)
+
         if particle_symmetry == Trivial
             O = singlet_plus(ComplexF64, particle_symmetry, spin_symmetry; slave_fermion)
             O_triv = singlet_plus(ComplexF64, Trivial, Trivial; slave_fermion)
@@ -108,6 +116,11 @@ end
             @test_throws ArgumentError u_plus_d_plus(particle_symmetry, spin_symmetry; slave_fermion)
             @test_throws ArgumentError d_plus_u_plus(particle_symmetry, spin_symmetry; slave_fermion)
         end
+
+        # test 3-site singlet hopping operator
+        O_ijk = Δ⁺ij_Δjk(particle_symmetry, spin_symmetry; slave_fermion)
+        O_kji = permute(O_ijk, ((3, 2, 1), (6, 5, 4)))
+        @test O_kji ≈ O_ijk'
 
         # test triplet operators
         if particle_symmetry == Trivial && spin_symmetry == Trivial
