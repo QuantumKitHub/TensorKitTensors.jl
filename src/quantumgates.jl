@@ -5,7 +5,7 @@ using LinearAlgebra: I
 using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
-export qubit_space
+export qubit_space, basis_transform
 export pauli_x, pauli_y, pauli_z, proj_0, proj_1, hadamard, s_gate, t_gate
 export phase_shift, rotation_x, rotation_y, rotation_z
 export cnot, cy, cz, cphase, ch, cs, swap, iswap, dcx, ecr
@@ -30,14 +30,22 @@ qubit_space(::Type{Trivial} = Trivial) = ComplexSpace(2)
 qubit_space(::Type{U1Irrep}) = U1Space(0 => 1, 1 => 1)
 qubit_space(S::Type{<:Sector}) = throw(ArgumentError("invalid symmetry `$S`"))
 
-# Basis transformation from the trivial |0⟩, |1⟩ basis to the symmetric basis. The
-# computational basis already coincides with the U(1) charge eigenbasis (charge = number of
-# excitations), so both transformations are the identity.
-basis_transform(::Type{Trivial}) =
-    TensorMap(Matrix{Int}(I, 2, 2), qubit_space(Trivial) ← qubit_space(Trivial))
-basis_transform(::Type{U1Irrep}) =
-    TensorMap(Matrix{Int}(I, 2, 2), desymmetrize(qubit_space(U1Irrep)) ← qubit_space(Trivial))
-basis_transform(S::Type{<:Sector}) = throw(ArgumentError("invalid symmetry `$S`"))
+"""
+    basis_transform(symmetry::Type{<:Sector})
+
+Return the unitary basis transformation that maps the computational basis
+``\\{|0⟩, |1⟩\\}`` of `qubit_space(Trivial)` onto the basis of `qubit_space(symmetry)`, as a
+`TensorMap` from `qubit_space(Trivial)` to `desymmetrize(qubit_space(symmetry))`, as required
+by [`symmetrize`](@ref TensorKitTensors.symmetrize).
+
+For `U1Irrep`, the excitation number is used as the ``U(1)`` charge, which coincides with the
+computational basis, such that the transformation is the identity. It is returned with
+integer scalar type, such that it promotes to any scalar type without loss of precision.
+"""
+function basis_transform(symmetry::Type{<:Sector})
+    V = desymmetrize(qubit_space(symmetry))
+    return TensorMap(Matrix{Int}(I, 2, 2), V ← qubit_space(Trivial))
+end
 
 # Symmetrize a gate through its basis transformation. `symmetrize` throws an `ArgumentError`
 # when the gate does not respect the requested symmetry, so gates that break excitation-number
@@ -45,6 +53,10 @@ basis_transform(S::Type{<:Sector}) = throw(ArgumentError("invalid symmetry `$S`"
 # parameters, so forwarded keyword arguments (e.g. `θ`) are dropped here.
 _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
     symmetrize(O, basis_transform(symmetry), qubit_space(symmetry))
+
+# Resolve the rotation angle from the `θ`/`theta` keyword pair, erroring if neither is given.
+_gate_angle(theta) =
+    @something theta throw(ArgumentError("angle `θ` (or `theta`) is required"))
 
 # Pauli gates
 # -----------
@@ -137,8 +149,7 @@ angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator P function phase_shift(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("phase angle `θ` (or `theta`) is required"))
-    return TensorMap(elt[1 0; 0 cis(α)], qubit_space() ← qubit_space())
+    return TensorMap(elt[1 0; 0 cis(_gate_angle(theta))], qubit_space() ← qubit_space())
 end
 
 """
@@ -175,8 +186,7 @@ angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias
 Supported symmetries: `Trivial`.
 """
 @operator Rx function rotation_x(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     return TensorMap(elt[c (-im * s); (-im * s) c], qubit_space() ← qubit_space())
 end
 
@@ -190,8 +200,7 @@ angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias
 Supported symmetries: `Trivial`.
 """
 @operator Ry function rotation_y(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     return TensorMap(elt[c (-s); s c], qubit_space() ← qubit_space())
 end
 
@@ -205,8 +214,7 @@ angle `θ` is a required keyword; the ASCII name `theta` is accepted as an alias
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator Rz function rotation_z(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     return TensorMap(elt[(c - im * s) 0; 0 (c + im * s)], qubit_space() ← qubit_space())
 end
 
@@ -263,9 +271,9 @@ The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepte
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator CP function cphase(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("phase angle `θ` (or `theta`) is required"))
     q = qubit_space()
-    return proj_0(elt, Trivial) ⊗ id(q) + proj_1(elt, Trivial) ⊗ phase_shift(elt, Trivial; θ = α)
+    return proj_0(elt, Trivial) ⊗ id(q) +
+        proj_1(elt, Trivial) ⊗ phase_shift(elt, Trivial; θ = _gate_angle(theta))
 end
 
 """
@@ -358,8 +366,7 @@ The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepte
 Supported symmetries: `Trivial`.
 """
 @operator Rxx function rotation_xx(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     xx = pauli_x(elt, Trivial) ⊗ pauli_x(elt, Trivial)
     return c * one(xx) - im * s * xx
 end
@@ -374,8 +381,7 @@ The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepte
 Supported symmetries: `Trivial`.
 """
 @operator Ryy function rotation_yy(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     yy = pauli_y(elt, Trivial) ⊗ pauli_y(elt, Trivial)
     return c * one(yy) - im * s * yy
 end
@@ -390,8 +396,7 @@ The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepte
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator Rzz function rotation_zz(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     zz = pauli_z(elt, Trivial) ⊗ pauli_z(elt, Trivial)
     return c * one(zz) - im * s * zz
 end
@@ -406,8 +411,7 @@ The rotation angle `θ` is a required keyword; the ASCII name `theta` is accepte
 Supported symmetries: `Trivial`.
 """
 @operator Rzx function rotation_zx(elt::Type{<:Complex}, ::Type{Trivial}; θ = nothing, theta = θ)
-    α = @something theta throw(ArgumentError("rotation angle `θ` (or `theta`) is required"))
-    s, c = sincos(α / 2)
+    s, c = sincos(_gate_angle(theta) / 2)
     zx = pauli_z(elt, Trivial) ⊗ pauli_x(elt, Trivial)
     return c * one(zx) - im * s * zx
 end
