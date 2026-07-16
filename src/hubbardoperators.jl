@@ -551,6 +551,7 @@ end
 
 """
     singlet_plus_singlet_min_3site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
+    Δ⁺ij_Δjk([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where
 ``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
@@ -578,6 +579,7 @@ end
 
 """
     singlet_plus_singlet_min_4site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
+    Δ⁺ij_Δkl([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where
 ``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
