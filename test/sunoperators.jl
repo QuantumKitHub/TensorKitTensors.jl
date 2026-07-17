@@ -91,3 +91,20 @@ end
         test_operator_dense(sw_sun, sw_triv, U)
     end
 end
+
+@testset "default arguments and error paths" begin
+    # default element type (ComplexF64) and default symmetry (Trivial) forwarding
+    @test sun_space(; irrep = (1, 0)) == sun_space(SUNIrrep; irrep = (1, 0))
+    @test exchange(; irrep = (1, 0)) ≈ exchange(ComplexF64, Trivial; irrep = (1, 0))
+    @test exchange(SUNIrrep; irrep = (1, 0)) ≈ exchange(ComplexF64, SUNIrrep; irrep = (1, 0))
+    @test swap(; irrep = (1, 0)) ≈ swap(ComplexF64, Trivial; irrep = (1, 0))
+    @test biquadratic(Float64; irrep = (1, 0, 0)) isa AbstractTensorMap
+
+    # the Trivial basis transform is the identity
+    U = basis_transform(Trivial; irrep = (1, 0, 0))
+    @test U ≈ id(domain(U))
+
+    # invalid inputs
+    @test_throws ArgumentError exchange(Float64, SUNIrrep)                              # no irrep
+    @test_throws ArgumentError exchange(Float64, SUNIrrep; irreps = ((1, 0), (1, 0, 0)))  # mismatched N
+end
