@@ -11,11 +11,7 @@ Common single-, two- and three-qubit gates used in quantum circuits, returned as
 
 ### Basis ordering
 
-A qubit lives on a two-dimensional space with computational basis ordered as
-
-```math
-|0⟩,\; |1⟩ \quad \text{(row/column 1 = } |0⟩\text{)}
-```
+A qubit lives on a two-dimensional space with computational basis ordered as ``\{|0⟩, |1⟩\}``.
 
 Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tensor factor, so a controlled gate uses the *first* qubit(s) as control and the *last* as target.
 
@@ -24,7 +20,7 @@ Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tenso
 | Symmetry | Physical meaning | Sector label | Representable gates |
 |---|---|---|---|
 | `Trivial` | none | — | all gates, full ``2^n \times 2^n`` matrix |
-| `U1Irrep` | excitation-number conservation | charge ``∈ \{0, 1\}`` per qubit | only gates that conserve the number of ``|1⟩``'s |
+| `U1Irrep` | excitation-number conservation | charge ``∈ \{0, 1\}`` per qubit | only gates that conserve the number of ``1``'s |
 
 !!! note "U(1) charge = excitation number"
     Under `U1Irrep` the two sectors of a qubit carry charge ``0`` (``|0⟩``) and ``1`` (``|1⟩``), i.e. the conserved quantity is the number of excited qubits.
