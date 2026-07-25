@@ -79,7 +79,9 @@ gate, and using [`proj_1`](@ref) as the leading projector instead gives a gate c
 
 The controlled x-rotation, which is not provided as a gate of its own:
 
-```julia
+```jldoctest
+julia> using TensorKit, TensorKitTensors.QuantumGates;
+
 julia> crx = controlled(rotation_x(; theta = π / 2));
 
 julia> crx ≈ proj_0() ⊗ id(qubit_space()) + proj_1() ⊗ rotation_x(; theta = π / 2)
