@@ -191,8 +191,8 @@ end
     tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Projection operator from Hubbard space to t-J space, which removes the doubly occupied state
-``|↑↓⟩``. The t-J operators of this module are related to their
-[`HubbardOperators`](@ref TensorKitTensors.HubbardOperators) counterparts by
+``|↑↓⟩``. The t-J operators of this module are related to their `HubbardOperators`
+counterparts by
 
 ```julia
 proj = reduce(⊗, ntuple(Returns(tj_projector(P, S)), N))

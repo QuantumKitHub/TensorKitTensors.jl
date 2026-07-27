@@ -11,6 +11,8 @@ using StableRNGs
 particle_syms = (Trivial, U1Irrep)
 spin_syms = (Trivial, U1Irrep, SU2Irrep)
 bases = (false, true)
+symmetries = Iterators.product(particle_syms, spin_syms)
+symmetries_bases = Iterators.product(particle_syms, spin_syms, bases)
 
 # operator availability, as determined by the symmetries each operator breaks:
 # - u_num, d_num, S_z and the u/d hopping and spin-flip pairs break SU2 spin symmetry
@@ -30,7 +32,7 @@ has_triplet(P, S) = P === Trivial && S === Trivial
 const ALWAYS = (e_num, h_num, e_plus_e_min, e_min_e_plus, e_hopping, S_exchange, Δ⁺ij_Δjk, Δ⁺ij_Δkl)
 
 @testset "basis transformations" begin
-    for (P, S, slave_fermion) in Iterators.product(particle_syms, spin_syms, bases)
+    for (P, S, slave_fermion) in symmetries_bases
         U = basis_transform(P, S; slave_fermion)
         @test U isa AbstractTensorMap{Int}
         @test U' * U == one(U)
@@ -75,8 +77,7 @@ end
 end
 
 @testset "Compare symmetric with trivial tensors" begin
-    for (particle_symmetry, spin_symmetry, slave_fermion) in
-            Iterators.product(particle_syms, spin_syms, bases)
+    for (particle_symmetry, spin_symmetry, slave_fermion) in symmetries_bases
         space = @testinferred tj_space(particle_symmetry, spin_symmetry; slave_fermion)
         @test dim(space) == 3
 
@@ -111,7 +112,7 @@ end
 @testset "slave-fermion basis" begin
     # the reference operators are transformed to the slave-fermion basis before they are
     # symmetrized, which has to agree with transforming the symmetric operator itself
-    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
+    for (particle_symmetry, spin_symmetry) in symmetries
         for f in (
                 ALWAYS..., u_num, d_num, S_z, S_plus_S_min, S_min_S_plus, S_x, S_y, S_plus,
                 S_min, u_min_d_min, d_min_u_min, u_plus_d_plus, d_plus_u_plus, singlet_plus,
@@ -132,7 +133,7 @@ end
 
 @testset "Hubbard projection" begin
     # the relation to the Hubbard operators: project out the doubly occupied state
-    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
+    for (particle_symmetry, spin_symmetry) in symmetries
         proj = tj_projector(particle_symmetry, spin_symmetry)
         @test proj isa AbstractTensorMap{Int}
         @test proj * proj' ≈ id(tj_space(particle_symmetry, spin_symmetry))
@@ -160,7 +161,7 @@ end
     # regression check: hand-written symmetric operators are easily transposed. The dense
     # indices of the basis states are read off from the basis transform, whose columns are
     # ordered as (|0⟩, |↑⟩, |↓⟩) in the plain t-J basis.
-    for (P, S) in Iterators.product(particle_syms, spin_syms)
+    for (P, S) in symmetries
         U = convert(Array, basis_transform(P, S))
         i0 = findfirst(==(1), U[:, 1])
         iu = findfirst(==(1), U[:, 2])
@@ -179,8 +180,7 @@ end
 end
 
 @testset "basic properties" begin
-    for (particle_symmetry, spin_symmetry, slave_fermion) in
-            Iterators.product(particle_syms, spin_syms, bases)
+    for (particle_symmetry, spin_symmetry, slave_fermion) in symmetries_bases
         pspace = tj_space(particle_symmetry, spin_symmetry; slave_fermion)
 
         # hopping operators
@@ -305,7 +305,7 @@ end
     rng = StableRNG(123)
     t, J = rand(rng, 2)
     true_eigenvals = sort(vcat(-J, fill(-t, 2), fill(t, 2), fill(0.0, 4)))
-    for (P, S, slave_fermion) in Iterators.product(particle_syms, spin_syms, bases)
+    for (P, S, slave_fermion) in symmetries_bases
         H = tjhamiltonian(P, S; t, J, mu = 0.0, L = 2, slave_fermion)
         eigenvals = expanded_eigenvalues(H)
         @test eigenvals ≈ true_eigenvals
