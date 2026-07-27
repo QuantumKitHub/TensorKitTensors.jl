@@ -7,6 +7,8 @@ using StableRNGs
 
 @testset "basis transformations" begin
     cutoff = 4
+    # the symmetry argument defaults to `Trivial`, as in the other modules
+    @test boson_space(; cutoff) == boson_space(Trivial; cutoff)
     for symmetry in (Trivial, U1Irrep)
         U = basis_transform(symmetry; cutoff)
         @test U isa AbstractTensorMap{Int}
