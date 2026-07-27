@@ -14,10 +14,10 @@ Creation, annihilation, number and spin operators for t-J-type models, i.e. the 
 A t-J site carries three states — one empty and two singly occupied — with no doubly occupied state:
 
 ```math
-|0\rangle, \quad |{\uparrow}\rangle, \quad |{\downarrow}\rangle
+|0⟩, \quad |↑⟩, \quad |↓⟩
 ```
 
-Here ``|0\rangle`` labels the *empty* state rather than the vacuum ``|\varnothing\rangle`` of the underlying operators, a distinction that matters in the slave-fermion basis below.
+Here ``|0⟩`` labels the *empty* state rather than the vacuum ``|∅⟩`` of the underlying operators, a distinction that matters in the slave-fermion basis below.
 The absence of double occupancy is exact: the product of [`u_num`](@ref) and [`d_num`](@ref) vanishes identically.
 
 The local space is graded by `FermionParity`, and a graded space groups its basis vectors per sector, in the order of `sectors(V)`.
@@ -25,15 +25,15 @@ In the default t-J basis the empty state is fermion-parity even and the singly o
 The slave-fermion basis flips the parity of every state and hence reverses the two groups:
 
 ```math
-\text{t-J:}\quad |0\rangle,\; |{\uparrow}\rangle,\; |{\downarrow}\rangle
+\text{t-J:}\quad |0⟩,\; |↑⟩,\; |↓⟩
 \qquad\qquad
-\text{slave-fermion:}\quad |{\uparrow}\rangle,\; |{\downarrow}\rangle,\; |0\rangle
+\text{slave-fermion:}\quad |↑⟩,\; |↓⟩,\; |0⟩
 ```
 
 Each of these is the reference order of [`basis_transform`](@ref) in the corresponding basis, so `basis_transform(Trivial, Trivial; slave_fermion)` is the identity for either value of `slave_fermion`.
 
 For the symmetric versions the dense order follows the sector order of the target space and is in general *not* the reference order.
-Rather than relying on it, read it off from the basis transformation: numbering the reference states ``(1, 2, 3) = (|0\rangle, |{\uparrow}\rangle, |{\downarrow}\rangle)``, column ``j`` of `basis_transform(P, S; slave_fermion)` has its single nonzero entry in the row that is the dense index of reference state ``j``:
+Rather than relying on it, read it off from the basis transformation: numbering the reference states ``(1, 2, 3) = (|0⟩, |↑⟩, |↓⟩)``, column ``j`` of `basis_transform(P, S; slave_fermion)` has its single nonzero entry in the row that is the dense index of reference state ``j``:
 
 ```julia
 U = convert(Array, basis_transform(U1Irrep, SU2Irrep))
@@ -43,7 +43,7 @@ i_up = findfirst(==(1), U[:, 2])   # dense index of |↑⟩
 ### Slave-fermion basis
 
 Every function of this module takes an optional `slave_fermion::Bool = false` keyword that selects the basis it is expressed in.
-In the slave-fermion representation the hole is created by a *fermionic* holon operator ``h``, and the spins by *bosonic* spinon operators ``bꜛ`` and ``bꜜ``, acting on the vacuum ``|∅⟩``:
+In the slave-fermion representation the hole is created by a *fermionic* holon operator ``h``, and the spins by *bosonic* spinon operators `bꜛ` and `bꜜ`, acting on the vacuum ``|∅⟩``:
 
 ```
 | label | tJ basis | slave-fermion |
@@ -65,7 +65,7 @@ Which operators exist does not depend on `slave_fermion`; only the basis they ar
 ### Relation to the Hubbard model
 
 The t-J local space is the Hubbard local space with the doubly occupied state removed.
-[`tj_projector`](@ref) is the corresponding ``3 \leftarrow 4`` isometry, with `Int` entries so that it introduces no floating-point error, and every operator of this module is the projection of its [`HubbardOperators`](hubbardoperators.md) namesake:
+[`tj_projector`](@ref) is the corresponding ``3 ← 4`` isometry, with `Int` entries so that it introduces no floating-point error, and every operator of this module is the projection of its [`HubbardOperators`](hubbardoperators.md) namesake:
 
 ```julia
 proj = reduce(⊗, ntuple(Returns(tj_projector(P, S)), N))
@@ -88,7 +88,7 @@ The particle symmetry labels the empty state against the singly occupied ones:
 | Symmetry | Physical meaning | Sector label | Charges of the local states |
 |---|---|---|---|
 | `Trivial` | none | — | the fermion-parity grading alone separates the empty state from the singly occupied ones |
-| `U1Irrep` | electron-number conservation | ``n \in \{0, 1\}`` | empty ``\mapsto 0``, singly occupied ``\mapsto 1`` |
+| `U1Irrep` | electron-number conservation | ``n ∈ \{0, 1\}`` | empty ``↦ 0``, singly occupied ``↦ 1`` |
 | `SU2Irrep` | — | — | not available, see the note below |
 
 The spin symmetry labels the two singly occupied states:
@@ -96,12 +96,12 @@ The spin symmetry labels the two singly occupied states:
 | Symmetry | Physical meaning | Sector label | Charges of the local states |
 |---|---|---|---|
 | `Trivial` | none | — | the two singly occupied states share one sector, with multiplicity 2 |
-| `U1Irrep` | ``S^z`` conservation | ``m \in \{-1/2, 0, +1/2\}`` | ``\uparrow \mapsto +1/2``, ``\downarrow \mapsto -1/2``, empty ``\mapsto 0`` |
-| `SU2Irrep` | full spin SU(2) | ``s \in \{0, 1/2\}`` | the singly occupied states form the ``s = 1/2`` doublet (descending ``m``); the empty state is ``s = 0`` |
+| `U1Irrep` | ``S^z`` conservation | ``m ∈ \{-1/2, 0, +1/2\}`` | ``↑ ↦ +1/2``, ``↓ ↦ -1/2``, empty ``↦ 0`` |
+| `SU2Irrep` | full spin SU(2) | ``s ∈ \{0, 1/2\}`` | the singly occupied states form the ``s = 1/2`` doublet (descending ``m``); the empty state is ``s = 0`` |
 
 !!! note "No SU(2) particle symmetry"
     Unlike [`HubbardOperators`](hubbardoperators.md), the t-J model admits no `SU2Irrep` particle symmetry.
-    The ``\eta``-pairing doublet of the Hubbard model is (doubly occupied, empty), and the doubly occupied state is precisely what the t-J projection removes, so there is no doublet left to carry the ``\eta``-spin.
+    The ``η``-pairing doublet of the Hubbard model is (doubly occupied, empty), and the doubly occupied state is precisely what the t-J projection removes, so there is no doublet left to carry the ``η``-spin.
     `tj_space(SU2Irrep, S)` and every operator requested with `SU2Irrep` particle symmetry throw an `ArgumentError`, as does any unsupported sector such as `Z2Irrep` on either axis.
 
 !!! note "Slave-fermion sectors"
@@ -153,7 +153,7 @@ Availability does not depend on `slave_fermion`, and every entry below accepts t
 | [`singlet_plus_singlet_min_3site`](@ref) | `Δ⁺ij_Δjk` | 3 | any | any |
 | [`singlet_plus_singlet_min_4site`](@ref) | `Δ⁺ij_Δkl` | 4 | any | any |
 
-Note that the singlet-pair terms [`singlet_plus_singlet_min_3site`](@ref) and [`singlet_plus_singlet_min_4site`](@ref) are available for every symmetry combination even though [`singlet_plus`](@ref) and [`singlet_min`](@ref) individually require `Trivial` particle symmetry: only the product ``\Delta^\dagger \Delta`` conserves the electron number.
+Note that the singlet-pair terms [`singlet_plus_singlet_min_3site`](@ref) and [`singlet_plus_singlet_min_4site`](@ref) are available for every symmetry combination even though [`singlet_plus`](@ref) and [`singlet_min`](@ref) individually require `Trivial` particle symmetry: only the product ``Δ^† Δ`` conserves the electron number.
 [`S_y`](@ref) requires a complex `eltype`; all other operators honour any `eltype`, and the basis transformations have exact integer entries so that they never degrade the precision of the result.
 
 ## API

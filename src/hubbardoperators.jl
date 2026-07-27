@@ -312,8 +312,10 @@ end
     S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the spin raising operator ``S^+ = e^†_↑ e_↓``, whose only nonzero matrix element is
-``+|↑⟩ ↤ |↓⟩``.
+Return the spin raising operator ``S^+ = e^†_↑ e_↓``. The only nonzero matrix element is
+```
+    +|↑⟩ ↤ |↓⟩
+```
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
@@ -330,8 +332,11 @@ end
     S_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the spin lowering operator ``S^- = e^†_↓ e_↑ = (S^+)^\\dagger``, whose only nonzero
-matrix element is ``+|↓⟩ ↤ |↑⟩``.
+Return the spin lowering operator ``S^- = e^†_↓ e_↑ = (S^+)^†``. The only nonzero matrix
+element is
+```
+    +|↓⟩ ↤ |↑⟩
+```
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
@@ -377,7 +382,7 @@ end
     Sᶻ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Return the one-body spin-1/2 z-operator on the electrons,
-``S^z = (n_↑ - n_↓)/2``. It is diagonal with eigenvalues ``\\pm 1/2`` on the singly occupied
+``S^z = (n_↑ - n_↓)/2``. It is diagonal with eigenvalues ``±1/2`` on the singly occupied
 states and ``0`` on the states that carry no unpaired spin.
 
 !!! note "SU2Irrep particle symmetry"
@@ -701,7 +706,7 @@ end
     singlet_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     singlet⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``,
+Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / √2``,
 which creates the singlet state when acting on the vacuum. Being a spin scalar it survives
 `SU2Irrep` spin symmetry, but it raises the total electron number by two and therefore requires
 trivial particle symmetry.
@@ -721,7 +726,7 @@ end
     singlet⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Return the adjoint of the [`singlet_plus`](@ref) operator, which is
-``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``. It annihilates a singlet pair, lowering the
+``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / √2``. It annihilates a singlet pair, lowering the
 total electron number by two.
 
 Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
@@ -735,7 +740,7 @@ end
     Δ⁺ij_Δjk([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where
-``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
+``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / √2``.
 It describes the hopping of a singlet pair from bond `(j,k)`
 to a nearest neighbor bond `(i,j)` sharing site `j`.
 The indices are ordered as
@@ -769,7 +774,7 @@ end
     Δ⁺ij_Δkl([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where
-``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
+``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / √2``.
 It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
 
 Unlike the individual [`singlet_plus`](@ref) and [`singlet_min`](@ref), the product
@@ -808,7 +813,7 @@ end
     S_min_S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁻S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``S^-_1 S^+_2 = (S^+_1 S^-_2)^\\dagger``. The only nonzero matrix
+Return the two-body operator ``S^-_1 S^+_2 = (S^+_1 S^-_2)^†``. The only nonzero matrix
 element is
 ```
     +|↓,↑⟩ ↤ |↑,↓⟩
@@ -828,7 +833,7 @@ end
 
 Return the spin exchange operator
 ```math
-\\mathbf{S}_1 \\cdot \\mathbf{S}_2
+𝐒_1 ⋅ 𝐒_2
 = S^z_1 S^z_2 + \\tfrac{1}{2}(S^+_1 S^-_2 + S^-_1 S^+_2),
 ```
 i.e. the Heisenberg exchange interaction between the two sites.

@@ -181,7 +181,7 @@ end
     hadamard([eltype::Type{<:Number}], [symmetry::Type{<:Sector}])
     H([eltype::Type{<:Number}], [symmetry::Type{<:Sector}])
 
-The Hadamard gate ``H = \\tfrac{1}{\\sqrt 2}(X + Z)``.
+The Hadamard gate ``H = \\tfrac{1}{√2}(X + Z)``.
 
 Supported symmetries: `Trivial`.
 """
@@ -208,7 +208,7 @@ end
     s_gate([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
     S([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
 
-The phase gate ``S = \\sqrt Z = \\mathrm{diag}(1, i)``, i.e. `phase_shift(; theta=π/2)`.
+The phase gate ``S = √Z = \\mathrm{diag}(1, i)``, i.e. `phase_shift(; theta=π/2)`.
 Its adjoint ``S^†`` is `s_gate()'`.
 
 Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
@@ -222,14 +222,14 @@ end
     t_gate([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
     T([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
 
-The ``T`` (π/8) gate ``T = \\sqrt S = \\mathrm{diag}(1, e^{iπ/4})``, i.e. `phase_shift(; theta=π/4)`.
+The ``T`` (π/8) gate ``T = √S = \\mathrm{diag}(1, e^{iπ/4})``, i.e. `phase_shift(; theta=π/4)`.
 Its adjoint ``T^†`` is `t_gate()'`.
 
 Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator T function t_gate(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :t_gate)
-    # `signedroot` keeps ``e^{iπ/4} = (1 + i)/\sqrt 2`` exact for any scalar type
+    # `signedroot` keeps ``e^{iπ/4} = (1 + i)/√2`` exact for any scalar type
     h = convert(elt, signedroot(1 // 2))
     return proj_0(elt, Trivial) + h * (1 + im) * proj_1(elt, Trivial)
 end
@@ -431,7 +431,7 @@ end
     ecr([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
     ECR([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}])
 
-The echoed cross-resonance gate ``\\mathrm{ECR} = \\tfrac{1}{\\sqrt 2}(X ⊗ I - Y ⊗ X)``.
+The echoed cross-resonance gate ``\\mathrm{ECR} = \\tfrac{1}{√2}(X ⊗ I - Y ⊗ X)``.
 
 Supported symmetries: `Trivial`.
 """

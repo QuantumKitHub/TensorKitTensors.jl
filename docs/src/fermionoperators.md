@@ -14,7 +14,7 @@ Operators for a single *spinless* fermionic mode per site, i.e. a two-dimensiona
 The local space is spanned by the empty and the occupied state, in that order:
 
 ```math
-|0\rangle,\; |1\rangle \quad \text{(row/column 1 = empty, 2 = occupied)}
+|0⟩,\; |1⟩ \quad \text{(row/column 1 = empty, 2 = occupied)}
 ```
 
 The space is *always* fermionically graded, `Vect[fℤ₂](0 => 1, 1 => 1)`, even for `Trivial` symmetry: the grading by the fermion parity ``(-1)^n`` is what makes TensorKit insert the anticommutation signs when operators on different sites are contracted, and is therefore not optional.
@@ -23,24 +23,24 @@ Here `Trivial` refers only to the absence of an *additional* symmetry.
 Because a `TensorMap` on a graded space only has parity-preserving blocks, the parity-odd single-site operators ``f^+`` and ``f^-`` are not representable at all — they have no allowed block.
 This module therefore provides no `f_plus` or `f_min`, only their parity-even two-site combinations and the number operator ``n = f^+ f^- = \mathrm{diag}(0, 1)``.
 
-The two-site operators carry the signs picked up by anticommuting the fermionic operators past each other, with ``|1,1\rangle = f^+_1 f^+_2 |0,0\rangle`` as the reference state.
+The two-site operators carry the signs picked up by anticommuting the fermionic operators past each other, with ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩`` as the reference state.
 Their only nonzero matrix elements are
 
 ```math
-f^+_1 f^-_2 : \; +|1,0\rangle \leftarrow |0,1\rangle, \qquad
-f^-_1 f^+_2 : \; -|0,1\rangle \leftarrow |1,0\rangle
+f^+_1 f^-_2 : \; +|1,0⟩ ← |0,1⟩, \qquad
+f^-_1 f^+_2 : \; -|0,1⟩ ← |1,0⟩
 ```
 
 ```math
-f^+_1 f^+_2 : \; +|1,1\rangle \leftarrow |0,0\rangle, \qquad
-f^-_1 f^-_2 : \; -|0,0\rangle \leftarrow |1,1\rangle
+f^+_1 f^+_2 : \; +|1,1⟩ ← |0,0⟩, \qquad
+f^-_1 f^-_2 : \; -|0,0⟩ ← |1,1⟩
 ```
 
 that is, `f_min_f_plus == -adjoint(f_plus_f_min)` and `f_min_f_min == -adjoint(f_plus_f_plus)`.
 Consequently the hermitian hopping operator is the *difference*
 
 ```math
-f_\mathrm{hop} = f^+_1 f^-_2 - f^-_1 f^+_2 = f^+_1 f^-_2 + (f^+_1 f^-_2)^\dagger .
+f_\mathrm{hop} = f^+_1 f^-_2 - f^-_1 f^+_2 = f^+_1 f^-_2 + (f^+_1 f^-_2)^† .
 ```
 
 The corresponding bosonic operator of [`BosonOperators`](bosonoperators.md) is a *sum*, because ``b^-_1 b^+_2`` is the plain adjoint of ``b^+_1 b^-_2`` and does not pick up a sign.
@@ -56,7 +56,7 @@ The corresponding bosonic operator of [`BosonOperators`](bosonoperators.md) is a
     The particle number refines the parity grading without reordering the basis, so the basis transformation onto the symmetric space is the identity and every symmetric operator is elementwise equal to its `Trivial` counterpart.
 
     [`f_num`](@ref), [`f_plus_f_min`](@ref), [`f_min_f_plus`](@ref) and [`f_hopping`](@ref) conserve the particle number and are available for both symmetries.
-    The pair operators [`f_plus_f_plus`](@ref) and [`f_min_f_min`](@ref) change it by ``\pm 2``: they preserve the parity, and hence exist as `Trivial` operators, but throw an `ArgumentError` when requested with `U1Irrep`.
+    The pair operators [`f_plus_f_plus`](@ref) and [`f_min_f_min`](@ref) change it by ``±2``: they preserve the parity, and hence exist as `Trivial` operators, but throw an `ArgumentError` when requested with `U1Irrep`.
 
 ## Operator overview
 

@@ -15,34 +15,34 @@ The truncation is not optional: every function in this module takes `cutoff` as 
 The local space is spanned by the occupation-number states in *ascending* order, so that its dimension is ``\mathrm{cutoff} + 1``:
 
 ```math
-|0\rangle,\; |1\rangle,\; \ldots,\; |\mathrm{cutoff}\rangle \quad \text{(row/column 1 = vacuum)}
+|0⟩,\; |1⟩,\; …,\; |\mathrm{cutoff}⟩ \quad \text{(row/column 1 = vacuum)}
 ```
 
 In this basis the creation and annihilation operators have the usual matrix elements, with the square root set by the occupation of the *higher* of the two states,
 
 ```math
-\langle n{-}1 | b^- | n \rangle = \langle n | b^+ | n{-}1 \rangle = \sqrt{n},
-\qquad n = 1, \ldots, \mathrm{cutoff}
+⟨n-1 | b^- | n⟩ = ⟨n | b^+ | n-1⟩ = √n,
+\qquad n = 1, …, \mathrm{cutoff}
 ```
 
-so that ``b^- |0\rangle = 0`` and ``b^+ |\mathrm{cutoff}\rangle = 0``, while ``n = b^+ b^-`` is diagonal with eigenvalues ``0, 1, \ldots, \mathrm{cutoff}``.
+so that ``b^- |0⟩ = 0`` and ``b^+ |\mathrm{cutoff}⟩ = 0``, while ``n = b^+ b^-`` is diagonal with eigenvalues ``0, 1, …, \mathrm{cutoff}``.
 
 !!! warning "The truncated commutator"
     Truncating the mode breaks the canonical commutation relation in the top state:
 
     ```math
-    [b^-, b^+] = 1 - (\mathrm{cutoff}{+}1)\,|\mathrm{cutoff}\rangle\langle\mathrm{cutoff}|
+    [b^-, b^+] = 1 - (\mathrm{cutoff}{+}1)\,|\mathrm{cutoff}⟩⟨\mathrm{cutoff}|
     ```
 
-    i.e. ``\langle \mathrm{cutoff} | [b^-, b^+] | \mathrm{cutoff} \rangle = -\mathrm{cutoff}`` instead of ``1``.
+    i.e. ``⟨\mathrm{cutoff} | [b^-, b^+] | \mathrm{cutoff}⟩ = -\mathrm{cutoff}`` instead of ``1``.
     Every operator of this module is exact *within* the truncated space; only relations that involve states above the cutoff are affected.
 
 ### Symmetry sectors
 
 | Symmetry | Physical meaning | Sector label | Single-site block structure |
 |---|---|---|---|
-| `Trivial` | none | — | full ``(\mathrm{cutoff}{+}1)\times(\mathrm{cutoff}{+}1)`` matrix |
-| `U1Irrep` | boson-number conservation | charge ``n \in \{0, \ldots, \mathrm{cutoff}\}`` | ``\mathrm{cutoff}{+}1`` one-dimensional blocks; ``b^+``, ``b^-`` not individually representable |
+| `Trivial` | none | — | full ``(\mathrm{cutoff}{+}1)×(\mathrm{cutoff}{+}1)`` matrix |
+| `U1Irrep` | boson-number conservation | charge ``n ∈ \{0, …, \mathrm{cutoff}\}`` | ``\mathrm{cutoff}{+}1`` one-dimensional blocks; ``b^+``, ``b^-`` not individually representable |
 
 !!! note "U(1) charge = occupation number"
     The ``U(1)`` charge is the boson number itself, and the charge sectors are ordered as `0:cutoff`, which coincides with the occupation-number basis.

@@ -69,12 +69,12 @@ _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) 
     b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic annihilation operator, with matrix elements
-``\\langle n-1 | b^- | n \\rangle = \\sqrt{n}`` for ``n = 1, …, \\mathrm{cutoff}``, such that
+``⟨n-1 | b^- | n⟩ = √n`` for ``n = 1, …, \\mathrm{cutoff}``, such that
 ``b^- |0⟩ = 0``.
 
 Supported symmetries: `Trivial`.
 
-See also [`b_plus`](@ref) (its adjoint ``b^+ = (b^-)^\\dagger``) and [`b_num`](@ref).
+See also [`b_plus`](@ref) (its adjoint ``b^+ = (b^-)^†``) and [`b_num`](@ref).
 """
 @operator b⁻ function b_min(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
@@ -90,13 +90,13 @@ end
     b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
 The truncated bosonic creation operator, with matrix elements
-``\\langle n | b^+ | n-1 \\rangle = \\sqrt{n}`` for ``n = 1, …, \\mathrm{cutoff}``. The
+``⟨n | b^+ | n-1⟩ = √n`` for ``n = 1, …, \\mathrm{cutoff}``. The
 truncation removes the transition out of the top state, ``b^+ |\\mathrm{cutoff}⟩ = 0``, see
 [`boson_space`](@ref).
 
 Supported symmetries: `Trivial`.
 
-See also [`b_min`](@ref) (its adjoint ``b^- = (b^+)^\\dagger``) and [`b_num`](@ref).
+See also [`b_min`](@ref) (its adjoint ``b^- = (b^+)^†``) and [`b_num`](@ref).
 """
 @operator b⁺ function b_plus(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
@@ -131,7 +131,7 @@ end
     b_plus_b_plus([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁺b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
-The truncated bosonic pair-creation operator ``b^+ \\otimes b^+``, which raises the boson
+The truncated bosonic pair-creation operator ``b^+ ⊗ b^+``, which raises the boson
 number of both sites by one and therefore changes the total boson number by two.
 
 Supported symmetries: `Trivial`.
@@ -147,7 +147,7 @@ end
     b_plus_b_min([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁺b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
-The truncated bosonic left-hopping operator ``b^+ \\otimes b^-``, which moves a boson from the
+The truncated bosonic left-hopping operator ``b^+ ⊗ b^-``, which moves a boson from the
 second to the first site.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
@@ -164,7 +164,7 @@ end
     b_min_b_plus([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁻b⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
-The truncated bosonic right-hopping operator ``b^- \\otimes b^+``, which moves a boson from the
+The truncated bosonic right-hopping operator ``b^- ⊗ b^+``, which moves a boson from the
 first to the second site.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
@@ -181,7 +181,7 @@ end
     b_min_b_min([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
     b⁻b⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}]; cutoff::Integer)
 
-The truncated bosonic pair-annihilation operator ``b^- \\otimes b^-``, which lowers the boson
+The truncated bosonic pair-annihilation operator ``b^- ⊗ b^-``, which lowers the boson
 number of both sites by one and therefore changes the total boson number by two.
 
 Supported symmetries: `Trivial`.
@@ -200,7 +200,7 @@ end
 Return the two-body operator that describes a boson hopping between the first and the second
 site,
 ```math
-b_\\mathrm{hop} = b^+_1 b^-_2 + b^-_1 b^+_2 = b^+_1 b^-_2 + (b^+_1 b^-_2)^\\dagger,
+b_\\mathrm{hop} = b^+_1 b^-_2 + b^-_1 b^+_2 = b^+_1 b^-_2 + (b^+_1 b^-_2)^†,
 ```
 which is hermitian. Note the plus sign: unlike its fermionic counterpart, ``b^-_1 b^+_2`` is
 the plain adjoint of ``b^+_1 b^-_2`` and carries no additional sign.

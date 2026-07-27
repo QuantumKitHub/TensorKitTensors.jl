@@ -32,7 +32,7 @@ $_docs_basis_table
 
 - `|∅⟩` is the vacuum state;
 - `u` and `d` denote fermionic spin-up and spin-down operators;
-- in the slave-fermion representation, ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+- in the slave-fermion representation, ``h`` is the fermionic holon operator, and `bꜛ`, `bꜜ` are bosonic spinon operators.
 
 The possible symmetries are:
 - Particle number : `Trivial`, `U1Irrep`
@@ -234,7 +234,7 @@ Transform the given operator to the slave-fermion basis, which is related to the
 
 $_docs_basis_table
 
-where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+where ``h`` is the fermionic holon operator, and `bꜛ`, `bꜜ` are bosonic spinon operators.
 
 Fusing in the auxiliary fermionic charge flips the parity of every state, which changes the
 statistics of the operator: braiding the auxiliary legs of an ``N``-site operator through the

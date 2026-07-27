@@ -100,7 +100,7 @@ annihilates a particle at the second. The only nonzero matrix element is
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
-See also [`f_min_f_plus`](@ref) (``f^-_1 f^+_2 = -(f^+_1 f^-_2)^\\dagger``) and
+See also [`f_min_f_plus`](@ref) (``f^-_1 f^+_2 = -(f^+_1 f^-_2)^†``) and
 [`f_hopping`](@ref).
 """
 @operator f⁺f⁻ function f_plus_f_min(elt::Type{<:Number}, ::Type{Trivial})
@@ -120,7 +120,7 @@ creates a particle at the second. The only nonzero matrix element is
     -|0,1⟩ ↤ |1,0⟩
 ```
 The minus sign is the anticommutation sign that comes with reordering the two fermionic
-operators, i.e. ``f^-_1 f^+_2 = -(f^+_1 f^-_2)^\\dagger``.
+operators, i.e. ``f^-_1 f^+_2 = -(f^+_1 f^-_2)^†``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
@@ -148,7 +148,7 @@ particle number.
 
 Supported symmetries: `Trivial`.
 
-See also [`f_min_f_min`](@ref) (``f^-_1 f^-_2 = -(f^+_1 f^+_2)^\\dagger``).
+See also [`f_min_f_min`](@ref) (``f^-_1 f^-_2 = -(f^+_1 f^+_2)^†``).
 """
 @operator f⁺f⁺ function f_plus_f_plus(elt::Type{<:Number}, ::Type{Trivial})
     t = two_site_operator(elt, Trivial)
@@ -167,7 +167,7 @@ the second site. The only nonzero matrix element is
     -|0,0⟩ ↤ |1,1⟩
 ```
 where the minus sign is the anticommutation sign relative to ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩``,
-i.e. ``f^-_1 f^-_2 = -(f^+_1 f^+_2)^\\dagger``. It changes the number of particles by two, so
+i.e. ``f^-_1 f^-_2 = -(f^+_1 f^+_2)^†``. It changes the number of particles by two, so
 it preserves the fermion parity but not the particle number.
 
 Supported symmetries: `Trivial`.
@@ -188,7 +188,7 @@ end
 Return the two-body operator that describes a particle that hops between the first and the
 second site,
 ```math
-f_\\mathrm{hop} = f^+_1 f^-_2 - f^-_1 f^+_2 = f^+_1 f^-_2 + (f^+_1 f^-_2)^\\dagger,
+f_\\mathrm{hop} = f^+_1 f^-_2 - f^-_1 f^+_2 = f^+_1 f^-_2 + (f^+_1 f^-_2)^†,
 ```
 which is hermitian. Note the minus sign, which is what makes this combination hermitian here:
 ``f^-_1 f^+_2`` already carries the anticommutation sign, whereas the corresponding bosonic

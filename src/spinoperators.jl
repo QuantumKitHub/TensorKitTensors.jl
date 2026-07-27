@@ -44,7 +44,7 @@ See also [`symmetrize`](@ref TensorKitTensors.symmetrize).
 | Symmetry | Transformation |
 |---|---|
 | `Trivial` | identity |
-| `Z2Irrep` | Hadamard matrix ``\\begin{pmatrix} 1 & 1 \\\\ 1 & -1 \\end{pmatrix}/\\sqrt{2}`` |
+| `Z2Irrep` | Hadamard matrix ``\\begin{pmatrix} 1 & 1 \\\\ 1 & -1 \\end{pmatrix}/√2`` |
 | `U1Irrep` | permutation to the order of `sectors(spin_space(U1Irrep; spin))` |
 | `SU2Irrep` | identity |
 
@@ -150,7 +150,7 @@ The spin-x operator ``S^x = \\tfrac{1}{2}(S^+ + S^-)``.
 
 Supported symmetries: `Trivial`, `Z2Irrep`.
 
-See also [`σˣ`](@ref) (Pauli version ``\\sigma^x = 2S^x``).
+See also [`σˣ`](@ref) (Pauli version ``σ^x = 2S^x``).
 """
 @operator Sˣ function S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S_x_mat, = spinmatrices(spin, elt)
@@ -161,7 +161,7 @@ end
 @doc """
     σˣ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The Pauli-x operator ``\\sigma^x = 2S^x``.
+The Pauli-x operator ``σ^x = 2S^x``.
 
 Supported symmetries: `Trivial`, `Z2Irrep`.
 
@@ -177,7 +177,7 @@ The spin-y operator ``S^y = \\tfrac{1}{2i}(S^+ - S^-)``.
 
 Supported symmetries: `Trivial`.
 
-See also [`σʸ`](@ref) (Pauli version ``\\sigma^y = 2S^y``).
+See also [`σʸ`](@ref) (Pauli version ``σ^y = 2S^y``).
 """
 @operator Sʸ function S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     # explicit error to avoid infinite recursion:
@@ -190,7 +190,7 @@ end
 @doc """
     σʸ([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The Pauli-y operator ``\\sigma^y = 2S^y``.
+The Pauli-y operator ``σ^y = 2S^y``.
 
 Supported symmetries: `Trivial`.
 
@@ -203,11 +203,11 @@ See also [`S_y`](@ref).
     Sᶻ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin-z operator, diagonal in the standard basis with eigenvalues
-``m \\in \\{s,\\, s{-}1,\\, \\ldots,\\, -s\\}``.
+``m ∈ \\{s,\\, s{-}1,\\, …,\\, -s\\}``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
-See also [`σᶻ`](@ref) (Pauli version ``\\sigma^z = 2S^z``).
+See also [`σᶻ`](@ref) (Pauli version ``σ^z = 2S^z``).
 """
 @operator Sᶻ function S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     _, _, S_z_mat = spinmatrices(spin, elt)
@@ -218,7 +218,7 @@ end
 @doc """
     σᶻ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The Pauli-z operator ``\\sigma^z = 2S^z``.
+The Pauli-z operator ``σ^z = 2S^z``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
@@ -231,11 +231,11 @@ See also [`S_z`](@ref).
     S⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin raising operator ``S^+ = S^x + iS^y``, with matrix elements
-``\\langle m{+}1 \\vert S^+ \\vert m \\rangle = \\sqrt{s(s+1) - m(m+1)}``.
+``⟨m{+}1 | S^+ | m⟩ = \\sqrt{s(s+1) - m(m+1)}``.
 
 Supported symmetries: `Trivial`.
 
-See also [`σ⁺`](@ref) (Pauli version ``\\sigma^+ = 2S^+``).
+See also [`σ⁺`](@ref) (Pauli version ``σ^+ = 2S^+``).
 """
 @operator S⁺ function S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S⁺ = S_x(elt, Trivial; spin) + 1im * S_y(complex(elt), Trivial; spin)
@@ -248,7 +248,7 @@ end
 @doc """
     σ⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The Pauli raising operator ``\\sigma^+ = 2S^+``.
+The Pauli raising operator ``σ^+ = 2S^+``.
 
 Supported symmetries: `Trivial`.
 
@@ -261,11 +261,11 @@ See also [`S_plus`](@ref).
     S⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
 The spin lowering operator ``S^- = S^x - iS^y``, with matrix elements
-``\\langle m{-}1 \\vert S^- \\vert m \\rangle = \\sqrt{s(s+1) - m(m-1)}``.
+``⟨m{-}1 | S^- | m⟩ = \\sqrt{s(s+1) - m(m-1)}``.
 
 Supported symmetries: `Trivial`.
 
-See also [`σ⁻`](@ref) (Pauli version ``\\sigma^- = 2S^-``).
+See also [`σ⁻`](@ref) (Pauli version ``σ^- = 2S^-``).
 """
 @operator S⁻ function S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     S⁻ = S_x(elt, Trivial; spin) - 1im * S_y(complex(elt), Trivial; spin)
@@ -278,7 +278,7 @@ end
 @doc """
     σ⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The Pauli lowering operator ``\\sigma^- = 2S^-``.
+The Pauli lowering operator ``σ^- = 2S^-``.
 
 Supported symmetries: `Trivial`.
 
@@ -292,7 +292,7 @@ See also [`S_min`](@ref).
     S_x_S_x([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
     SˣSˣ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The two-site operator ``S^x \\otimes S^x``.
+The two-site operator ``S^x ⊗ S^x``.
 
 Supported symmetries: `Trivial`, `Z2Irrep`.
 """
@@ -304,7 +304,7 @@ end
     S_y_S_y([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
     SʸSʸ([eltype::Type{<:Complex}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The two-site operator ``S^y \\otimes S^y``.
+The two-site operator ``S^y ⊗ S^y``.
 
 Supported symmetries: `Trivial`, `Z2Irrep`.
 """
@@ -317,7 +317,7 @@ end
     S_z_S_z([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
     SᶻSᶻ([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The two-site operator ``S^z \\otimes S^z``.
+The two-site operator ``S^z ⊗ S^z``.
 
 Supported symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`.
 """
@@ -329,7 +329,7 @@ end
     S_plus_S_min([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
     S⁺S⁻([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The two-site operator ``S^+ \\otimes S^-``.
+The two-site operator ``S^+ ⊗ S^-``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
@@ -341,7 +341,7 @@ end
     S_min_S_plus([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
     S⁻S⁺([eltype::Type{<:Number}], [symmetry::Type{<:Sector}]; spin=1 // 2)
 
-The two-site operator ``S^- \\otimes S^+``.
+The two-site operator ``S^- ⊗ S^+``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 """
@@ -355,7 +355,7 @@ end
 
 The Heisenberg exchange operator
 ```math
-\\mathbf{S}_1 \\cdot \\mathbf{S}_2
+𝐒_1 ⋅ 𝐒_2
 = S^x_1 S^x_2 + S^y_1 S^y_2 + S^z_1 S^z_2
 = \\tfrac{1}{2}(S^+_1 S^-_2 + S^-_1 S^+_2) + S^z_1 S^z_2.
 ```
