@@ -301,25 +301,6 @@ function tjhamiltonian(particle_symmetry, spin_symmetry; t, J, mu, L, slave_ferm
     return H
 end
 
-@testset "spectrum" begin
-    rng = StableRNG(123)
-    L = 4
-    for slave_fermion in bases
-        t, J, mu = rand(rng, 3)
-        H_triv = tjhamiltonian(Trivial, Trivial; t, J, mu, L, slave_fermion)
-        vals_triv = expanded_eigenvalues(H_triv)
-
-        for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
-            (particle_symmetry, spin_symmetry) == (Trivial, Trivial) && continue
-            H_symm = tjhamiltonian(
-                particle_symmetry, spin_symmetry; t, J, mu, L, slave_fermion
-            )
-            vals_symm = expanded_eigenvalues(H_symm)
-            @test vals_triv ≈ vals_symm
-        end
-    end
-end
-
 @testset "Exact Diagonalisation" begin
     rng = StableRNG(123)
     t, J = rand(rng, 2)

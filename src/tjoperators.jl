@@ -699,10 +699,8 @@ end
     singlet_plus_singlet_min_3site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
     Δ⁺ij_Δjk([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
 
-Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where
-``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
-It describes the hopping of a singlet pair from bond `(j,k)`
-to a nearest neighbor bond `(i,j)` sharing site `j`.
+Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
+It describes the hopping of a singlet pair from bond `(j,k)` to a nearest neighbor bond `(i,j)` sharing site `j`.
 """
 @operator Δ⁺ij_Δjk function singlet_plus_singlet_min_3site(
         elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
@@ -730,8 +728,7 @@ end
     singlet_plus_singlet_min_4site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
     Δ⁺ij_Δkl([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
 
-Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where
-``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
 It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
 """
 @operator Δ⁺ij_Δkl function singlet_plus_singlet_min_4site(
