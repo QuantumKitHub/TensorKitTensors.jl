@@ -72,7 +72,7 @@ The truncated bosonic annihilation operator, with matrix elements
 ``\\langle n-1 | b^- | n \\rangle = \\sqrt{n}`` for ``n = 1, …, \\mathrm{cutoff}``, such that
 ``b^- |0⟩ = 0``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`b_plus`](@ref) (its adjoint ``b^+ = (b^-)^\\dagger``) and [`b_num`](@ref).
 """
@@ -94,7 +94,7 @@ The truncated bosonic creation operator, with matrix elements
 truncation removes the transition out of the top state, ``b^+ |\\mathrm{cutoff}⟩ = 0``, see
 [`boson_space`](@ref).
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`b_min`](@ref) (its adjoint ``b^- = (b^+)^\\dagger``) and [`b_num`](@ref).
 """
@@ -114,7 +114,7 @@ end
 The truncated bosonic number operator ``n = b^+ b^-``, diagonal in the occupation-number
 basis with eigenvalues ``0, 1, …, \\mathrm{cutoff}``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator n function b_num(elt::Type{<:Number}, ::Type{Trivial}; cutoff::Integer)
     pspace = boson_space(Trivial; cutoff)
@@ -134,7 +134,7 @@ end
 The truncated bosonic pair-creation operator ``b^+ \\otimes b^+``, which raises the boson
 number of both sites by one and therefore changes the total boson number by two.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`b_min_b_min`](@ref) (its adjoint).
 """
@@ -150,7 +150,7 @@ end
 The truncated bosonic left-hopping operator ``b^+ \\otimes b^-``, which moves a boson from the
 second to the first site.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`b_min_b_plus`](@ref) (its adjoint) and [`b_hopping`](@ref).
 """
@@ -167,7 +167,7 @@ end
 The truncated bosonic right-hopping operator ``b^- \\otimes b^+``, which moves a boson from the
 first to the second site.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`b_plus_b_min`](@ref) (its adjoint) and [`b_hopping`](@ref).
 """
@@ -184,7 +184,7 @@ end
 The truncated bosonic pair-annihilation operator ``b^- \\otimes b^-``, which lowers the boson
 number of both sites by one and therefore changes the total boson number by two.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`b_plus_b_plus`](@ref) (its adjoint).
 """
@@ -205,7 +205,7 @@ b_\\mathrm{hop} = b^+_1 b^-_2 + b^-_1 b^+_2 = b^+_1 b^-_2 + (b^+_1 b^-_2)^\\dagg
 which is hermitian. Note the plus sign: unlike its fermionic counterpart, ``b^-_1 b^+_2`` is
 the plain adjoint of ``b^+_1 b^-_2`` and carries no additional sign.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`b_plus_b_min`](@ref) and [`b_min_b_plus`](@ref).
 """

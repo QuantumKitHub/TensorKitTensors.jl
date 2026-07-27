@@ -190,7 +190,7 @@ projector within the Hubbard space.
 
 The scalartype is `Int` to avoid floating point errors.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Vhub = HubbardOperators.hubbard_space(particle_symmetry, spin_symmetry)

@@ -76,7 +76,7 @@ for an ``N``-site operator `op`.
 The projector is defined in the plain t-J basis only: the slave-fermion basis has no Hubbard counterpart.
 
 Because double occupancy is removed rather than merely energetically penalized, this module exports no on-site interaction: there is no `ud_num` and no `half_ud_num`.
-For the same reason [`h_num`](@ref) is a genuine projector onto the empty state here, whereas its Hubbard namesake takes the value ``-1`` on the doubly occupied state.
+For the same reason [`h_num`](@ref) and [`e_num`](@ref) are complementary here, ``n^h + n = 1``, whereas in the Hubbard model they overshoot the identity by the double occupancy.
 
 ### Symmetry sectors
 

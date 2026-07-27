@@ -148,7 +148,7 @@ end
 
 The spin-x operator ``S^x = \\tfrac{1}{2}(S^+ + S^-)``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 
 See also [`σˣ`](@ref) (Pauli version ``\\sigma^x = 2S^x``).
 """
@@ -163,7 +163,7 @@ end
 
 The Pauli-x operator ``\\sigma^x = 2S^x``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 
 See also [`S_x`](@ref).
 """ σˣ
@@ -175,7 +175,7 @@ See also [`S_x`](@ref).
 
 The spin-y operator ``S^y = \\tfrac{1}{2i}(S^+ - S^-)``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`σʸ`](@ref) (Pauli version ``\\sigma^y = 2S^y``).
 """
@@ -192,7 +192,7 @@ end
 
 The Pauli-y operator ``\\sigma^y = 2S^y``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`S_y`](@ref).
 """ σʸ
@@ -205,7 +205,7 @@ See also [`S_y`](@ref).
 The spin-z operator, diagonal in the standard basis with eigenvalues
 ``m \\in \\{s,\\, s{-}1,\\, \\ldots,\\, -s\\}``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`σᶻ`](@ref) (Pauli version ``\\sigma^z = 2S^z``).
 """
@@ -220,7 +220,7 @@ end
 
 The Pauli-z operator ``\\sigma^z = 2S^z``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`S_z`](@ref).
 """ σᶻ
@@ -233,7 +233,7 @@ See also [`S_z`](@ref).
 The spin raising operator ``S^+ = S^x + iS^y``, with matrix elements
 ``\\langle m{+}1 \\vert S^+ \\vert m \\rangle = \\sqrt{s(s+1) - m(m+1)}``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`σ⁺`](@ref) (Pauli version ``\\sigma^+ = 2S^+``).
 """
@@ -250,7 +250,7 @@ end
 
 The Pauli raising operator ``\\sigma^+ = 2S^+``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`S_plus`](@ref).
 """ σ⁺
@@ -263,7 +263,7 @@ See also [`S_plus`](@ref).
 The spin lowering operator ``S^- = S^x - iS^y``, with matrix elements
 ``\\langle m{-}1 \\vert S^- \\vert m \\rangle = \\sqrt{s(s+1) - m(m-1)}``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`σ⁻`](@ref) (Pauli version ``\\sigma^- = 2S^-``).
 """
@@ -280,7 +280,7 @@ end
 
 The Pauli lowering operator ``\\sigma^- = 2S^-``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`S_min`](@ref).
 """ σ⁻
@@ -294,7 +294,7 @@ See also [`S_min`](@ref).
 
 The two-site operator ``S^x \\otimes S^x``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 """
 @operator SˣSˣ function S_x_S_x(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_x(elt, Trivial; spin) ⊗ S_x(elt, Trivial; spin)
@@ -306,7 +306,7 @@ end
 
 The two-site operator ``S^y \\otimes S^y``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 """
 @operator SʸSʸ function S_y_S_y(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     YY = S_y(complex(elt), Trivial; spin) ⊗ S_y(complex(elt), Trivial; spin)
@@ -319,7 +319,7 @@ end
 
 The two-site operator ``S^z \\otimes S^z``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`.
 """
 @operator SᶻSᶻ function S_z_S_z(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_z(elt, Trivial; spin) ⊗ S_z(elt, Trivial; spin)
@@ -331,7 +331,7 @@ end
 
 The two-site operator ``S^+ \\otimes S^-``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator S⁺S⁻ function S_plus_S_min(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_plus(elt, Trivial; spin) ⊗ S_min(elt, Trivial; spin)
@@ -343,7 +343,7 @@ end
 
 The two-site operator ``S^- \\otimes S^+``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator S⁻S⁺ function S_min_S_plus(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return S_min(elt, Trivial; spin) ⊗ S_plus(elt, Trivial; spin)
@@ -363,7 +363,7 @@ The Heisenberg exchange operator
 For `SU2Irrep` the operator is diagonal in the total-spin basis with eigenvalue
 ``\\tfrac{1}{2}[C_2(j_{\\text{tot}}) - 2C_2(s)]``, where ``C_2(j) = j(j+1)``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`, `SU2Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`, `Z2Irrep`, `SU2Irrep`.
 """
 @operator SS function S_exchange(elt::Type{<:Number}, ::Type{Trivial}; spin = 1 // 2)
     return (S_plus_S_min(elt, Trivial; spin) + S_min_S_plus(elt, Trivial; spin)) / 2 +

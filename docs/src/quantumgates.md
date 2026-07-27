@@ -57,7 +57,7 @@ crx = controlled(rotation_x(; theta = π / 2))
 
 ## Gate overview
 
-| Function | Alias(es) | Sites | Compatible symmetries |
+| Function | Alias(es) | Sites | Supported symmetries |
 |---|---|---|---|
 | [`qubit_space`](@ref) | — | — | `Trivial`, `Z2Irrep`, `U1Irrep` |
 | [`pauli_x`](@ref) | `X` | 1 | `Trivial` |

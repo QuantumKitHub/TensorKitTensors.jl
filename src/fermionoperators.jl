@@ -73,7 +73,7 @@ end
 Return the one-body operator that counts the number of particles, ``n = f^+ f^-``, which is
 diagonal with eigenvalues ``0`` (empty) and ``1`` (occupied).
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 """
 @operator n function f_num(elt::Type{<:Number}, ::Type{Trivial})
     t = single_site_operator(elt, Trivial)
@@ -98,7 +98,7 @@ annihilates a particle at the second. The only nonzero matrix element is
     +|1,0⟩ ↤ |0,1⟩
 ```
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`f_min_f_plus`](@ref) (``f^-_1 f^+_2 = -(f^+_1 f^-_2)^\\dagger``) and
 [`f_hopping`](@ref).
@@ -122,7 +122,7 @@ creates a particle at the second. The only nonzero matrix element is
 The minus sign is the anticommutation sign that comes with reordering the two fermionic
 operators, i.e. ``f^-_1 f^+_2 = -(f^+_1 f^-_2)^\\dagger``.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`f_plus_f_min`](@ref) and [`f_hopping`](@ref).
 """
@@ -146,7 +146,7 @@ only nonzero matrix element is
 It changes the number of particles by two, so it preserves the fermion parity but not the
 particle number.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`f_min_f_min`](@ref) (``f^-_1 f^-_2 = -(f^+_1 f^+_2)^\\dagger``).
 """
@@ -170,7 +170,7 @@ where the minus sign is the anticommutation sign relative to ``|1,1⟩ = f^+_1 f
 i.e. ``f^-_1 f^-_2 = -(f^+_1 f^+_2)^\\dagger``. It changes the number of particles by two, so
 it preserves the fermion parity but not the particle number.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 
 See also [`f_plus_f_plus`](@ref).
 """
@@ -194,7 +194,7 @@ which is hermitian. Note the minus sign, which is what makes this combination he
 ``f^-_1 f^+_2`` already carries the anticommutation sign, whereas the corresponding bosonic
 hopping operator is a sum.
 
-Compatible symmetries: `Trivial`, `U1Irrep`.
+Supported symmetries: `Trivial`, `U1Irrep`.
 
 See also [`f_plus_f_min`](@ref) and [`f_min_f_plus`](@ref).
 """

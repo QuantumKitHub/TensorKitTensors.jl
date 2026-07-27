@@ -202,7 +202,7 @@ Return the one-body operator ``n_↑ = e^†_↑ e_↑`` that counts the number 
 diagonal with eigenvalue ``1`` on every basis state that holds a spin-up electron and ``0`` on
 the others.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`d_num`](@ref) and [`e_num`](@ref).
 """
@@ -222,7 +222,7 @@ Return the one-body operator ``n_↓ = e^†_↓ e_↓`` that counts the number 
 diagonal with eigenvalue ``1`` on every basis state that holds a spin-down electron and ``0`` on
 the others.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`u_num`](@ref) and [`e_num`](@ref).
 """
@@ -246,7 +246,7 @@ with the occupation of each basis state as eigenvalue.
     `SU2Irrep` particle symmetry; see
     [`basis_transform`](@ref HubbardOperators.basis_transform).
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`u_num`](@ref), [`d_num`](@ref) and [`h_num`](@ref).
 """
@@ -261,7 +261,7 @@ end
 Return the one-body operator ``n_↑ n_↓``, i.e. the projector onto the doubly occupied state
 ``|↑↓⟩``. This is the on-site interaction term of the Hubbard model.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`half_ud_num`](@ref) for the particle-hole symmetric form.
 """
@@ -279,7 +279,7 @@ the on-site interaction. It is diagonal with eigenvalue ``+1/4`` on ``|0⟩`` an
 Being a scalar under both the spin and the ``η``-pairing SU(2), this is the only interaction
 term of this module that is available for every symmetry combination.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`ud_num`](@ref), which differs from it by ``(n - 1)/2 + 1/4``.
 """
@@ -292,20 +292,20 @@ end
     h_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     nʰ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator ``n^h = 1 - n``, the number of holes relative to single occupancy.
+Return the one-body operator ``n^h = (1 - n_↑)(1 - n_↓)`` that counts the number of holes, i.e.
+the projector onto the empty state ``|0⟩``.
 
-!!! note "Value on the doubly occupied state"
-    On ``|↑↓⟩`` this operator takes the value ``-1`` rather than ``0``, so it counts holes only
-    on the empty and singly occupied states. Use [`ud_num`](@ref) to single out double
-    occupancy. In the `TJOperators` module, where double occupancy is projected out, ``n^h`` is
-    a genuine projector onto the empty state.
+!!! note "The doubly occupied state is not a hole"
+    Equivalently ``n^h = 1 - n + n_↑ n_↓``, so that ``n^h + n = 1 + n_↑ n_↓`` rather than
+    ``1``: double occupancy does not count as a hole. Use [`ud_num`](@ref) to single it out.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`e_num`](@ref).
 """
 @operator nʰ function h_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    return id(elt, hubbard_space(Trivial, Trivial)) - e_num(elt, Trivial, Trivial)
+    I = id(elt, hubbard_space(Trivial, Trivial))
+    return (I - u_num(elt, Trivial, Trivial)) * (I - d_num(elt, Trivial, Trivial))
 end
 
 """
@@ -315,7 +315,7 @@ end
 Return the spin raising operator ``S^+ = e^†_↑ e_↓``, whose only nonzero matrix element is
 ``+|↑⟩ ↤ |↓⟩``.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
 See also [`S_min`](@ref) (its adjoint) and [`S_plus_S_min`](@ref).
 """
@@ -333,7 +333,7 @@ end
 Return the spin lowering operator ``S^- = e^†_↓ e_↑ = (S^+)^\\dagger``, whose only nonzero
 matrix element is ``+|↓⟩ ↤ |↑⟩``.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
 See also [`S_plus`](@ref) and [`S_min_S_plus`](@ref).
 """
@@ -349,7 +349,7 @@ Return the one-body spin-1/2 x-operator on the electrons,
 ``S^x = (S^+ + S^-)/2``. It acts as the spin-1/2 ``S^x`` on the singly occupied states and
 annihilates the states that carry no unpaired spin.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 """
 @operator Sˣ function S_x(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (S_plus(elt, Trivial, Trivial) + S_min(elt, Trivial, Trivial)) / 2
@@ -364,7 +364,7 @@ Return the one-body spin-1/2 y-operator on the electrons,
 annihilates the states that carry no unpaired spin. Since its matrix elements are imaginary, it requires a
 complex `elt` and throws an `ArgumentError` otherwise.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 """
 @operator Sʸ function S_y(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     # explicit error to avoid infinite recursion:
@@ -384,7 +384,7 @@ states and ``0`` on the states that carry no unpaired spin.
     Unlike the transverse components, this operator survives `SU2Irrep` *particle* symmetry:
     the two symmetry axes are independent.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
 """
 @operator Sᶻ function S_z(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (u_num(elt, Trivial, Trivial) - d_num(elt, Trivial, Trivial)) / 2
@@ -399,7 +399,7 @@ end
 Return the two-body operator ``e^†_{1,↑} e_{2,↑}`` that creates a spin-up electron at the first
 site and annihilates a spin-up electron at the second.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`u_min_u_plus`](@ref) and [`e_plus_e_min`](@ref).
 """
@@ -420,7 +420,7 @@ end
 Return the two-body operator ``e^†_{1,↓} e_{2,↓}`` that creates a spin-down electron at the
 first site and annihilates a spin-down electron at the second.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`d_min_d_plus`](@ref) and [`e_plus_e_min`](@ref).
 """
@@ -442,7 +442,7 @@ Return the two-body operator ``e_{1,↑} e^†_{2,↑}`` that annihilates a spin
 first site and creates a spin-up electron at the second. It is minus the adjoint of
 [`u_plus_u_min`](@ref), the sign being the fermionic reordering sign.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`e_min_e_plus`](@ref).
 """
@@ -458,7 +458,7 @@ Return the two-body operator ``e_{1,↓} e^†_{2,↓}`` that annihilates a spin
 first site and creates a spin-down electron at the second. It is minus the adjoint of
 [`d_plus_d_min`](@ref), the sign being the fermionic reordering sign.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`e_min_e_plus`](@ref).
 """
@@ -474,7 +474,7 @@ Return the two-body operator ``\\sum_σ e^†_{1,σ} e_{2,σ}`` that creates an 
 site and annihilates an electron at the second. This is the sum of [`u_plus_u_min`](@ref) and
 [`d_plus_d_min`](@ref), and is a spin scalar, hence available for `SU2Irrep` spin symmetry.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`e_min_e_plus`](@ref) and [`e_hopping`](@ref).
 """
@@ -490,7 +490,7 @@ Return the two-body operator ``\\sum_σ e_{1,σ} e^†_{2,σ}`` that annihilates
 first site and creates an electron at the second. This is the sum of [`u_min_u_plus`](@ref) and
 [`d_min_d_plus`](@ref), and equals minus the adjoint of [`e_plus_e_min`](@ref).
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`e_hopping`](@ref).
 """
@@ -521,7 +521,7 @@ model.
     elementwise equal to its `Trivial` counterpart, although it generates the same physics on a
     bipartite lattice.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 @operator e_hop function e_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return e_plus_e_min(elt, Trivial, Trivial) - e_min_e_plus(elt, Trivial, Trivial)
@@ -541,7 +541,7 @@ two, so it is only available without particle symmetry.
         +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
     ```
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
 See also [`u_plus_d_plus`](@ref), [`d_min_u_min`](@ref) and [`singlet_min`](@ref).
 """
@@ -563,7 +563,7 @@ Return the two-body operator ``e^†_{1,↑} e^†_{2,↓}`` that creates a spin
 first site and a spin-down electron at the second site. It is minus the adjoint of
 [`u_min_d_min`](@ref), and raises the total electron number by two.
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
 See also [`singlet_plus`](@ref).
 """
@@ -585,7 +585,7 @@ two, so it is only available without particle symmetry.
         -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
     ```
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
 See also [`d_plus_u_plus`](@ref), [`u_min_d_min`](@ref) and [`singlet_min`](@ref).
 """
@@ -607,7 +607,7 @@ Return the two-body operator ``e^†_{1,↓} e^†_{2,↑}`` that creates a spin
 first site and a spin-up electron at the second site. It is minus the adjoint of
 [`d_min_u_min`](@ref), and raises the total electron number by two.
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
 See also [`singlet_plus`](@ref).
 """
@@ -629,7 +629,7 @@ the total ``S^z`` by one, so it requires trivial particle *and* spin symmetry.
         +|↓,0⟩ ↤ |↑↓,↑⟩,    +|↓,↓⟩ ↤ |↑↓,↑↓⟩
     ```
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`.
+Supported symmetries: particle `Trivial`; spin `Trivial`.
 
 See also [`u_plus_u_plus`](@ref) and [`d_min_d_min`](@ref).
 """
@@ -650,7 +650,7 @@ end
 Return the two-body operator ``e^†_{1,↑} e^†_{2,↑}`` that creates a spin-up electron at both
 sites. It is minus the adjoint of [`u_min_u_min`](@ref).
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`.
+Supported symmetries: particle `Trivial`; spin `Trivial`.
 """
 @operator u⁺u⁺ function u_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_min_u_min(elt, Trivial, Trivial)))
@@ -670,7 +670,7 @@ raises the total ``S^z`` by one, so it requires trivial particle *and* spin symm
         -|↑,0⟩ ↤ |↑↓,↓⟩,    +|↑,↑⟩ ↤ |↑↓,↑↓⟩
     ```
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`.
+Supported symmetries: particle `Trivial`; spin `Trivial`.
 
 See also [`d_plus_d_plus`](@ref) and [`u_min_u_min`](@ref).
 """
@@ -691,7 +691,7 @@ end
 Return the two-body operator ``e^†_{1,↓} e^†_{2,↓}`` that creates a spin-down electron at both
 sites. It is minus the adjoint of [`d_min_d_min`](@ref).
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`.
+Supported symmetries: particle `Trivial`; spin `Trivial`.
 """
 @operator d⁺d⁺ function d_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_min_d_min(elt, Trivial, Trivial)))
@@ -706,7 +706,7 @@ which creates the singlet state when acting on the vacuum. Being a spin scalar i
 `SU2Irrep` spin symmetry, but it raises the total electron number by two and therefore requires
 trivial particle symmetry.
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`singlet_min`](@ref) and [`singlet_plus_singlet_min_4site`](@ref), whose product form
 is available for `U1Irrep` particle symmetry as well.
@@ -724,7 +724,7 @@ Return the adjoint of the [`singlet_plus`](@ref) operator, which is
 ``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``. It annihilates a singlet pair, lowering the
 total electron number by two.
 
-Compatible symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 @operator singlet⁻ function singlet_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return copy(adjoint(singlet_plus(elt, Trivial, Trivial)))
@@ -756,7 +756,7 @@ Unlike the individual [`singlet_plus`](@ref) and [`singlet_min`](@ref), the prod
 ``Δ^† Δ`` conserves the electron number and is therefore also available for `U1Irrep` particle
 symmetry.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 @operator Δ⁺ij_Δjk function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     singp = singlet_plus(elt, Trivial, Trivial)
@@ -776,7 +776,7 @@ Unlike the individual [`singlet_plus`](@ref) and [`singlet_min`](@ref), the prod
 ``Δ^† Δ`` conserves the electron number and is therefore also available for `U1Irrep` particle
 symmetry.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 @operator Δ⁺ij_Δkl function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     singp = singlet_plus(elt, Trivial, Trivial)
@@ -793,7 +793,7 @@ an up spin on the second site down. The only nonzero matrix element is
     +|↑,↓⟩ ↤ |↓,↑⟩
 ```
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`S_min_S_plus`](@ref) (its adjoint) and [`S_exchange`](@ref).
 """
@@ -814,7 +814,7 @@ element is
     +|↓,↑⟩ ↤ |↑,↓⟩
 ```
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
 
 See also [`S_plus_S_min`](@ref) and [`S_exchange`](@ref).
 """
@@ -837,7 +837,7 @@ i.e. the Heisenberg exchange interaction between the two sites.
     Being a scalar under both the spin and the ``η``-pairing SU(2), this operator is available
     for every symmetry combination.
 
-Compatible symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
+Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 
 See also [`S_z`](@ref), [`S_plus_S_min`](@ref) and [`S_min_S_plus`](@ref).
 """

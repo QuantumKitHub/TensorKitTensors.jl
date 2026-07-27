@@ -118,7 +118,7 @@ end
 
 The Pauli-X (NOT) gate ``\\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator X function pauli_x(elt::Type{<:Number}, ::Type{Trivial})
     return TensorMap(elt[0 1; 1 0], qubit_space() ← qubit_space())
@@ -130,7 +130,7 @@ end
 
 The Pauli-Y gate ``\\begin{pmatrix} 0 & -i \\\\ i & 0 \\end{pmatrix}``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator Y function pauli_y(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :pauli_y)
@@ -143,7 +143,7 @@ end
 
 The Pauli-Z gate ``\\begin{pmatrix} 1 & 0 \\\\ 0 & -1 \\end{pmatrix}``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator Z function pauli_z(elt::Type{<:Number}, ::Type{Trivial})
     return TensorMap(elt[1 0; 0 -1], qubit_space() ← qubit_space())
@@ -157,7 +157,7 @@ end
 
 The projector onto ``|0⟩``, ``|0⟩⟨0| = \\tfrac{1}{2}(I + Z)``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator P0 function proj_0(elt::Type{<:Number}, ::Type{Trivial})
     return TensorMap(elt[1 0; 0 0], qubit_space() ← qubit_space())
@@ -169,7 +169,7 @@ end
 
 The projector onto ``|1⟩``, ``|1⟩⟨1| = \\tfrac{1}{2}(I - Z)``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator P1 function proj_1(elt::Type{<:Number}, ::Type{Trivial})
     return TensorMap(elt[0 0; 0 1], qubit_space() ← qubit_space())
@@ -183,7 +183,7 @@ end
 
 The Hadamard gate ``H = \\tfrac{1}{\\sqrt 2}(X + Z)``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator H function hadamard(elt::Type{<:Number}, ::Type{Trivial})
     h = signedroot(1 // 2)
@@ -197,7 +197,7 @@ end
 The phase-shift gate ``\\mathrm{diag}(1, e^{iθ}) = |0⟩⟨0| + e^{iθ} |1⟩⟨1|``, with required
 rotation angle `theta`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator P function phase_shift(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :phase_shift)
@@ -211,7 +211,7 @@ end
 The phase gate ``S = \\sqrt Z = \\mathrm{diag}(1, i)``, i.e. `phase_shift(; theta=π/2)`.
 Its adjoint ``S^†`` is `s_gate()'`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator S function s_gate(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :s_gate)
@@ -225,7 +225,7 @@ end
 The ``T`` (π/8) gate ``T = \\sqrt S = \\mathrm{diag}(1, e^{iπ/4})``, i.e. `phase_shift(; theta=π/4)`.
 Its adjoint ``T^†`` is `t_gate()'`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator T function t_gate(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :t_gate)
@@ -241,7 +241,7 @@ end
 The x-rotation gate ``e^{-iθX/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,X``, with
 required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator Rx function rotation_x(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_x)
@@ -255,7 +255,7 @@ end
 The y-rotation gate ``e^{-iθY/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Y``, with
 required rotation angle `theta`. Unlike the other rotations, this one is real-valued.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator Ry function rotation_y(elt::Type{<:Number}, ::Type{Trivial}; theta)
     R = _rotation(pauli_y(complex(elt), Trivial), theta)
@@ -269,7 +269,7 @@ end
 The z-rotation gate ``e^{-iθZ/2} = \\cos\\tfrac{θ}{2}\\,I - i\\sin\\tfrac{θ}{2}\\,Z``, with
 required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator Rz function rotation_z(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_z)
@@ -292,7 +292,7 @@ with required angles `theta`, `phi` and `lambda`. Every single-qubit gate is a s
 it, e.g. `u3(; theta = 0, phi = 0, lambda = θ)` is [`phase_shift`](@ref) and
 `u3(; theta = π, phi = 0, lambda = π)` is [`pauli_x`](@ref).
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator U function u3(elt::Type{<:Number}, ::Type{Trivial}; theta, phi, lambda)
     _require_complex(elt, :u3)
@@ -312,7 +312,7 @@ end
 
 The controlled-NOT gate ``|0⟩⟨0| ⊗ I + |1⟩⟨1| ⊗ X``: applies [`pauli_x`](@ref) to the second qubit if the first is ``|1⟩``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator CNOT function cnot(elt::Type{<:Number}, ::Type{Trivial})
     return controlled(pauli_x(elt, Trivial))
@@ -325,7 +325,7 @@ const CX = cnot
 
 The controlled-Y gate ``|0⟩⟨0| ⊗ I + |1⟩⟨1| ⊗ Y``: applies [`pauli_y`](@ref) to the second qubit if the first is ``|1⟩``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator CY function cy(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :cy)
@@ -338,7 +338,7 @@ end
 
 The controlled-Hadamard gate ``|0⟩⟨0| ⊗ I + |1⟩⟨1| ⊗ H``: applies [`hadamard`](@ref) to the second qubit if the first is ``|1⟩``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator CH function ch(elt::Type{<:Number}, ::Type{Trivial})
     return controlled(hadamard(elt, Trivial))
@@ -351,7 +351,7 @@ end
 The controlled phase-shift gate ``\\mathrm{diag}(1, 1, 1, e^{iθ})``, with required rotation
 angle `theta`: applies [`phase_shift`](@ref) to the second qubit if the first is ``|1⟩``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator CP function cphase(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :cphase)
@@ -364,7 +364,7 @@ end
 
 The controlled-Z gate ``\\mathrm{diag}(1, 1, 1, -1)``, i.e. `cphase(; theta=π)`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator CZ function cz(elt::Type{<:Number}, ::Type{Trivial})
     return controlled(pauli_z(elt, Trivial))
@@ -376,7 +376,7 @@ end
 
 The controlled-``S`` gate ``\\mathrm{diag}(1, 1, 1, i)``, i.e. `cphase(; theta=π/2)`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator CS function cs(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :cs)
@@ -389,7 +389,7 @@ end
 
 The gate that swaps two qubits, ``|ab⟩ ↦ |ba⟩``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator SWAP function swap(elt::Type{<:Number}, ::Type{Trivial})
     q = qubit_space()
@@ -402,7 +402,7 @@ end
 
 The iSWAP gate, swapping two qubits with an extra factor ``i`` on the ``|01⟩ ↔ |10⟩`` amplitudes.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator ISWAP function iswap(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :iswap)
@@ -418,7 +418,7 @@ end
 
 The double-CNOT gate: two back-to-back CNOTs with alternating control and target.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator DCX function dcx(elt::Type{<:Number}, ::Type{Trivial})
     # the CNOT with control and target interchanged, applied after the regular CNOT
@@ -433,7 +433,7 @@ end
 
 The echoed cross-resonance gate ``\\mathrm{ECR} = \\tfrac{1}{\\sqrt 2}(X ⊗ I - Y ⊗ X)``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator ECR function ecr(elt::Type{<:Number}, ::Type{Trivial})
     _require_complex(elt, :ecr)
@@ -451,7 +451,7 @@ end
 The XX-rotation (Ising coupling) gate ``e^{-iθ\\, X ⊗ X / 2} = \\cos\\tfrac{θ}{2}\\,I ⊗ I - i\\sin\\tfrac{θ}{2}\\,X ⊗ X``,
 with required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 """
 @operator Rxx function rotation_xx(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_xx)
@@ -465,7 +465,7 @@ end
 The YY-rotation gate ``e^{-iθ\\, Y ⊗ Y / 2} = \\cos\\tfrac{θ}{2}\\,I ⊗ I - i\\sin\\tfrac{θ}{2}\\,Y ⊗ Y``,
 with required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`.
 """
 @operator Ryy function rotation_yy(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_yy)
@@ -479,7 +479,7 @@ end
 The ZZ-rotation gate ``e^{-iθ\\, Z ⊗ Z / 2} = \\cos\\tfrac{θ}{2}\\,I ⊗ I - i\\sin\\tfrac{θ}{2}\\,Z ⊗ Z``,
 with required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator Rzz function rotation_zz(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_zz)
@@ -493,7 +493,7 @@ end
 The ZX-rotation gate ``e^{-iθ\\, Z ⊗ X / 2} = \\cos\\tfrac{θ}{2}\\,I ⊗ I - i\\sin\\tfrac{θ}{2}\\,Z ⊗ X``,
 with required rotation angle `theta`.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator Rzx function rotation_zx(elt::Type{<:Number}, ::Type{Trivial}; theta)
     _require_complex(elt, :rotation_zx)
@@ -509,7 +509,7 @@ end
 
 The Toffoli (CCX) gate ``|0⟩⟨0| ⊗ I ⊗ I + |1⟩⟨1| ⊗ \\mathrm{CNOT}``: applies [`pauli_x`](@ref) to the third qubit if the first two are both ``|1⟩``.
 
-Compatible symmetries: `Trivial`.
+Supported symmetries: `Trivial`.
 """
 @operator TOFFOLI function toffoli(elt::Type{<:Number}, ::Type{Trivial})
     return controlled(cnot(elt, Trivial))
@@ -523,7 +523,7 @@ const CCX = toffoli
 
 The Fredkin (CSWAP) gate ``|0⟩⟨0| ⊗ I ⊗ I + |1⟩⟨1| ⊗ \\mathrm{SWAP}``: swaps the last two qubits if the first is ``|1⟩``.
 
-Compatible symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
+Supported symmetries: `Trivial`, `Z2Irrep`, `U1Irrep`.
 """
 @operator FREDKIN function fredkin(elt::Type{<:Number}, ::Type{Trivial})
     return controlled(swap(elt, Trivial))
