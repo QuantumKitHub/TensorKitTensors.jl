@@ -138,9 +138,11 @@ end
         @test proj isa AbstractTensorMap{Int}
         @test proj * proj' ≈ id(tj_space(particle_symmetry, spin_symmetry))
         for name in (
-                :e_num, :h_num, :u_num, :d_num, :S_z, :S_x, :S_plus, :S_min,
-                :u_plus_u_min, :d_plus_d_min, :e_plus_e_min, :e_min_e_plus, :e_hopping,
-                :u_min_d_min, :d_min_u_min, :u_min_u_min, :d_min_d_min,
+                :e_num, :h_num, :u_num, :d_num, :S_z, :S_x, :S_y, :S_plus, :S_min,
+                :u_plus_u_min, :d_plus_d_min, :u_min_u_plus, :d_min_d_plus,
+                :e_plus_e_min, :e_min_e_plus, :e_hopping,
+                :u_min_d_min, :d_min_u_min, :u_plus_d_plus, :d_plus_u_plus,
+                :u_min_u_min, :d_min_d_min, :u_plus_u_plus, :d_plus_d_plus,
                 :singlet_plus, :singlet_min, :S_plus_S_min, :S_min_S_plus, :S_exchange,
                 :singlet_plus_singlet_min_3site, :singlet_plus_singlet_min_4site,
             )
@@ -155,6 +157,18 @@ end
             @test projⁿ * O_hub * projⁿ' ≈ O_tj
         end
     end
+end
+
+@testset "Hubbard operator coverage" begin
+    # every t-J operator is generated from the `HubbardOperators` operator of the same name, so
+    # the exported names may only differ by the spaces, the basis utilities, and the
+    # double-occupancy operators (which project to zero and have no t-J counterpart)
+    tj_names = filter(!=(nameof(TJOperators)), names(TJOperators))
+    hub_names = filter(!=(nameof(HO)), names(HO))
+    @test Set(setdiff(tj_names, hub_names)) ==
+        Set((:tj_space, :tj_projector, :transform_slave_fermion))
+    @test Set(setdiff(hub_names, tj_names)) ==
+        Set((:hubbard_space, :ud_num, :nꜛꜜ, :half_ud_num))
 end
 
 @testset "regression values" begin

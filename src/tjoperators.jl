@@ -6,30 +6,9 @@ import ..HubbardOperators
 import ..TensorKitTensors: symmetrize, desymmetrize, fuse_local_operators, @operator
 
 export tj_space, basis_transform, tj_projector
-export e_num, u_num, d_num, h_num
-export S_x, S_y, S_z, S_plus, S_min
-export u_plus_u_min, d_plus_d_min
-export u_min_u_plus, d_min_d_plus
-export u_min_d_min, d_min_u_min
-export u_plus_d_plus, d_plus_u_plus
-export u_min_u_min, d_min_d_min
-export u_plus_u_plus, d_plus_d_plus
-export e_plus_e_min, e_min_e_plus, e_hopping
-export singlet_plus, singlet_min
-export singlet_plus_singlet_min_3site, singlet_plus_singlet_min_4site
-export S_plus_S_min, S_min_S_plus, S_exchange
-
-export nꜛ, nꜜ, nʰ, n
-export Sˣ, Sʸ, Sᶻ, S⁺, S⁻
-export u⁺u⁻, d⁺d⁻, u⁻u⁺, d⁻d⁺
-export u⁻d⁻, d⁻u⁻, u⁺d⁺, d⁺u⁺
-export u⁻u⁻, u⁺u⁺, d⁻d⁻, d⁺d⁺
-export e⁺e⁻, e⁻e⁺, e_hop
-export singlet⁺, singlet⁻
-export Δ⁺ij_Δjk, Δ⁺ij_Δkl
-export S⁻S⁺, S⁺S⁻, SS
-
 export transform_slave_fermion
+# the operator names and their aliases are exported by the generation loop at the bottom of
+# this file, from the `_OPERATORS` registry
 
 const _docs_basis_table = """
 ```
@@ -187,19 +166,24 @@ function _symmetrize_operator(
     )
 end
 
+# Relation to the Hubbard model
+# -----------------------------
 """
     tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
 Projection operator from Hubbard space to t-J space, which removes the doubly occupied state
-``|↑↓⟩``. The t-J operators of this module are related to their `HubbardOperators`
-counterparts by
+``|↑↓⟩``. The operators of this module are *defined* as the projections of their
+`HubbardOperators` counterparts of the same name, i.e. they satisfy
 
 ```julia
 proj = reduce(⊗, ntuple(Returns(tj_projector(P, S)), N))
 TJOperators.op(elt, P, S) ≈ proj * HubbardOperators.op(elt, P, S) * proj'
 ```
 
-for an `N`-site operator `op`. The scalartype is `Int` to avoid floating point errors.
+for an `N`-site operator `op`. The double-occupancy operators of the Hubbard model
+(`ud_num` and `half_ud_num`) have no t-J counterpart, as they project to zero.
+
+The scalartype is `Int` to avoid floating point errors.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Vhub = HubbardOperators.hubbard_space(particle_symmetry, spin_symmetry)
@@ -213,6 +197,18 @@ function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:S
         proj[f1, f2][diagind(proj[f1, f2])] .= 1
     end
     return proj
+end
+
+# Project a Hubbard reference operator onto the t-J space, and express it in the requested
+# basis. The projector is parity-even, so it distributes over `⊗` and projecting the reference
+# operator is equivalent to projecting the symmetric one. Since it has integer entries, the
+# scalar type of the Hubbard operator is preserved.
+function _project_hubbard(O::AbstractTensorMap, slave_fermion::Bool)
+    Pⁿ = _reference_projector(Val(numout(O)))
+    return _maybe_slave_fermion(Pⁿ * O * Pⁿ', slave_fermion)
+end
+function _reference_projector(::Val{N}) where {N}
+    return reduce(⊗, ntuple(Returns(tj_projector(Trivial, Trivial)), Val(N)))
 end
 
 # Slave-fermion basis
@@ -253,538 +249,251 @@ function transform_slave_fermion(V::ElementarySpace)
     return fuse(V, V_aux)
 end
 
-# Express a reference operator in the requested basis. Reference operators are always built up
-# from single-site and multi-site operators in the plain t-J basis, and transformed only once,
-# at the very end: the slave-fermion transformation does not distribute over `⊗`.
+# Express a reference operator in the requested basis. Reference operators are always obtained
+# in the plain t-J basis, and transformed only once, at the very end: the slave-fermion
+# transformation does not distribute over `⊗`.
 _maybe_slave_fermion(O::AbstractTensorMap, slave_fermion::Bool) =
     slave_fermion ? transform_slave_fermion(O) : O
 
-function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
-    V = tj_space(Trivial, Trivial)
-    return zeros(elt, V^N ← V^N)
+# Operators
+# ---------
+# The operators of this module are the projections of the `HubbardOperators` operators of the
+# same name, so both the definitions and their docstrings are generated from a single registry
+# of `(name, alias, description)` entries. Keeping the name and its alias in a single entry is
+# deliberate: zipping two separate lists silently misaligned three aliases in the past.
+
+const _OPERATOR_ARGS = "([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)"
+
+# signature block for both names, the operator-specific description, and the boilerplate that
+# relates the operator to its Hubbard counterpart and to the slave-fermion basis
+function _operator_docstring(name::Symbol, alias::Symbol, description::AbstractString)
+    return string(
+        "    ", name, _OPERATOR_ARGS, "\n",
+        "    ", alias, _OPERATOR_ARGS, "\n\n",
+        strip(description), "\n\n",
+        "This operator is the projection of `HubbardOperators.", name, "` onto the t-J space, ",
+        "see [`tj_projector`](@ref). Use `slave_fermion = true` to obtain it in the ",
+        "slave-fermion basis, see [`transform_slave_fermion`](@ref).\n",
+    )
 end
 
-# Single-site operators
-# ---------------------
-"""
-    u_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    nꜛ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
+const _OPERATORS = (
+    # single-site operators
+    (
+        :u_num, :nꜛ, """
+        Return the one-body operator that counts the number of spin-up electrons.
+        """,
+    ),
+    (
+        :d_num, :nꜜ, """
+        Return the one-body operator that counts the number of spin-down electrons.
+        """,
+    ),
+    (
+        :e_num, :n, """
+        Return the one-body operator that counts the number of electrons.
+        """,
+    ),
+    (
+        :h_num, :nʰ, """
+        Return the one-body operator that counts the number of holes, i.e. the number of non-occupied sites.
+        """,
+    ),
+    (
+        :S_plus, :S⁺, """
+        Return the spin-plus operator `S⁺ = e†_↑ e_↓` (only compatible with `Trivial` spin symmetry).
+        """,
+    ),
+    (
+        :S_min, :S⁻, """
+        Return the spin-minus operator `S⁻ = e†_↓ e_↑` (only compatible with `Trivial` spin symmetry).
+        """,
+    ),
+    (
+        :S_x, :Sˣ, """
+        Return the one-body spin-1/2 x-operator on the electrons (only compatible with `Trivial` spin symmetry).
+        """,
+    ),
+    (
+        :S_y, :Sʸ, """
+        Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
+        This operator requires a complex scalar type.
+        """,
+    ),
+    (
+        :S_z, :Sᶻ, """
+        Return the one-body spin-1/2 z-operator on the electrons.
+        """,
+    ),
+    # two-site operators
+    (
+        :u_plus_u_min, :u⁺u⁻, """
+        Return the two-body operator ``e†_{1,↑} e_{2,↑}`` that creates a spin-up electron at the first site and annihilates a spin-up electron at the second.
+        The only nonzero matrix element is
+        ```
+            +|↑,0⟩ ↤ |0,↑⟩
+        ```
+        """,
+    ),
+    (
+        :d_plus_d_min, :d⁺d⁻, """
+        Return the two-body operator ``e†_{1,↓} e_{2,↓}`` that creates a spin-down electron at the first site and annihilates a spin-down electron at the second.
+        The only nonzero matrix element is
+        ```
+            +|↓,0⟩ ↤ |0,↓⟩
+        ```
+        """,
+    ),
+    (
+        :u_min_u_plus, :u⁻u⁺, """
+        Return the two-body operator ``e_{1,↑} e†_{2,↑}`` that annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
+        """,
+    ),
+    (
+        :d_min_d_plus, :d⁻d⁺, """
+        Return the two-body operator ``e_{1,↓} e†_{2,↓}`` that annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
+        """,
+    ),
+    (
+        :e_plus_e_min, :e⁺e⁻, """
+        Return the two-body operator that creates an electron at the first site and annihilates an electron at the second.
+        This is the sum of `u_plus_u_min` and `d_plus_d_min`.
+        """,
+    ),
+    (
+        :e_min_e_plus, :e⁻e⁺, """
+        Return the two-body operator that annihilates an electron at the first site and creates an electron at the second.
+        This is the sum of `u_min_u_plus` and `d_min_d_plus`.
+        """,
+    ),
+    (
+        :e_hopping, :e_hop, """
+        Return the two-body operator that describes an electron that hops between the first and the second site.
+        """,
+    ),
+    (
+        :u_min_d_min, :u⁻d⁻, """
+        Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up electron at the first site and a spin-down electron at the second site.
+        The only nonzero matrix element is
+        ```
+            -|0,0⟩ ↤ |↑,↓⟩
+        ```
+        This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
+        """,
+    ),
+    (
+        :u_plus_d_plus, :u⁺d⁺, """
+        Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up electron at the first site and a spin-down electron at the second site.
+        """,
+    ),
+    (
+        :d_min_u_min, :d⁻u⁻, """
+        Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down electron at the first site and a spin-up electron at the second site.
+        The only nonzero matrix element is
+        ```
+            -|0,0⟩ ↤ |↓,↑⟩
+        ```
+        This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
+        """,
+    ),
+    (
+        :d_plus_u_plus, :d⁺u⁺, """
+        Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down electron at the first site and a spin-up electron at the second site.
+        """,
+    ),
+    (
+        :u_min_u_min, :u⁻u⁻, """
+        Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up electron at both sites.
+        The only nonzero matrix element is
+        ```
+            -|0,0⟩ ↤ |↑,↑⟩
+        ```
+        This operator conserves neither the number of electrons nor ``S^z``, and is therefore only compatible with `Trivial` particle and spin symmetry.
+        """,
+    ),
+    (
+        :u_plus_u_plus, :u⁺u⁺, """
+        Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up electron at both sites.
+        """,
+    ),
+    (
+        :d_min_d_min, :d⁻d⁻, """
+        Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down electron at both
+        sites. The only nonzero matrix element is
+        ```
+            -|0,0⟩ ↤ |↓,↓⟩
+        ```
+        This operator conserves neither the number of electrons nor ``S^z``, and is therefore only
+        compatible with `Trivial` particle and spin symmetry.
+        """,
+    ),
+    (
+        :d_plus_d_plus, :d⁺d⁺, """
+        Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down electron at both sites.
+        """,
+    ),
+    (
+        :singlet_plus, :singlet⁺, """
+        Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``, which creates the singlet state when acting on vacuum.
+        """,
+    ),
+    (
+        :singlet_min, :singlet⁻, """
+        Return the adjoint of `singlet_plus` operator, which is ``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``.
+        """,
+    ),
+    (
+        :singlet_plus_singlet_min_3site, :Δ⁺ij_Δjk, """
+        Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
+        It describes the hopping of a singlet pair from bond `(j,k)` to a nearest neighbor bond `(i,j)` sharing site `j`.
+        The indices are ordered as
+        ```
+                    -5      -6
+                ┌---┴-------┴---┐
+                |     Δ_{jk}    |
+                └---┬-------┬---┘
+            -4      1       -3
+        ┌---┴-------┴---┐
+        |    Δ†_{ij}    |
+        └---┬-------┬---┘
+            -1      -2
+            i       j       k
+        ```
+        """,
+    ),
+    (
+        :singlet_plus_singlet_min_4site, :Δ⁺ij_Δkl, """
+        Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
+        It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
+        """,
+    ),
+    (
+        :S_plus_S_min, :S⁺S⁻, """
+        Return the two-body operator S⁺S⁻.
+        The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
+        """,
+    ),
+    (
+        :S_min_S_plus, :S⁻S⁺, """
+        Return the two-body operator S⁻S⁺.
+        The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
+        """,
+    ),
+    (
+        :S_exchange, :SS, """
+        Return the spin exchange operator S⋅S.
+        """,
+    ),
+)
 
-Return the one-body operator that counts the number of spin-up electrons.
-"""
-@operator nꜛ function u_num(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(1), elt)
-    I = sectortype(t)
-    t[(I(1), I(1))][1, 1] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    nꜜ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body operator that counts the number of spin-down electrons.
-"""
-@operator nꜜ function d_num(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(1), elt)
-    I = sectortype(t)
-    t[(I(1), I(1))][2, 2] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    e_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    n([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body operator that counts the number of electrons.
-"""
-@operator n function e_num(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = u_num(elt, Trivial, Trivial) + d_num(elt, Trivial, Trivial)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    h_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    nʰ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body operator that counts the number of holes, i.e. the number of
-non-occupied sites.
-"""
-@operator nʰ function h_num(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = id(elt, tj_space(Trivial, Trivial)) - e_num(elt, Trivial, Trivial)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the spin-plus operator `S⁺ = e†_↑ e_↓` (only compatible with `Trivial` spin symmetry).
-"""
-@operator S⁺ function S_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(1), elt)
-    I = sectortype(t)
-    t[(I(1), I(1))][1, 2] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the spin-minus operator `S⁻ = e†_↓ e_↑` (only compatible with `Trivial` spin symmetry).
-"""
-@operator S⁻ function S_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = copy(adjoint(S_plus(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_x([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    Sˣ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body spin-1/2 x-operator on the electrons (only compatible with `Trivial` spin symmetry).
-"""
-@operator Sˣ function S_x(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = (S_plus(elt, Trivial, Trivial) + S_min(elt, Trivial, Trivial)) / 2
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_y([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    Sʸ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
-"""
-@operator Sʸ function S_y(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    # explicit error to avoid infinite recursion:
-    elt <: Real && throw(ArgumentError("S_y requires `elt <: Complex`"))
-    t = (S_plus(elt, Trivial, Trivial) - S_min(elt, Trivial, Trivial)) / (2im)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_z([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    Sᶻ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the one-body spin-1/2 z-operator on the electrons.
-"""
-@operator Sᶻ function S_z(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = (u_num(elt, Trivial, Trivial) - d_num(elt, Trivial, Trivial)) / 2
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-# Two site operators
-# ------------------
-"""
-    u_plus_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁺u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↑} e_{2,↑}`` that creates a spin-up electron at the
-first site and annihilates a spin-up electron at the second. The only nonzero matrix element is
-```
-    +|↑,0⟩ ↤ |0,↑⟩
-```
-"""
-@operator u⁺u⁻ function u_plus_u_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(1), I(0), dual(I(0)), dual(I(1)))][1, 1, 1, 1] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_plus_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁺d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↓} e_{2,↓}`` that creates a spin-down electron at the
-first site and annihilates a spin-down electron at the second. The only nonzero matrix element is
-```
-    +|↓,0⟩ ↤ |0,↓⟩
-```
-"""
-@operator d⁺d⁻ function d_plus_d_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(1), I(0), dual(I(0)), dual(I(1)))][2, 1, 1, 2] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    u_min_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁻u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↑} e†_{2,↑}`` that annihilates a spin-up electron at the
-first site and creates a spin-up electron at the second.
-"""
-@operator u⁻u⁺ function u_min_u_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(u_plus_u_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_min_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁻d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↓} e†_{2,↓}`` that annihilates a spin-down electron at the
-first site and creates a spin-down electron at the second.
-"""
-@operator d⁻d⁺ function d_min_d_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(d_plus_d_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    e_plus_e_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    e⁺e⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator that creates an electron at the first site and annihilates an
-electron at the second. This is the sum of `u_plus_u_min` and `d_plus_d_min`.
-"""
-@operator e⁺e⁻ function e_plus_e_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = u_plus_u_min(elt, Trivial, Trivial) + d_plus_d_min(elt, Trivial, Trivial)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    e_min_e_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    e⁻e⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator that annihilates an electron at the first site and creates an
-electron at the second. This is the sum of `u_min_u_plus` and `d_min_d_plus`.
-"""
-@operator e⁻e⁺ function e_min_e_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(e_plus_e_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    e_hopping([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    e_hop([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator that describes an electron that hops between the first and the
-second site.
-"""
-@operator e_hop function e_hopping(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = e_plus_e_min(elt, Trivial, Trivial) - e_min_e_plus(elt, Trivial, Trivial)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    u_min_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁻d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up electron at the
-first site and a spin-down electron at the second site. The only nonzero matrix element is
-```
-    -|0,0⟩ ↤ |↑,↓⟩
-```
-This operator does not conserve the number of electrons, and is therefore only compatible
-with `Trivial` particle symmetry.
-"""
-@operator u⁻d⁻ function u_min_d_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 2] = -1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    u_plus_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁺d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up electron at the
-first site and a spin-down electron at the second site.
-"""
-@operator u⁺d⁺ function u_plus_d_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(u_min_d_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_min_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁻u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down electron at the
-first site and a spin-up electron at the second site. The only nonzero matrix element is
-```
-    -|0,0⟩ ↤ |↓,↑⟩
-```
-This operator does not conserve the number of electrons, and is therefore only compatible
-with `Trivial` particle symmetry.
-"""
-@operator d⁻u⁻ function d_min_u_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 1] = -1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_plus_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁺u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down electron at the
-first site and a spin-up electron at the second site.
-"""
-@operator d⁺u⁺ function d_plus_u_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(d_min_u_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    u_min_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁻u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up electron at both
-sites. The only nonzero matrix element is
-```
-    -|0,0⟩ ↤ |↑,↑⟩
-```
-This operator conserves neither the number of electrons nor ``S^z``, and is therefore only
-compatible with `Trivial` particle and spin symmetry.
-"""
-@operator u⁻u⁻ function u_min_u_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 1, 1] = -1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    u_plus_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    u⁺u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up electron at both sites.
-"""
-@operator u⁺u⁺ function u_plus_u_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(u_min_u_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_min_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁻d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down electron at both
-sites. The only nonzero matrix element is
-```
-    -|0,0⟩ ↤ |↓,↓⟩
-```
-This operator conserves neither the number of electrons nor ``S^z``, and is therefore only
-compatible with `Trivial` particle and spin symmetry.
-"""
-@operator d⁻d⁻ function d_min_d_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(0), I(0), dual(I(1)), dual(I(1)))][1, 1, 2, 2] = -1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    d_plus_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    d⁺d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down electron at both sites.
-"""
-@operator d⁺d⁺ function d_plus_d_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = -copy(adjoint(d_min_d_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    singlet_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    singlet⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``,
-which creates the singlet state when acting on vacuum.
-"""
-@operator singlet⁺ function singlet_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = (u_plus_d_plus(elt, Trivial, Trivial) - d_plus_u_plus(elt, Trivial, Trivial)) /
-        sqrt(2)
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    singlet_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    singlet⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the adjoint of `singlet_plus` operator, which is
-``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``.
-"""
-@operator singlet⁻ function singlet_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = copy(adjoint(singlet_plus(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    singlet_plus_singlet_min_3site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    Δ⁺ij_Δjk([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
-It describes the hopping of a singlet pair from bond `(j,k)` to a nearest neighbor bond `(i,j)` sharing site `j`.
-"""
-@operator Δ⁺ij_Δjk function singlet_plus_singlet_min_3site(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    #=
-                -5      -6
-            ┌---┴-------┴---┐
-            |     A_{jk}    |
-            └---┬-------┬---┘
-        -4      1       -3
-    ┌---┴-------┴---┐
-    |    A†_{ij}    |
-    └---┬-------┬---┘
-        -1      -2
-        i       j       k
-    =#
-    singp = singlet_plus(elt, Trivial, Trivial)
-    singm = singp'
-    @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    singlet_plus_singlet_min_4site([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    Δ⁺ij_Δkl([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
-It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
-"""
-@operator Δ⁺ij_Δkl function singlet_plus_singlet_min_4site(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    singp = singlet_plus(elt, Trivial, Trivial)
-    return _maybe_slave_fermion(singp ⊗ singp', slave_fermion)
-end
-
-"""
-    S_plus_S_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    S⁺S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator S⁺S⁻.
-The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
-"""
-@operator S⁺S⁻ function S_plus_S_min(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = n_site_operator(Val(2), elt)
-    I = sectortype(t)
-    t[(I(1), I(1), dual(I(1)), dual(I(1)))][1, 2, 2, 1] = 1
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_min_S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    S⁻S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the two-body operator S⁻S⁺.
-The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
-"""
-@operator S⁻S⁺ function S_min_S_plus(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    t = copy(adjoint(S_plus_S_min(elt, Trivial, Trivial)))
-    return _maybe_slave_fermion(t, slave_fermion)
-end
-
-"""
-    S_exchange([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-    SS([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)
-
-Return the spin exchange operator S⋅S.
-"""
-@operator SS function S_exchange(
-        elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
-        slave_fermion::Bool = false
-    )
-    Sz = S_z(elt, Trivial, Trivial)
-    t = Sz ⊗ Sz +
-        (S_plus_S_min(elt, Trivial, Trivial) + S_min_S_plus(elt, Trivial, Trivial)) / 2
-    return _maybe_slave_fermion(t, slave_fermion)
+for (name, alias, description) in _OPERATORS
+    @eval export $name, $alias
+    @eval @doc $(_operator_docstring(name, alias, description)) @operator $alias function $name(
+            elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
+            slave_fermion::Bool = false
+        )
+        return _project_hubbard(HubbardOperators.$name(elt, Trivial, Trivial), slave_fermion)
+    end
 end
 
 end
