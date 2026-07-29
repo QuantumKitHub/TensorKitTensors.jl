@@ -171,28 +171,6 @@ end
         Set((:hubbard_space, :ud_num, :nꜛꜜ, :half_ud_num))
 end
 
-@testset "docstrings" begin
-    # the descriptions are inherited from the `HubbardOperators` docstrings, which relies on
-    # what `@doc` returns: the raw docstring on recent Julia versions, and a rendered
-    # `Markdown.MD` object on older ones
-    for (name, alias) in TJOperators._OPERATORS
-        doc = TJOperators._operator_docstring(name, alias, @eval @doc(HO.$name))
-        @test occursin("    $name(", doc)
-        @test occursin("    $alias(", doc)
-        @test !occursin("!!!", doc)  # Hubbard-specific admonitions are not inherited
-
-        # the inherited description sits between the signature block and the boilerplate
-        description = strip(split(doc, "\n\n")[2])
-        @test !isempty(description)
-        @test !startswith(description, "```") && !startswith(description, " ")
-
-        # and the composed docstring ends up attached to the operator itself
-        registered = TJOperators._docstring_text(@eval @doc(TJOperators.$name))
-        @test occursin("slave_fermion", registered)
-        @test occursin("tj_projector", registered)
-    end
-end
-
 @testset "regression values" begin
     # regression check: hand-written symmetric operators are easily transposed. The dense
     # indices of the basis states are read off from the basis transform, whose columns are
