@@ -259,236 +259,103 @@ _maybe_slave_fermion(O::AbstractTensorMap, slave_fermion::Bool) =
 # ---------
 # The operators of this module are the projections of the `HubbardOperators` operators of the
 # same name, so both the definitions and their docstrings are generated from a single registry
-# of `(name, alias, description)` entries. Keeping the name and its alias in a single entry is
-# deliberate: zipping two separate lists silently misaligned three aliases in the past.
+# of `(name, alias)` entries, and the description of an operator is inherited from the docstring
+# of its Hubbard counterpart, which is the single source of truth. Keeping the name and its
+# alias in a single entry is deliberate: zipping two separate lists silently misaligned three
+# aliases in the past.
 
 const _OPERATOR_ARGS = "([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}]; slave_fermion::Bool = false)"
 
-# signature block for both names, the operator-specific description, and the boilerplate that
-# relates the operator to its Hubbard counterpart and to the slave-fermion basis
-function _operator_docstring(name::Symbol, alias::Symbol, description::AbstractString)
+# signature block for both names, the description inherited from the Hubbard counterpart, and
+# the boilerplate that relates the operator to that counterpart and to the slave-fermion basis
+function _operator_docstring(name::Symbol, alias::Symbol, hubbard_doc)
     return string(
         "    ", name, _OPERATOR_ARGS, "\n",
         "    ", alias, _OPERATOR_ARGS, "\n\n",
-        strip(description), "\n\n",
-        "This operator is the projection of `HubbardOperators.", name, "` onto the t-J space, ",
-        "see [`tj_projector`](@ref). Use `slave_fermion = true` to obtain it in the ",
-        "slave-fermion basis, see [`transform_slave_fermion`](@ref).\n",
+        _inherit_description(_docstring_text(hubbard_doc)), "\n\n",
+        "This operator is the projection of [`HubbardOperators.", name,
+        "`](@ref HubbardOperators.", name, ") onto the t-J space, see [`tj_projector`](@ref). ",
+        "Use `slave_fermion = true` to obtain it in the slave-fermion basis, see ",
+        "[`transform_slave_fermion`](@ref).\n",
     )
+end
+
+# `@doc` hands back the raw `DocStr` on recent Julia versions, and a rendered `Markdown.MD`
+# object on older ones; stringifying the latter reflows the text and writes inline math as
+# `$x$` instead of ``x``, which parses the same way.
+_docstring_text(doc::Base.Docs.DocStr) = join(doc.text)
+_docstring_text(doc) = string(doc)
+
+# Keep the prose of a Hubbard docstring, dropping the signature block -- which is regenerated
+# above, with the `slave_fermion` keyword -- as well as any admonition, which by convention
+# holds Hubbard-specific detail that does not carry over to the projected operator. The
+# signature block is indented in the raw docstring, and a fenced code block in the rendered one.
+_is_toplevel(line) = !isempty(strip(line)) && !startswith(line, ' ')
+function _inherit_description(docstring::AbstractString)
+    lines = split(docstring, '\n')
+    i = if startswith(first(lines), "```")
+        closing = findnext(startswith("```"), lines, firstindex(lines) + 1)
+        something(closing, lastindex(lines)) + 1
+    else
+        something(findfirst(_is_toplevel, lines), lastindex(lines) + 1)
+    end
+    description = String[]
+    while i <= lastindex(lines)
+        if startswith(lines[i], "!!! ")
+            i += 1
+            while i <= lastindex(lines) && !_is_toplevel(lines[i])
+                i += 1
+            end
+        else
+            push!(description, lines[i])
+            i += 1
+        end
+    end
+    return strip(join(description, '\n'))
 end
 
 const _OPERATORS = (
     # single-site operators
-    (
-        :u_num, :nꜛ, """
-        Return the one-body operator that counts the number of spin-up electrons.
-        """,
-    ),
-    (
-        :d_num, :nꜜ, """
-        Return the one-body operator that counts the number of spin-down electrons.
-        """,
-    ),
-    (
-        :e_num, :n, """
-        Return the one-body operator that counts the number of electrons.
-        """,
-    ),
-    (
-        :h_num, :nʰ, """
-        Return the one-body operator that counts the number of holes, i.e. the number of non-occupied sites.
-        """,
-    ),
-    (
-        :S_plus, :S⁺, """
-        Return the spin-plus operator `S⁺ = e†_↑ e_↓` (only compatible with `Trivial` spin symmetry).
-        """,
-    ),
-    (
-        :S_min, :S⁻, """
-        Return the spin-minus operator `S⁻ = e†_↓ e_↑` (only compatible with `Trivial` spin symmetry).
-        """,
-    ),
-    (
-        :S_x, :Sˣ, """
-        Return the one-body spin-1/2 x-operator on the electrons (only compatible with `Trivial` spin symmetry).
-        """,
-    ),
-    (
-        :S_y, :Sʸ, """
-        Return the one-body spin-1/2 y-operator on the electrons (only compatible with `Trivial` spin symmetry).
-        This operator requires a complex scalar type.
-        """,
-    ),
-    (
-        :S_z, :Sᶻ, """
-        Return the one-body spin-1/2 z-operator on the electrons.
-        """,
-    ),
+    (:u_num, :nꜛ),
+    (:d_num, :nꜜ),
+    (:e_num, :n),
+    (:h_num, :nʰ),
+    (:S_plus, :S⁺),
+    (:S_min, :S⁻),
+    (:S_x, :Sˣ),
+    (:S_y, :Sʸ),
+    (:S_z, :Sᶻ),
     # two-site operators
-    (
-        :u_plus_u_min, :u⁺u⁻, """
-        Return the two-body operator ``e†_{1,↑} e_{2,↑}`` that creates a spin-up electron at the first site and annihilates a spin-up electron at the second.
-        The only nonzero matrix element is
-        ```
-            +|↑,0⟩ ↤ |0,↑⟩
-        ```
-        """,
-    ),
-    (
-        :d_plus_d_min, :d⁺d⁻, """
-        Return the two-body operator ``e†_{1,↓} e_{2,↓}`` that creates a spin-down electron at the first site and annihilates a spin-down electron at the second.
-        The only nonzero matrix element is
-        ```
-            +|↓,0⟩ ↤ |0,↓⟩
-        ```
-        """,
-    ),
-    (
-        :u_min_u_plus, :u⁻u⁺, """
-        Return the two-body operator ``e_{1,↑} e†_{2,↑}`` that annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
-        """,
-    ),
-    (
-        :d_min_d_plus, :d⁻d⁺, """
-        Return the two-body operator ``e_{1,↓} e†_{2,↓}`` that annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
-        """,
-    ),
-    (
-        :e_plus_e_min, :e⁺e⁻, """
-        Return the two-body operator that creates an electron at the first site and annihilates an electron at the second.
-        This is the sum of `u_plus_u_min` and `d_plus_d_min`.
-        """,
-    ),
-    (
-        :e_min_e_plus, :e⁻e⁺, """
-        Return the two-body operator that annihilates an electron at the first site and creates an electron at the second.
-        This is the sum of `u_min_u_plus` and `d_min_d_plus`.
-        """,
-    ),
-    (
-        :e_hopping, :e_hop, """
-        Return the two-body operator that describes an electron that hops between the first and the second site.
-        """,
-    ),
-    (
-        :u_min_d_min, :u⁻d⁻, """
-        Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up electron at the first site and a spin-down electron at the second site.
-        The only nonzero matrix element is
-        ```
-            -|0,0⟩ ↤ |↑,↓⟩
-        ```
-        This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
-        """,
-    ),
-    (
-        :u_plus_d_plus, :u⁺d⁺, """
-        Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up electron at the first site and a spin-down electron at the second site.
-        """,
-    ),
-    (
-        :d_min_u_min, :d⁻u⁻, """
-        Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down electron at the first site and a spin-up electron at the second site.
-        The only nonzero matrix element is
-        ```
-            -|0,0⟩ ↤ |↓,↑⟩
-        ```
-        This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
-        """,
-    ),
-    (
-        :d_plus_u_plus, :d⁺u⁺, """
-        Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down electron at the first site and a spin-up electron at the second site.
-        """,
-    ),
-    (
-        :u_min_u_min, :u⁻u⁻, """
-        Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up electron at both sites.
-        The only nonzero matrix element is
-        ```
-            -|0,0⟩ ↤ |↑,↑⟩
-        ```
-        This operator conserves neither the number of electrons nor ``S^z``, and is therefore only compatible with `Trivial` particle and spin symmetry.
-        """,
-    ),
-    (
-        :u_plus_u_plus, :u⁺u⁺, """
-        Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up electron at both sites.
-        """,
-    ),
-    (
-        :d_min_d_min, :d⁻d⁻, """
-        Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down electron at both
-        sites. The only nonzero matrix element is
-        ```
-            -|0,0⟩ ↤ |↓,↓⟩
-        ```
-        This operator conserves neither the number of electrons nor ``S^z``, and is therefore only
-        compatible with `Trivial` particle and spin symmetry.
-        """,
-    ),
-    (
-        :d_plus_d_plus, :d⁺d⁺, """
-        Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down electron at both sites.
-        """,
-    ),
-    (
-        :singlet_plus, :singlet⁺, """
-        Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``, which creates the singlet state when acting on vacuum.
-        """,
-    ),
-    (
-        :singlet_min, :singlet⁻, """
-        Return the adjoint of `singlet_plus` operator, which is ``(-e_{1,↑} e_{2,↓} + e_{1,↓} e_{2,↑}) / \\sqrt{2}``.
-        """,
-    ),
-    (
-        :singlet_plus_singlet_min_3site, :Δ⁺ij_Δjk, """
-        Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
-        It describes the hopping of a singlet pair from bond `(j,k)` to a nearest neighbor bond `(i,j)` sharing site `j`.
-        The indices are ordered as
-        ```
-                    -5      -6
-                ┌---┴-------┴---┐
-                |     Δ_{jk}    |
-                └---┬-------┬---┘
-            -4      1       -3
-        ┌---┴-------┴---┐
-        |    Δ†_{ij}    |
-        └---┬-------┬---┘
-            -1      -2
-            i       j       k
-        ```
-        """,
-    ),
-    (
-        :singlet_plus_singlet_min_4site, :Δ⁺ij_Δkl, """
-        Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where ``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
-        It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
-        """,
-    ),
-    (
-        :S_plus_S_min, :S⁺S⁻, """
-        Return the two-body operator S⁺S⁻.
-        The only nonzero matrix element corresponds to `|↑,↓⟩ <-- |↓,↑⟩`.
-        """,
-    ),
-    (
-        :S_min_S_plus, :S⁻S⁺, """
-        Return the two-body operator S⁻S⁺.
-        The only nonzero matrix element corresponds to `|↓,↑⟩ <-- |↑,↓⟩`.
-        """,
-    ),
-    (
-        :S_exchange, :SS, """
-        Return the spin exchange operator S⋅S.
-        """,
-    ),
+    (:u_plus_u_min, :u⁺u⁻),
+    (:d_plus_d_min, :d⁺d⁻),
+    (:u_min_u_plus, :u⁻u⁺),
+    (:d_min_d_plus, :d⁻d⁺),
+    (:e_plus_e_min, :e⁺e⁻),
+    (:e_min_e_plus, :e⁻e⁺),
+    (:e_hopping, :e_hop),
+    (:u_min_d_min, :u⁻d⁻),
+    (:u_plus_d_plus, :u⁺d⁺),
+    (:d_min_u_min, :d⁻u⁻),
+    (:d_plus_u_plus, :d⁺u⁺),
+    (:u_min_u_min, :u⁻u⁻),
+    (:u_plus_u_plus, :u⁺u⁺),
+    (:d_min_d_min, :d⁻d⁻),
+    (:d_plus_d_plus, :d⁺d⁺),
+    (:singlet_plus, :singlet⁺),
+    (:singlet_min, :singlet⁻),
+    (:singlet_plus_singlet_min_3site, :Δ⁺ij_Δjk),
+    (:singlet_plus_singlet_min_4site, :Δ⁺ij_Δkl),
+    (:S_plus_S_min, :S⁺S⁻),
+    (:S_min_S_plus, :S⁻S⁺),
+    (:S_exchange, :SS),
 )
 
-for (name, alias, description) in _OPERATORS
+for (name, alias) in _OPERATORS
+    # the parentheses are required: a bare `@doc x` at the end of a line makes the parser
+    # attach the next expression as the one being documented
+    hubbard_doc = @eval @doc(HubbardOperators.$name)
     @eval export $name, $alias
-    @eval @doc $(_operator_docstring(name, alias, description)) @operator $alias function $name(
+    @eval @doc $(_operator_docstring(name, alias, hubbard_doc)) @operator $alias function $name(
             elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
             slave_fermion::Bool = false
         )

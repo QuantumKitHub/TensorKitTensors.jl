@@ -193,7 +193,7 @@ end
     u_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     nꜛ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator that counts the number of spin-up particles.
+Return the one-body operator that counts the number of spin-up electrons.
 """
 @operator nꜛ function u_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt)
@@ -207,7 +207,7 @@ end
     d_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     nꜜ([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator that counts the number of spin-down particles.
+Return the one-body operator that counts the number of spin-down electrons.
 """
 @operator nꜜ function d_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(1), elt)
@@ -221,7 +221,7 @@ end
     e_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     n([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the one-body operator that counts the number of particles.
+Return the one-body operator that counts the number of electrons.
 """
 @operator n function e_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return u_num(elt, Trivial, Trivial) + d_num(elt, Trivial, Trivial)
@@ -240,7 +240,7 @@ end
 """
     half_ud_num([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the the one-body operator that is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, which respects the particle-hole symmetry.
+Return the one-body operator that is equivalent to `(nꜛ - 1/2)(nꜜ - 1/2)`, which respects the particle-hole symmetry.
 """
 @operator function half_ud_num(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     I = id(hubbard_space(Trivial, Trivial))
@@ -318,7 +318,7 @@ end
     u_plus_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁺u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↑}, e_{2,↑}`` that creates a spin-up particle at the first site and annihilates a spin-up particle at the second.
+Return the two-body operator ``e†_{1,↑} e_{2,↑}`` that creates a spin-up electron at the first site and annihilates a spin-up electron at the second.
 """
 @operator u⁺u⁻ function u_plus_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -334,7 +334,7 @@ end
     d_plus_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁺d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↓}, e_{2,↓}`` that creates a spin-down particle at the first site and annihilates a spin-down particle at the second.
+Return the two-body operator ``e†_{1,↓} e_{2,↓}`` that creates a spin-down electron at the first site and annihilates a spin-down electron at the second.
 """
 @operator d⁺d⁻ function d_plus_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -350,7 +350,7 @@ end
     u_min_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁻u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↑}, e†_{2,↑}`` that annihilates a spin-up particle at the first site and creates a spin-up particle at the second.
+Return the two-body operator ``e_{1,↑} e†_{2,↑}`` that annihilates a spin-up electron at the first site and creates a spin-up electron at the second.
 """
 @operator u⁻u⁺ function u_min_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_plus_u_min(elt, Trivial, Trivial)))
@@ -360,7 +360,7 @@ end
     d_min_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁻d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↓}, e†_{2,↓}`` that annihilates a spin-down particle at the first site and creates a spin-down particle at the second.
+Return the two-body operator ``e_{1,↓} e†_{2,↓}`` that annihilates a spin-down electron at the first site and creates a spin-down electron at the second.
 """
 @operator d⁻d⁺ function d_min_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_plus_d_min(elt, Trivial, Trivial)))
@@ -370,7 +370,7 @@ end
     e_plus_e_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     e⁺e⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator that creates a particle at the first site and annihilates a particle at the second.
+Return the two-body operator that creates an electron at the first site and annihilates an electron at the second.
 This is the sum of `u_plus_u_min` and `d_plus_d_min`.
 """
 @operator e⁺e⁻ function e_plus_e_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
@@ -381,7 +381,7 @@ end
     e_min_e_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     e⁻e⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator that annihilates a particle at the first site and creates a particle at the second.
+Return the two-body operator that annihilates an electron at the first site and creates an electron at the second.
 This is the sum of `u_min_u_plus` and `d_min_d_plus`.
 """
 @operator e⁻e⁺ function e_min_e_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
@@ -392,11 +392,12 @@ end
     e_hopping([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     e_hop([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator that describes a particle that hops between the first and the second site.
+Return the two-body operator that describes an electron that hops between the first and the second site.
 
-For `SU2Irrep` particle symmetry, the hopping operator is expressed in the staggered gauge
-``c_{j,σ} → i^j c_{j,σ}`` and requires a complex scalar type; see
-[`basis_transform`](@ref HubbardOperators.basis_transform) for details.
+!!! note "Staggered gauge for SU2Irrep particle symmetry"
+    The hopping operator is expressed in the staggered gauge ``c_{j,σ} → i^j c_{j,σ}`` and
+    requires a complex scalar type; see
+    [`basis_transform`](@ref HubbardOperators.basis_transform) for details.
 """
 @operator e_hop function e_hopping(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return e_plus_e_min(elt, Trivial, Trivial) - e_min_e_plus(elt, Trivial, Trivial)
@@ -406,12 +407,8 @@ end
     u_min_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁻d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up particle at the first site and a spin-down particle at the second site.
-The nonzero matrix elements are
-```
-    -|0,0⟩ ↤ |↑,↓⟩,     +|0,↑⟩ ↤ |↑,↑↓⟩,
-    +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
-```
+Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up electron at the first site and a spin-down electron at the second site.
+This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
 """
 @operator u⁻d⁻ function u_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -427,7 +424,7 @@ end
     u_plus_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁺d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up particle at the first site and a spin-down particle at the second site.
+Return the two-body operator ``e†_{1,↑} e†_{2,↓}`` that creates a spin-up electron at the first site and a spin-down electron at the second site.
 """
 @operator u⁺d⁺ function u_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_min_d_min(elt, Trivial, Trivial)))
@@ -437,12 +434,8 @@ end
     d_min_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁻u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down particle at the first site and a spin-up particle at the second site.
-The nonzero matrix elements are
-```
-    -|0,0⟩ ↤ |↓,↑⟩,     -|0,↓⟩ ↤ |↓,↑↓⟩
-    -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
-```
+Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down electron at the first site and a spin-up electron at the second site.
+This operator does not conserve the number of electrons, and is therefore only compatible with `Trivial` particle symmetry.
 """
 @operator d⁻u⁻ function d_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -458,7 +451,7 @@ end
     d_plus_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁺u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down particle at the first site and a spin-up particle at the second site.
+Return the two-body operator ``e†_{1,↓} e†_{2,↑}`` that creates a spin-down electron at the first site and a spin-up electron at the second site.
 """
 @operator d⁺u⁺ function d_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_min_u_min(elt, Trivial, Trivial)))
@@ -468,12 +461,8 @@ end
     u_min_u_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁻u⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up particle at both sites.
-The nonzero matrix elements are
-```
-    -|0,0⟩ ↤ |↑,↑⟩,     -|0,↓⟩ ↤ |↑,↑↓⟩
-    +|↓,0⟩ ↤ |↑↓,↑⟩,    +|↓,↓⟩ ↤ |↑↓,↑↓⟩
-```
+Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up electron at both sites.
+This operator conserves neither the number of electrons nor ``S^z``, and is therefore only compatible with `Trivial` particle and spin symmetry.
 """
 @operator u⁻u⁻ function u_min_u_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -489,7 +478,7 @@ end
     u_plus_u_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     u⁺u⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up particle at both sites.
+Return the two-body operator ``e†_{1,↑} e†_{2,↑}`` that creates a spin-up electron at both sites.
 """
 @operator u⁺u⁺ function u_plus_u_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(u_min_u_min(elt, Trivial, Trivial)))
@@ -499,12 +488,8 @@ end
     d_min_d_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁻d⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down particle at both sites.
-The nonzero matrix elements are
-```
-    -|0,0⟩ ↤ |↓,↓⟩,     +|0,↑⟩ ↤ |↓,↑↓⟩
-    -|↑,0⟩ ↤ |↑↓,↓⟩,    +|↑,↑⟩ ↤ |↑↓,↑↓⟩
-```
+Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down electron at both sites.
+This operator conserves neither the number of electrons nor ``S^z``, and is therefore only compatible with `Trivial` particle and spin symmetry.
 """
 @operator d⁻d⁻ function d_min_d_min(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     t = n_site_operator(Val(2), elt)
@@ -520,7 +505,7 @@ end
     d_plus_d_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     d⁺d⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down particle at both sites.
+Return the two-body operator ``e†_{1,↓} e†_{2,↓}`` that creates a spin-down electron at both sites.
 """
 @operator d⁺d⁺ function d_plus_d_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return -copy(adjoint(d_min_d_min(elt, Trivial, Trivial)))
@@ -531,7 +516,7 @@ end
     singlet⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Return the two-body singlet operator ``(e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``,
-which creates the singlet state when acting on vaccum.
+which creates the singlet state when acting on vacuum.
 """
 @operator singlet⁺ function singlet_plus(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
     return (u_plus_d_plus(elt, Trivial, Trivial) - d_plus_u_plus(elt, Trivial, Trivial)) /
@@ -554,23 +539,24 @@ end
     Δ⁺ij_Δjk([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 3-site term ``O_{ijk} = Δ^†_{ij} Δ_{jk}``, where
-``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
 It describes the hopping of a singlet pair from bond `(j,k)`
 to a nearest neighbor bond `(i,j)` sharing site `j`.
+The indices are ordered as
+```
+            -5      -6
+        ┌---┴-------┴---┐
+        |     Δ_{jk}    |
+        └---┬-------┬---┘
+    -4      1       -3
+┌---┴-------┴---┐
+|    Δ†_{ij}    |
+└---┬-------┬---┘
+    -1      -2
+    i       j       k
+```
 """
 @operator Δ⁺ij_Δjk function singlet_plus_singlet_min_3site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
-    #=
-                -5      -6
-            ┌---┴-------┴---┐
-            |     A_{jk}    |
-            └---┬-------┬---┘
-        -4      1       -3
-    ┌---┴-------┴---┐
-    |    A†_{ij}    |
-    └---┬-------┬---┘
-        -1      -2
-        i       j       k
-    =#
     singp = singlet_plus(elt, Trivial, Trivial)
     singm = singp'
     return @tensor t[-1 -2 -3; -4 -5 -6] := singp[-1 -2; -4 1] * singm[1 -3; -5 -6]
@@ -582,7 +568,7 @@ end
     Δ⁺ij_Δkl([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Returns the 4-site term ``O_{ijkl} = Δ^†_{ij} Δ_{kl}``, where
-``Δ^†_{ij} = (e^†_{1,↑} e^†_{2,↓} - e^†_{1,↓} e^†_{2,↑}) / \\sqrt{2}``.
+``Δ^†_{ij} = (e^†_{i,↑} e^†_{j,↓} - e^†_{i,↓} e^†_{j,↑}) / \\sqrt{2}``.
 It measures the singlet pair correlation between two bonds `(i,j)` and `(k,l)`.
 """
 @operator Δ⁺ij_Δkl function singlet_plus_singlet_min_4site(elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial})
@@ -617,6 +603,7 @@ end
 
 """
     S_exchange([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
+    SS([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Return the spin exchange operator S⋅S.
 """
