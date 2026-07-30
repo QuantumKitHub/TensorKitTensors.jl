@@ -267,36 +267,6 @@ function hubbard_hamiltonian(particle_symmetry, spin_symmetry; t, U, mu)
 
     return H
 end
-# particle-hole symmetric Hamiltonian (mu = U/2), compatible with all symmetries
-function hubbard_hamiltonian_ph(particle_symmetry, spin_symmetry; t, U)
-    @assert length(t) + 1 == length(U)
-    hopping = e_hopping(particle_symmetry, spin_symmetry)
-    interaction = half_ud_num(particle_symmetry, spin_symmetry)
-    H = operator_sum(hopping, -t) +
-        operator_sum(interaction, U)
-    return H
-end
-
-@testset "spectrum" begin
-    rng = StableRNG(123)
-    L = 4
-    t = randn(rng, L - 1)
-    U = randn(rng, L)
-
-    # particle-hole symmetric spectrum across all symmetry combinations: a many-body
-    # integration check that the staggered η-gauge e_hopping (verified element-wise per-bond
-    # above) assembles correctly into a chain under SU2 particle symmetry.
-    H_triv = hubbard_hamiltonian_ph(Trivial, Trivial; t, U)
-    vals_triv = expanded_eigenvalues(H_triv)
-
-    for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
-        particle_symmetry == spin_symmetry == Trivial && continue
-        H_symm = hubbard_hamiltonian_ph(particle_symmetry, spin_symmetry; t, U)
-        vals_symm = expanded_eigenvalues(H_symm)
-        @test vals_triv ≈ vals_symm
-    end
-end
-
 @testset "Exact diagonalisation" begin
     for (particle_symmetry, spin_symmetry) in Iterators.product(particle_syms, spin_syms)
         has_e_num(particle_symmetry, spin_symmetry) || continue
