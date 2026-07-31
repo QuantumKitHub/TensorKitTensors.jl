@@ -64,7 +64,7 @@ The spin symmetry labels the parity-odd pair (the two singly occupied states):
     The ``η``-pairing `SU2Irrep` is built on ``η^z = (n-1)/2`` instead, so the particle number itself is *not* an ``η``-SU(2) scalar: this is why [`e_num`](@ref) and [`ud_num`](@ref) are unavailable with `SU2Irrep` particle symmetry, while the particle-hole symmetric [`half_ud_num`](@ref) ``= (n_↑ - 1/2)(n_↓ - 1/2)`` — which equals ``+1/4`` on the ``η`` doublet and ``-1/4`` on the singly occupied states — is available for every symmetry combination.
 
 !!! note "Staggered gauge for SU(2) particle symmetry"
-    The ``η``-pairing SU(2) only commutes with the Hubbard Hamiltonian after the staggered gauge transformation ``c_{j,σ} → i^j c_{j,σ}`` on a bipartite lattice.
+    The ``η``-pairing SU(2) only commutes with the Hubbard Hamiltonian after the staggered gauge transformation ``e_{j,σ} → i^j e_{j,σ}`` on a bipartite lattice.
     Accordingly, with `SU2Irrep` particle symmetry the operators of this module act on site ``k`` with the additional gauge factor ``G^{k-1}``, where ``G = i^n = \mathrm{diag}(1, -1, i, i)`` in the reference order above.
     Operators that commute with ``G`` are returned without it, so they stay real-representable and remain elementwise equal to their `Trivial` counterparts.
     Of the operators available with `SU2Irrep` particle symmetry, [`e_hopping`](@ref) is the only one that does not commute with ``G``: it is therefore genuinely complex, requires a complex `eltype`, and is the gauge-transformed version of its `Trivial` counterpart — it generates the same physics on a bipartite lattice, but is **not** elementwise equal to it.

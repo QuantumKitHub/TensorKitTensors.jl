@@ -30,9 +30,11 @@ export S⁻S⁺, S⁺S⁻, SS
 """
     hubbard_space(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
 
-Return the local hilbert space for a Hubbard-type model with the given particle and spin symmetries. The four basis states are
+Return the local hilbert space for a Hubbard-type model with the given particle and spin
+symmetries. The four basis states are
 ```
-    |0⟩ (vacuum), |↑⟩ = (c↑)†|0⟩, |↓⟩ = (c↓)†|0⟩, |↑↓⟩ = (c↑)†(c↓)†|0⟩.
+    |0⟩ (vacuum), |↑⟩ = e^†_↑|0⟩, |↓⟩ = e^†_↓|0⟩,
+    |↑↓⟩ = e^†_↑ e^†_↓|0⟩.
 ```
 The possible symmetries are `Trivial`, `U1Irrep`, and `SU2Irrep`, for both particle number and spin.
 
@@ -103,7 +105,7 @@ order of the target space, where the states are identified as follows:
 
 !!! note "Staggered gauge for SU2Irrep particle symmetry"
     The ``η``-pairing SU(2) symmetry only commutes with the Hubbard model after a staggered
-    gauge transformation ``c_{j,σ} → i^j c_{j,σ}`` on a bipartite lattice. Accordingly, for
+    gauge transformation ``e_{j,σ} → i^j e_{j,σ}`` on a bipartite lattice. Accordingly, for
     `SU2Irrep` particle symmetry the operators of this module act on site ``k`` with the
     additional gauge factor ``G^{k-1}``, where ``G = i^n = \\mathrm{diag}(1, -1, i, i)`` in
     the basis above. Operators that commute with the staggered gauge are unaffected by it;
@@ -520,7 +522,7 @@ model.
 !!! note "Staggered gauge for SU2Irrep particle symmetry"
     Being a scalar under both the spin and the ``η``-pairing SU(2), this is the only hopping
     term of this module that is available for every symmetry combination. For `SU2Irrep`
-    particle symmetry it is expressed in the staggered gauge ``c_{j,σ} → i^j c_{j,σ}`` and
+    particle symmetry it is expressed in the staggered gauge ``e_{j,σ} → i^j e_{j,σ}`` and
     requires a complex scalar type; see
     [`basis_transform`](@ref HubbardOperators.basis_transform) for details. It is then *not*
     elementwise equal to its `Trivial` counterpart, although it generates the same physics on a
