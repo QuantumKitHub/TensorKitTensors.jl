@@ -184,6 +184,13 @@ end
                 ud_num(particle_symmetry, spin_symmetry) -
                 e_num(particle_symmetry, spin_symmetry) / 2 +
                 id(hubbard_space(particle_symmetry, spin_symmetry)) / 4
+            # h_num is the projector onto the empty state: the doubly occupied state is not a
+            # hole, so `h_num + e_num` overshoots the identity by `ud_num`
+            nh = h_num(particle_symmetry, spin_symmetry)
+            @test nh * nh ≈ nh
+            @test nh + e_num(particle_symmetry, spin_symmetry) ≈
+                id(hubbard_space(particle_symmetry, spin_symmetry)) +
+                ud_num(particle_symmetry, spin_symmetry)
         else
             @test_throws ArgumentError e_num(particle_symmetry, spin_symmetry)
             @test_throws ArgumentError ud_num(particle_symmetry, spin_symmetry)

@@ -15,7 +15,7 @@ A qubit lives on a two-dimensional space with computational basis ordered as ``\
 
 Multi-qubit gates act on ``V^{⊗n}`` with the first qubit as the leftmost tensor factor, so a controlled gate uses the *first* qubit(s) as control and the *last* as target.
 
-Within a fused block, the index of ``|b_1 b_2 \ldots b_n⟩`` is ``k = 1 + \sum_i b_i 2^{i-1}``, i.e. the *first* qubit runs fastest.
+Within a fused block, the index of ``|b_1 b_2 … b_n⟩`` is ``k = 1 + \sum_i b_i 2^{i-1}``, i.e. the *first* qubit runs fastest.
 Consequently `block(gate, Trivial())` agrees element-for-element with the gate matrices as tabulated by e.g. Qiskit, identifying the first tensor factor with qubit 0.
 
 ### Element types
@@ -32,7 +32,7 @@ The universal single-qubit gate [`u3`](@ref) takes the three angles `theta`, `ph
 
 | Symmetry | Physical meaning | Sector label | Representable gates |
 |---|---|---|---|
-| `Trivial` | none | — | all gates, full ``2^n \times 2^n`` matrix |
+| `Trivial` | none | — | all gates, full ``2^n × 2^n`` matrix |
 | `Z2Irrep` | excitation-number parity | charge ``n \bmod 2`` per qubit | only gates that conserve the number of ``1``'s modulo 2 |
 | `U1Irrep` | excitation-number conservation | charge ``∈ \{0, 1\}`` per qubit | only gates that conserve the number of ``1``'s |
 
@@ -57,7 +57,7 @@ crx = controlled(rotation_x(; theta = π / 2))
 
 ## Gate overview
 
-| Function | Alias(es) | Sites | Compatible symmetries |
+| Function | Alias(es) | Sites | Supported symmetries |
 |---|---|---|---|
 | [`qubit_space`](@ref) | — | — | `Trivial`, `Z2Irrep`, `U1Irrep` |
 | [`pauli_x`](@ref) | `X` | 1 | `Trivial` |
@@ -90,7 +90,7 @@ crx = controlled(rotation_x(; theta = π / 2))
 | [`toffoli`](@ref) | `TOFFOLI`, `CCX` | 3 | `Trivial` |
 | [`fredkin`](@ref) | `FREDKIN`, `CSWAP` | 3 | `Trivial`, `Z2Irrep`, `U1Irrep` |
 
-The adjoint gates ``S^\dagger`` and ``T^\dagger`` are obtained as `s_gate()'` and `t_gate()'`.
+The adjoint gates ``S^†`` and ``T^†`` are obtained as `s_gate()'` and `t_gate()'`.
 
 ## API
 

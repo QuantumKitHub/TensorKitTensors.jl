@@ -32,7 +32,7 @@ $_docs_basis_table
 
 - `|∅⟩` is the vacuum state;
 - `u` and `d` denote fermionic spin-up and spin-down operators;
-- in the slave-fermion representation, ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+- in the slave-fermion representation, ``h`` is the fermionic holon operator, and `bꜛ`, `bꜜ` are bosonic spinon operators.
 
 The possible symmetries are:
 - Particle number : `Trivial`, `U1Irrep`
@@ -183,7 +183,14 @@ TJOperators.op(elt, P, S) ≈ proj * HubbardOperators.op(elt, P, S) * proj'
 for an `N`-site operator `op`. The double-occupancy operators of the Hubbard model
 (`ud_num` and `half_ud_num`) have no t-J counterpart, as they project to zero.
 
+The projector is defined in the plain t-J basis only, since the slave-fermion basis has no
+Hubbard counterpart. It is an isometry from the four-dimensional Hubbard space onto the
+three-dimensional t-J space, so `proj * proj' == id(tj_space(P, S))` while `proj' * proj` is the
+projector within the Hubbard space.
+
 The scalartype is `Int` to avoid floating point errors.
+
+Supported symmetries: particle `Trivial`, `U1Irrep`; spin `Trivial`, `U1Irrep`, `SU2Irrep`.
 """
 function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector})
     Vhub = HubbardOperators.hubbard_space(particle_symmetry, spin_symmetry)
@@ -227,7 +234,7 @@ Transform the given operator to the slave-fermion basis, which is related to the
 
 $_docs_basis_table
 
-where ``h`` is the fermionic holon operator, and ``bꜛ``, ``bꜜ`` are bosonic spinon operators.
+where ``h`` is the fermionic holon operator, and `bꜛ`, `bꜜ` are bosonic spinon operators.
 
 Fusing in the auxiliary fermionic charge flips the parity of every state, which changes the
 statistics of the operator: braiding the auxiliary legs of an ``N``-site operator through the
@@ -265,7 +272,7 @@ function _operator_docstring(name::Symbol, alias::Symbol, hubbard_doc)
     return string(
         "    ", name, _OPERATOR_ARGS, "\n",
         "    ", alias, _OPERATOR_ARGS, "\n\n",
-        _inherit_description(_docstring_text(hubbard_doc)), "\n\n",
+        _project_symmetries(_inherit_description(_docstring_text(hubbard_doc))), "\n\n",
         "This operator is the projection of [`HubbardOperators.", name,
         "`](@ref HubbardOperators.", name, ") onto the t-J space, see [`tj_projector`](@ref). ",
         "Use `slave_fermion = true` to obtain it in the slave-fermion basis, see ",
@@ -301,6 +308,18 @@ function _inherit_description(docstring::AbstractString)
         end
     end
     return strip(join(description, '\n'))
+end
+
+# The t-J space has no ``SU(2)`` particle symmetry -- the η-pairing doublet of the Hubbard model
+# is (|↑↓⟩, |0⟩), whose doubly occupied state is projected out -- so an inherited symmetry
+# listing has to drop it from the particle symmetries. That is the only difference: for every
+# operator of the registry the spin symmetries carry over verbatim, and so do the remaining
+# particle ones. The rendered docstring of Julia 1.10 may reflow the listing onto several lines,
+# hence matching across whitespace; the particle symmetries are the ones terminated by `;`.
+function _project_symmetries(description::AbstractString)
+    return replace(
+        description, r"(symmetries:.*?),\s*`SU2Irrep`(\s*);"s => s"\1\2;"
+    )
 end
 
 for (name, alias) in [
