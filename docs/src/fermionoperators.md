@@ -24,7 +24,7 @@ Because a `TensorMap` on a graded space only has parity-preserving blocks, the p
 This module therefore provides no `f_plus` or `f_min`, only their parity-even two-site combinations and the number operator ``n = f^+ f^- = \mathrm{diag}(0, 1)``.
 
 The two-site operators carry the signs picked up by anticommuting the fermionic operators past each other, with ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩`` as the reference state.
-Their only nonzero matrix elements are
+They act as
 
 ```math
 f^+_1 f^-_2 : \; +|1,0⟩ ← |0,1⟩, \qquad

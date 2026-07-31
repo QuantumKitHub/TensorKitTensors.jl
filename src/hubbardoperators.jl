@@ -314,10 +314,7 @@ end
     S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the spin raising operator ``S^+ = e^†_↑ e_↓``. The only nonzero matrix element is
-```
-    +|↑⟩ ↤ |↓⟩
-```
+Return the spin raising operator ``S^+ = e^†_↑ e_↓``.
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
@@ -334,11 +331,7 @@ end
     S_min([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the spin lowering operator ``S^- = e^†_↓ e_↑ = (S^+)^†``. The only nonzero matrix
-element is
-```
-    +|↓⟩ ↤ |↑⟩
-```
+Return the spin lowering operator ``S^- = e^†_↓ e_↑ = (S^+)^†``.
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`.
 
@@ -542,12 +535,6 @@ Return the two-body operator ``e_{1,↑} e_{2,↓}`` that annihilates a spin-up 
 first site and a spin-down electron at the second site. It lowers the total electron number by
 two, so it is only available without particle symmetry.
 
-!!! note "Nonzero matrix elements"
-    ```
-        -|0,0⟩ ↤ |↑,↓⟩,     +|0,↑⟩ ↤ |↑,↑↓⟩,
-        +|↓,0⟩ ↤ |↑↓,↓⟩,    -|↓,↑⟩ ↤ |↑↓,↑↓⟩
-    ```
-
 Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
 See also [`u_plus_d_plus`](@ref), [`d_min_u_min`](@ref) and [`singlet_min`](@ref).
@@ -585,12 +572,6 @@ end
 Return the two-body operator ``e_{1,↓} e_{2,↑}`` that annihilates a spin-down electron at the
 first site and a spin-up electron at the second site. It lowers the total electron number by
 two, so it is only available without particle symmetry.
-
-!!! note "Nonzero matrix elements"
-    ```
-        -|0,0⟩ ↤ |↓,↑⟩,     -|0,↓⟩ ↤ |↓,↑↓⟩
-        -|↑,0⟩ ↤ |↑↓,↑⟩,    -|↑,↓⟩ ↤ |↑↓,↑↓⟩
-    ```
 
 Supported symmetries: particle `Trivial`; spin `Trivial`, `U1Irrep`.
 
@@ -630,12 +611,6 @@ Return the two-body operator ``e_{1,↑} e_{2,↑}`` that annihilates a spin-up 
 sites. Being an equal-spin (triplet) pair, it lowers both the total electron number by two and
 the total ``S^z`` by one, so it requires trivial particle *and* spin symmetry.
 
-!!! note "Nonzero matrix elements"
-    ```
-        -|0,0⟩ ↤ |↑,↑⟩,     -|0,↓⟩ ↤ |↑,↑↓⟩
-        +|↓,0⟩ ↤ |↑↓,↑⟩,    +|↓,↓⟩ ↤ |↑↓,↑↓⟩
-    ```
-
 Supported symmetries: particle `Trivial`; spin `Trivial`.
 
 See also [`u_plus_u_plus`](@ref) and [`d_min_d_min`](@ref).
@@ -670,12 +645,6 @@ end
 Return the two-body operator ``e_{1,↓} e_{2,↓}`` that annihilates a spin-down electron at both
 sites. Being an equal-spin (triplet) pair, it lowers both the total electron number by two and
 raises the total ``S^z`` by one, so it requires trivial particle *and* spin symmetry.
-
-!!! note "Nonzero matrix elements"
-    ```
-        -|0,0⟩ ↤ |↓,↓⟩,     +|0,↑⟩ ↤ |↓,↑↓⟩
-        -|↑,0⟩ ↤ |↑↓,↓⟩,    +|↑,↑⟩ ↤ |↑↓,↑↓⟩
-    ```
 
 Supported symmetries: particle `Trivial`; spin `Trivial`.
 
@@ -795,10 +764,7 @@ end
     S⁺S⁻([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
 Return the two-body operator ``S^+_1 S^-_2``, which flips a down spin on the first site up and
-an up spin on the second site down. The only nonzero matrix element is
-```
-    +|↑,↓⟩ ↤ |↓,↑⟩
-```
+an up spin on the second site down.
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
 
@@ -815,11 +781,7 @@ end
     S_min_S_plus([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
     S⁻S⁺([elt::Type{<:Number}], [particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}])
 
-Return the two-body operator ``S^-_1 S^+_2 = (S^+_1 S^-_2)^†``. The only nonzero matrix
-element is
-```
-    +|↓,↑⟩ ↤ |↑,↓⟩
-```
+Return the two-body operator ``S^-_1 S^+_2 = (S^+_1 S^-_2)^†``.
 
 Supported symmetries: particle `Trivial`, `U1Irrep`, `SU2Irrep`; spin `Trivial`, `U1Irrep`.
 

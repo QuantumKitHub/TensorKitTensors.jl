@@ -93,10 +93,7 @@ end
     f⁺f⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}])
 
 Return the two-body operator ``f^+_1 f^-_2`` that creates a particle at the first site and
-annihilates a particle at the second. The only nonzero matrix element is
-```
-    +|1,0⟩ ↤ |0,1⟩
-```
+annihilates a particle at the second.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
@@ -115,12 +112,8 @@ end
     f⁻f⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}])
 
 Return the two-body operator ``f^-_1 f^+_2`` that annihilates a particle at the first site and
-creates a particle at the second. The only nonzero matrix element is
-```
-    -|0,1⟩ ↤ |1,0⟩
-```
-The minus sign is the anticommutation sign that comes with reordering the two fermionic
-operators, i.e. ``f^-_1 f^+_2 = -(f^+_1 f^-_2)^†``.
+creates a particle at the second. It picks up the anticommutation sign that comes with
+reordering the two fermionic operators, i.e. ``f^-_1 f^+_2 = -(f^+_1 f^-_2)^†``.
 
 Supported symmetries: `Trivial`, `U1Irrep`.
 
@@ -138,12 +131,8 @@ end
     f⁺f⁺([elt::Type{<:Number}], [symmetry::Type{<:Sector}])
 
 Return the two-body operator ``f^+_1 f^+_2`` that creates a particle at the first and at the
-second site, with ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩`` fixing the sign of the reference state. The
-only nonzero matrix element is
-```
-    +|1,1⟩ ↤ |0,0⟩
-```
-It changes the number of particles by two, so it preserves the fermion parity but not the
+second site, with ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩`` fixing the sign of the reference state. It
+changes the number of particles by two, so it preserves the fermion parity but not the
 particle number.
 
 Supported symmetries: `Trivial`.
@@ -162,13 +151,9 @@ end
     f⁻f⁻([elt::Type{<:Number}], [symmetry::Type{<:Sector}])
 
 Return the two-body operator ``f^-_1 f^-_2`` that annihilates a particle at the first and at
-the second site. The only nonzero matrix element is
-```
-    -|0,0⟩ ↤ |1,1⟩
-```
-where the minus sign is the anticommutation sign relative to ``|1,1⟩ = f^+_1 f^+_2 |0,0⟩``,
-i.e. ``f^-_1 f^-_2 = -(f^+_1 f^+_2)^†``. It changes the number of particles by two, so
-it preserves the fermion parity but not the particle number.
+the second site. It picks up the anticommutation sign relative to
+``|1,1⟩ = f^+_1 f^+_2 |0,0⟩``, i.e. ``f^-_1 f^-_2 = -(f^+_1 f^+_2)^†``. It changes the number
+of particles by two, so it preserves the fermion parity but not the particle number.
 
 Supported symmetries: `Trivial`.
 
