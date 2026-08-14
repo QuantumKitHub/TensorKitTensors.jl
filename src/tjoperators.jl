@@ -4,9 +4,8 @@ using LinearAlgebra: diagind
 using TensorKit
 import ..HubbardOperators
 import ..TensorKitTensors: symmetrize, desymmetrize, fuse_local_operators, @operator
-import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export tj_space, basis_transform, custom, tj_projector
+export tj_space, basis_transform, symmetrize_operator, tj_projector
 export transform_slave_fermion
 # the operator names and their aliases are exported by the generation loop at the bottom of
 # this file, from the `_OPERATORS` registry
@@ -154,40 +153,32 @@ function _state_indices(c, particle_symmetry::Type{<:Sector}, spin_symmetry::Typ
     end
 end
 
-# Symmetrize a t-J operator through its basis transformation, in the requested basis. Note
-# that `slave_fermion` is forwarded from the reference operator, which is already expressed
-# in that basis (see `_maybe_slave_fermion`), such that only a permutation remains here.
-function _symmetrize_operator(
+"""
+    symmetrize_operator(O::AbstractTensorMap, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false, tol=nothing)
+
+Symmetrize a t-J operator defined on `tj_space(Trivial, Trivial)` through the basis transformation for the requested particle and spin symmetries.
+With `slave_fermion=true`, input in the normal t-J representation is transformed to the slave-fermion representation before imposing the requested symmetries.
+"""
+function symmetrize_operator(
         O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}; kwargs...
-    )
-    return symmetrize(
-        O, basis_transform(particle_symmetry, spin_symmetry; kwargs...),
-        tj_space(particle_symmetry, spin_symmetry; kwargs...)
-    )
-end
-
-"""
-    custom(A::AbstractArray, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false, tol=nothing)
-
-Construct a symmetry-aware t-J operator from a dense rank-`2N` array in the normal reference basis ``|0⟩, |↑⟩, |↓⟩``.
-The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)`.
-Fermion parity is enforced, and `slave_fermion=true` applies the full slave-fermion transformation, before imposing the requested symmetries.
-"""
-function custom(
-        A::AbstractArray, particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false, tol = nothing
     )
-    O = _check_custom_space(_custom_dense_operator(A), tj_space(Trivial, Trivial))
-    if slave_fermion
-        V = tj_space(Trivial, Trivial)
-        U = basis_transform(Trivial, Trivial)
-        O = transform_slave_fermion(symmetrize(O, U, V; tol))
+    # Public callers supply the normal reference representation, whereas `@operator`
+    # supplies an operator already transformed by `_maybe_slave_fermion`.
+    if slave_fermion && space(O) == _reference_operator_space(O)
+        O = transform_slave_fermion(O)
     end
     return symmetrize(
         O, basis_transform(particle_symmetry, spin_symmetry; slave_fermion),
         tj_space(particle_symmetry, spin_symmetry; slave_fermion); tol
     )
+end
+
+function _reference_operator_space(O::AbstractTensorMap)
+    N = numout(O)
+    N == numin(O) || return nothing
+    V = tj_space(Trivial, Trivial)
+    return V^N ← V^N
 end
 
 # Relation to the Hubbard model

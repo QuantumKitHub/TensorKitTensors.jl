@@ -4,9 +4,8 @@ using TensorKit
 using LinearAlgebra: I
 using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
-import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export spin_space, basis_transform, custom, casimir
+export spin_space, basis_transform, symmetrize_operator, casimir
 export S_x, S_y, S_z, S_plus, S_min
 export S_x_S_x, S_y_S_y, S_z_S_z, S_plus_S_min, S_min_S_plus, S_exchange
 export σˣ, σʸ, σᶻ, σ⁺, σ⁻
@@ -86,21 +85,15 @@ function basis_transform(::Type{SU2Irrep}; spin = 1 // 2)
     return TensorMap(Matrix{Int}(I, d, d), desymmetrize(spin_space(SU2Irrep; spin)) ← V)
 end
 
-# Symmetrize a spin operator through its basis transformation
-_symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
-    symmetrize(O, basis_transform(symmetry; kwargs...), spin_space(symmetry; kwargs...))
-
 """
-    custom(A::AbstractArray, symmetry::Type{<:Sector}; spin=1 // 2, tol=nothing)
+    symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; spin=1 // 2, tol=nothing)
 
-Construct a symmetry-aware spin operator from a dense rank-`2N` array in the standard spin basis.
-The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)` and each axis must have dimension `2spin + 1`.
+Symmetrize a spin operator defined on `spin_space(Trivial; spin)` through the basis transformation for `symmetry`.
 """
-function custom(
-        A::AbstractArray, symmetry::Type{<:Sector}; spin = 1 // 2, tol = nothing
+function symmetrize_operator(
+        O::AbstractTensorMap, symmetry::Type{<:Sector}; spin = 1 // 2, tol = nothing
     )
     V = spin_space(symmetry; spin)
-    O = _check_custom_space(_custom_dense_operator(A), spin_space(Trivial; spin))
     return symmetrize(O, basis_transform(symmetry; spin), V; tol)
 end
 
