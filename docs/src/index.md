@@ -22,6 +22,22 @@ eigenbasis for `SpinOperators`), and the projection is available as [`symmetrize
 symmetrizing custom operators. Operators that are incompatible with a given symmetry throw
 an `ArgumentError`.
 
+### Custom operators
+
+Each operator module exports its own `custom` function as the high-level entry point for constructing custom operators from plain arrays.
+Import the module for the relevant physical system, then pass the desired symmetry types explicitly:
+
+```julia
+using TensorKit
+using TensorKitTensors.SpinOperators
+A = [1.0 0.0; 0.0 -1.0]
+Z = custom(A, U1Irrep)
+```
+
+An `N`-site input is a rank-`2N` array ordered as `(out₁, …, outₙ, in₁, …, inₙ)`.
+Hubbard and t-J operators take separate particle and spin symmetries.
+For t-J, `slave_fermion=true` transforms an array supplied in the normal t-J reference basis into the slave-fermion representation.
+
 ```@docs
 symmetrize
 desymmetrize

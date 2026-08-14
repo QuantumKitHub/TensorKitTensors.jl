@@ -2,8 +2,9 @@ module HubbardOperators
 
 using TensorKit
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
+import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export hubbard_space, basis_transform
+export hubbard_space, basis_transform, custom
 export e_num, u_num, d_num, ud_num, half_ud_num, h_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
@@ -166,11 +167,11 @@ const _PARTICLE_GAUGE = Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
 # If the staggered gauge commutes we don't incorporate it to retain the option for real tensors.
 function _symmetrize_hubbard(
         O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}
+        spin_symmetry::Type{<:Sector}; tol = nothing
     )
     U = basis_transform(particle_symmetry, spin_symmetry)
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    particle_symmetry === SU2Irrep || return symmetrize(O, U, V)
+    particle_symmetry === SU2Irrep || return symmetrize(O, U, V; tol)
 
     Vref = domain(U)[1]
     Gs = ntuple(k -> TensorMap(_PARTICLE_GAUGE^(k - 1), Vref ← Vref), numout(O))
@@ -178,16 +179,33 @@ function _symmetrize_hubbard(
     Od = desymmetrize(O)
 
     # check if commutes with the staggered gauge
-    W * Od ≈ Od * W && return symmetrize(O, U, V)
+    W * Od ≈ Od * W && return symmetrize(O, U, V; tol)
 
     scalartype(O) <: Real &&
         throw(ArgumentError("operator with `SU2Irrep` particle symmetry that does not commute with the staggered gauge requires a complex scalar type"))
-    return symmetrize(O, map(g -> U * g, Gs), V)
+    return symmetrize(O, map(g -> U * g, Gs), V; tol)
 end
 
 # Symmetrize a Hubbard operator through its (staggered-gauge) basis transformation
 _symmetrize_operator(O::AbstractTensorMap, P::Type{<:Sector}, S::Type{<:Sector}) =
     _symmetrize_hubbard(O, P, S)
+
+"""
+    custom(A::AbstractArray, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; tol=nothing)
+
+Construct a symmetry-aware Hubbard operator from a dense rank-`2N` array in the reference basis ``|0⟩, |↑↓⟩, |↑⟩, |↓⟩``.
+The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)`. 
+Fermion parity and the staggered gauge required by `SU2Irrep` particle symmetry are applied automatically.
+"""
+function custom(
+        A::AbstractArray, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}; tol = nothing
+    )
+    O = _check_custom_space(
+        _custom_dense_operator(A), hubbard_space(Trivial, Trivial)
+    )
+    return _symmetrize_hubbard(O, particle_symmetry, spin_symmetry; tol)
+end
 
 function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
     V = hubbard_space(Trivial, Trivial)

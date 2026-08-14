@@ -3,8 +3,9 @@ module BosonOperators
 using TensorKit
 using LinearAlgebra: I
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
+import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export boson_space, basis_transform
+export boson_space, basis_transform, custom
 export b_plus, b_min, b_num
 export b_plus_b_plus, b_plus_b_min, b_min_b_plus, b_min_b_min
 export b_hopping
@@ -61,6 +62,21 @@ end
 # Symmetrize a boson operator through its basis transformation
 _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
     symmetrize(O, basis_transform(symmetry; kwargs...), boson_space(symmetry; kwargs...))
+
+"""
+    custom(A::AbstractArray, symmetry::Type{<:Sector}; cutoff::Integer, tol=nothing)
+
+Construct a symmetry-aware bosonic operator from a dense rank-`2N` array in the occupation-number basis.
+The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)` and each axis must have dimension `cutoff + 1`.
+"""
+function custom(
+        A::AbstractArray, symmetry::Type{<:Sector}; cutoff::Integer, tol = nothing
+    )
+    O = _check_custom_space(_custom_dense_operator(A), boson_space(Trivial; cutoff))
+    return symmetrize(
+        O, basis_transform(symmetry; cutoff), boson_space(symmetry; cutoff); tol
+    )
+end
 
 # Single-site operators
 # ---------------------

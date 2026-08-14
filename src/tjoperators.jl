@@ -4,8 +4,9 @@ using LinearAlgebra: diagind
 using TensorKit
 import ..HubbardOperators
 import ..TensorKitTensors: symmetrize, desymmetrize, fuse_local_operators, @operator
+import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export tj_space, basis_transform, tj_projector
+export tj_space, basis_transform, custom, tj_projector
 export transform_slave_fermion
 # the operator names and their aliases are exported by the generation loop at the bottom of
 # this file, from the `_OPERATORS` registry
@@ -163,6 +164,29 @@ function _symmetrize_operator(
     return symmetrize(
         O, basis_transform(particle_symmetry, spin_symmetry; kwargs...),
         tj_space(particle_symmetry, spin_symmetry; kwargs...)
+    )
+end
+
+"""
+    custom(A::AbstractArray, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false, tol=nothing)
+
+Construct a symmetry-aware t-J operator from a dense rank-`2N` array in the normal reference basis ``|0⟩, |↑⟩, |↓⟩``.
+The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)`.
+Fermion parity is enforced, and `slave_fermion=true` applies the full slave-fermion transformation, before imposing the requested symmetries.
+"""
+function custom(
+        A::AbstractArray, particle_symmetry::Type{<:Sector},
+        spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false, tol = nothing
+    )
+    O = _check_custom_space(_custom_dense_operator(A), tj_space(Trivial, Trivial))
+    if slave_fermion
+        V = tj_space(Trivial, Trivial)
+        U = basis_transform(Trivial, Trivial)
+        O = transform_slave_fermion(symmetrize(O, U, V; tol))
+    end
+    return symmetrize(
+        O, basis_transform(particle_symmetry, spin_symmetry; slave_fermion),
+        tj_space(particle_symmetry, spin_symmetry; slave_fermion); tol
     )
 end
 

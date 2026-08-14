@@ -129,6 +129,38 @@ function _default_tol(::Type{T}, I::Type{<:Sector}) where {T <: Number}
     return sqrt(Tsector <: AbstractFloat ? max(ε, eps(Tsector)) : ε)
 end
 
+# Convert the common dense-array representation of a square N-site operator to a TensorMap
+# over ComplexSpace. The individual operator modules then check the inferred local dimension
+# and project this map onto their own symmetric (and, where applicable, fermion-graded) spaces.
+function _custom_dense_operator(A::AbstractArray)
+    eltype(A) <: Number || throw(ArgumentError("operator array must have a numeric element type"))
+    rank = ndims(A)
+    rank >= 2 && iseven(rank) ||
+        throw(ArgumentError("operator array must have positive even rank `2N`, got rank $rank"))
+    local_dimension = size(A, 1)
+    expected_size = ntuple(Returns(local_dimension), rank)
+    size(A) == expected_size || throw(
+        ArgumentError(
+            "all operator-array legs must have the same size, got $(size(A))"
+        )
+    )
+    sites = rank ÷ 2
+    V = ComplexSpace(local_dimension)
+    return TensorMap(A, V^sites ← V^sites)
+end
+
+function _check_custom_space(O::AbstractTensorMap, V::ElementarySpace)
+    n = numin(O)
+    Vdense = desymmetrize(V)
+    expected_space = Vdense^n ← Vdense^n
+    space(O) == expected_space || throw(
+        ArgumentError(
+            "operator array has space `$(space(O))`, expected `$expected_space`"
+        )
+    )
+    return O
+end
+
 """
     fuse_local_operators(O₁, O₂)
 

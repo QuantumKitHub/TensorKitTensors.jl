@@ -4,8 +4,9 @@ using TensorKit
 using LinearAlgebra: I
 using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
+import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export qubit_space, basis_transform, controlled
+export qubit_space, basis_transform, custom, controlled
 export pauli_x, pauli_y, pauli_z, proj_0, proj_1, hadamard, s_gate, t_gate
 export phase_shift, rotation_x, rotation_y, rotation_z, u3
 export cnot, cy, cz, cphase, ch, cs, swap, iswap, dcx, ecr
@@ -60,6 +61,17 @@ end
 # are accepted and discarded: `qubit_space` and `basis_transform` do not depend on them.
 _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
     symmetrize(O, basis_transform(symmetry), qubit_space(symmetry))
+
+"""
+    custom(A::AbstractArray, symmetry::Type{<:Sector}; tol=nothing)
+
+Construct a symmetry-aware qubit operator from a dense rank-`2N` array in the computational basis.
+The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)` and every axis must have dimension two.
+"""
+function custom(A::AbstractArray, symmetry::Type{<:Sector}; tol = nothing)
+    O = _check_custom_space(_custom_dense_operator(A), qubit_space(Trivial))
+    return symmetrize(O, basis_transform(symmetry), qubit_space(symmetry); tol)
+end
 
 # Gate combinators
 # ----------------

@@ -3,8 +3,9 @@ module FermionOperators
 using TensorKit
 using LinearAlgebra: I
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
+import ..TensorKitTensors: _custom_dense_operator, _check_custom_space
 
-export fermion_space, basis_transform
+export fermion_space, basis_transform, custom
 export f_num
 export f_plus_f_min, f_min_f_plus, f_plus_f_plus, f_min_f_min
 export f_hopping
@@ -58,6 +59,17 @@ end
 # Symmetrize a fermion operator through its basis transformation
 _symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}) =
     symmetrize(O, basis_transform(symmetry), fermion_space(symmetry))
+
+"""
+    custom(A::AbstractArray, symmetry::Type{<:Sector}; tol=nothing)
+
+Construct a symmetry-aware spinless-fermion operator from a dense rank-`2N` array in the basis ``|0⟩, |1⟩``.
+The axes must be ordered as `(out₁, …, outₙ, in₁, …, inₙ)`. Fermion-parity grading is enforced during the construction.
+"""
+function custom(A::AbstractArray, symmetry::Type{<:Sector}; tol = nothing)
+    O = _check_custom_space(_custom_dense_operator(A), fermion_space(Trivial))
+    return symmetrize(O, basis_transform(symmetry), fermion_space(symmetry); tol)
+end
 
 # Single-site operators
 # ---------------------
