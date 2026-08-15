@@ -20,18 +20,15 @@ Operators that are incompatible with a given symmetry throw an `ArgumentError`.
 
 ### Custom operators
 
-Construct a `TensorMap` on the relevant module's `Trivial` reference space, then pass it to that module's `symmetrize_operator` with the desired symmetry types:
+For each operator module, one can define a custom operator in `TensorMap` format in the non-symmetric reference basis, and then impose the symmetries with that module's `symmetrize_operator` function:
 
 ```julia
 using TensorKit
 using TensorKitTensors.SpinOperators
-A = [1.0 0.0; 0.0 -1.0]
 V = spin_space(Trivial)
-O = TensorMap(A, V ← V)
+O = TensorMap([1.0 0.0; 0.0 -1.0], V ← V)
 Z = symmetrize_operator(O, U1Irrep)
 ```
-
-The caller is responsible for constructing a square homogeneous-site operator with the intended local space and array-axis ordering.
 
 ```@docs
 symmetrize
