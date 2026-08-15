@@ -27,15 +27,11 @@ using TensorKit
 using TensorKitTensors.SpinOperators
 A = [1.0 0.0; 0.0 -1.0]
 V = spin_space(Trivial)
-sites = ndims(A) ÷ 2
-O = TensorMap(A, V^sites ← V^sites)
+O = TensorMap(A, V ← V)
 Z = symmetrize_operator(O, U1Irrep)
 ```
 
 The caller is responsible for constructing a square homogeneous-site operator with the intended local space and array-axis ordering.
-For fermionic systems, constructing the input on the module's `Trivial` space preserves the mandatory fermion-parity grading.
-Hubbard and t-J operators take separate particle and spin symmetries.
-For t-J, `slave_fermion=true` transforms an operator supplied in the normal t-J representation into the slave-fermion representation.
 
 ```@docs
 symmetrize
