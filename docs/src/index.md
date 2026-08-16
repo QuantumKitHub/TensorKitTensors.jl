@@ -30,6 +30,8 @@ O = TensorMap([1.0 0.0; 0.0 -1.0], V ← V)
 Z = symmetrize_operator(O, U1Irrep)
 ```
 
+For `TJOperators`, construct the input on `tj_space(Trivial, Trivial; slave_fermion)` in the representation selected by the same `slave_fermion` keyword passed to `symmetrize_operator`.
+
 ```@docs
 symmetrize
 desymmetrize

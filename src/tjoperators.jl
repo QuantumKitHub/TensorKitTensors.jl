@@ -156,29 +156,17 @@ end
 """
     symmetrize_operator(O::AbstractTensorMap, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; slave_fermion::Bool=false, tol=nothing)
 
-Symmetrize a t-J operator defined on `tj_space(Trivial, Trivial)` through the basis transformation for the requested particle and spin symmetries.
-With `slave_fermion=true`, input in the normal t-J representation is transformed to the slave-fermion representation before imposing the requested symmetries.
+Symmetrize a t-J operator defined on `tj_space(Trivial, Trivial; slave_fermion)` through the basis transformation for the requested particle and spin symmetries.
+The input must already use the normal or slave-fermion representation selected by `slave_fermion`.
 """
 function symmetrize_operator(
         O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
         spin_symmetry::Type{<:Sector}; slave_fermion::Bool = false, tol = nothing
     )
-    # Public callers supply the normal reference representation, whereas `@operator`
-    # supplies an operator already transformed by `_maybe_slave_fermion`.
-    if slave_fermion && space(O) == _reference_operator_space(O)
-        O = transform_slave_fermion(O)
-    end
     return symmetrize(
         O, basis_transform(particle_symmetry, spin_symmetry; slave_fermion),
         tj_space(particle_symmetry, spin_symmetry; slave_fermion); tol
     )
-end
-
-function _reference_operator_space(O::AbstractTensorMap)
-    N = numout(O)
-    N == numin(O) || return nothing
-    V = tj_space(Trivial, Trivial)
-    return V^N ← V^N
 end
 
 # Relation to the Hubbard model
@@ -221,16 +209,13 @@ function tj_projector(particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:S
     return proj
 end
 
-# Project a Hubbard reference operator onto the t-J space, and express it in the requested
-# basis. The projector is parity-even, so it distributes over `⊗` and projecting the reference
-# operator is equivalent to projecting the symmetric one. Since it has integer entries, the
-# scalar type of the Hubbard operator is preserved.
-function _project_hubbard(O::AbstractTensorMap, slave_fermion::Bool)
-    Pⁿ = _reference_projector(Val(numout(O)))
-    return _maybe_slave_fermion(Pⁿ * O * Pⁿ', slave_fermion)
-end
-function _reference_projector(::Val{N}) where {N}
-    return reduce(⊗, ntuple(Returns(tj_projector(Trivial, Trivial)), Val(N)))
+"Project a Hubbard reference operator onto the normal t-J space."
+function _project_hubbard(O::AbstractTensorMap)
+    # The projector is parity-even, so it distributes over `⊗`
+    n = numout(O)
+    Pⁿ = reduce(⊗, ntuple(Returns(tj_projector(Trivial, Trivial)), Val(n)))
+    # integer entries in `Pⁿ` preserve the scalar type of `O`
+    return Pⁿ * O * Pⁿ'
 end
 
 # Slave-fermion basis
@@ -270,12 +255,6 @@ function transform_slave_fermion(V::ElementarySpace)
     V_aux = spacetype(V)(charge => 1)
     return fuse(V, V_aux)
 end
-
-# Express a reference operator in the requested basis. Reference operators are always obtained
-# in the plain t-J basis, and transformed only once, at the very end: the slave-fermion
-# transformation does not distribute over `⊗`.
-_maybe_slave_fermion(O::AbstractTensorMap, slave_fermion::Bool) =
-    slave_fermion ? transform_slave_fermion(O) : O
 
 # Operators
 # ---------
@@ -360,7 +339,8 @@ for (name, alias) in [
             elt::Type{<:Number}, ::Type{Trivial}, ::Type{Trivial};
             slave_fermion::Bool = false
         )
-        return _project_hubbard(HubbardOperators.$name(elt, Trivial, Trivial), slave_fermion)
+        O = _project_hubbard(HubbardOperators.$name(elt, Trivial, Trivial))
+        return slave_fermion ? transform_slave_fermion(O) : O
     end
 end
 
