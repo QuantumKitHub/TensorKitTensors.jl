@@ -3,7 +3,7 @@ module HubbardOperators
 using TensorKit
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
-export hubbard_space, basis_transform
+export hubbard_space, basis_transform, symmetrize_operator
 export e_num, u_num, d_num, ud_num, half_ud_num, h_num
 export S_x, S_y, S_z, S_plus, S_min
 export u_plus_u_min, d_plus_d_min
@@ -162,32 +162,32 @@ end
 # exact (Gaussian) integer entries promote to any scalar type without loss of precision
 const _PARTICLE_GAUGE = Complex{Int}[1 0 0 0; 0 -1 0 0; 0 0 im 0; 0 0 0 im]
 
-# Symmetrize a Hubbard operator, inserting the staggered gauge for `SU2Irrep` particle symmetry
-# If the staggered gauge commutes we don't incorporate it to retain the option for real tensors.
-function _symmetrize_hubbard(
+"""
+    symmetrize_operator(O::AbstractTensorMap, particle_symmetry::Type{<:Sector}, spin_symmetry::Type{<:Sector}; tol=nothing)
+
+Symmetrize a Hubbard operator defined on `hubbard_space(Trivial, Trivial)` through the basis transformation for the requested particle and spin symmetries.
+The staggered gauge required by `SU2Irrep` particle symmetry is applied automatically.
+"""
+function symmetrize_operator(
         O::AbstractTensorMap, particle_symmetry::Type{<:Sector},
-        spin_symmetry::Type{<:Sector}
+        spin_symmetry::Type{<:Sector}; tol = nothing
     )
     U = basis_transform(particle_symmetry, spin_symmetry)
     V = hubbard_space(particle_symmetry, spin_symmetry)
-    particle_symmetry === SU2Irrep || return symmetrize(O, U, V)
+    particle_symmetry === SU2Irrep || return symmetrize(O, U, V; tol)
 
     Vref = domain(U)[1]
     Gs = ntuple(k -> TensorMap(_PARTICLE_GAUGE^(k - 1), Vref ← Vref), numout(O))
     W = reduce(⊗, Gs)
     Od = desymmetrize(O)
 
-    # check if commutes with the staggered gauge
-    W * Od ≈ Od * W && return symmetrize(O, U, V)
+    # Do not incorporate the staggered gauge when it commutes, retaining real tensors.
+    W * Od ≈ Od * W && return symmetrize(O, U, V; tol)
 
     scalartype(O) <: Real &&
         throw(ArgumentError("operator with `SU2Irrep` particle symmetry that does not commute with the staggered gauge requires a complex scalar type"))
-    return symmetrize(O, map(g -> U * g, Gs), V)
+    return symmetrize(O, map(g -> U * g, Gs), V; tol)
 end
-
-# Symmetrize a Hubbard operator through its (staggered-gauge) basis transformation
-_symmetrize_operator(O::AbstractTensorMap, P::Type{<:Sector}, S::Type{<:Sector}) =
-    _symmetrize_hubbard(O, P, S)
 
 function n_site_operator(::Val{N}, elt::Type{<:Number}) where {N}
     V = hubbard_space(Trivial, Trivial)

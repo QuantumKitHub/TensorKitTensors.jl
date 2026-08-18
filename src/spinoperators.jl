@@ -5,7 +5,7 @@ using LinearAlgebra: I
 using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
-export spin_space, basis_transform, casimir
+export spin_space, basis_transform, symmetrize_operator, casimir
 export S_x, S_y, S_z, S_plus, S_min
 export S_x_S_x, S_y_S_y, S_z_S_z, S_plus_S_min, S_min_S_plus, S_exchange
 export σˣ, σʸ, σᶻ, σ⁺, σ⁻
@@ -85,9 +85,17 @@ function basis_transform(::Type{SU2Irrep}; spin = 1 // 2)
     return TensorMap(Matrix{Int}(I, d, d), desymmetrize(spin_space(SU2Irrep; spin)) ← V)
 end
 
-# Symmetrize a spin operator through its basis transformation
-_symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
-    symmetrize(O, basis_transform(symmetry; kwargs...), spin_space(symmetry; kwargs...))
+"""
+    symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; spin=1 // 2, tol=nothing)
+
+Symmetrize a spin operator defined on `spin_space(Trivial; spin)` through the basis transformation for `symmetry`.
+"""
+function symmetrize_operator(
+        O::AbstractTensorMap, symmetry::Type{<:Sector}; spin = 1 // 2, tol = nothing
+    )
+    V = spin_space(symmetry; spin)
+    return symmetrize(O, basis_transform(symmetry; spin), V; tol)
+end
 
 # Pauli matrices
 # --------------

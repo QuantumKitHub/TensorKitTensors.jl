@@ -5,7 +5,7 @@ using LinearAlgebra: I
 using RationalRoots: signedroot
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
-export qubit_space, basis_transform, controlled
+export qubit_space, basis_transform, symmetrize_operator, controlled
 export pauli_x, pauli_y, pauli_z, proj_0, proj_1, hadamard, s_gate, t_gate
 export phase_shift, rotation_x, rotation_y, rotation_z, u3
 export cnot, cy, cz, cphase, ch, cs, swap, iswap, dcx, ecr
@@ -56,10 +56,17 @@ function basis_transform(symmetry::Type{<:Sector})
     return TensorMap(Matrix{Int}(I, 2, 2), V ← qubit_space(Trivial))
 end
 
-# Symmetrize a gate through its basis transformation. The keywords of the parametrized gates
-# are accepted and discarded: `qubit_space` and `basis_transform` do not depend on them.
-_symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
-    symmetrize(O, basis_transform(symmetry), qubit_space(symmetry))
+"""
+    symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; tol=nothing, kwargs...)
+
+Symmetrize a quantum gate defined on `qubit_space(Trivial)` through the basis transformation for `symmetry`.
+Additional keywords used by parametrized gates are accepted but do not affect the transformation.
+"""
+function symmetrize_operator(
+        O::AbstractTensorMap, symmetry::Type{<:Sector}; tol = nothing, kwargs...
+    )
+    return symmetrize(O, basis_transform(symmetry), qubit_space(symmetry); tol)
+end
 
 # Gate combinators
 # ----------------

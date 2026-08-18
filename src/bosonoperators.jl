@@ -4,7 +4,7 @@ using TensorKit
 using LinearAlgebra: I
 import ..TensorKitTensors: symmetrize, desymmetrize, @operator
 
-export boson_space, basis_transform
+export boson_space, basis_transform, symmetrize_operator
 export b_plus, b_min, b_num
 export b_plus_b_plus, b_plus_b_min, b_min_b_plus, b_min_b_min
 export b_hopping
@@ -58,9 +58,19 @@ function basis_transform(symmetry::Type{<:Sector}; cutoff::Integer)
     return TensorMap(Matrix{Int}(I, cutoff + 1, cutoff + 1), V ← boson_space(Trivial; cutoff))
 end
 
-# Symmetrize a boson operator through its basis transformation
-_symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; kwargs...) =
-    symmetrize(O, basis_transform(symmetry; kwargs...), boson_space(symmetry; kwargs...))
+"""
+    symmetrize_operator(O::AbstractTensorMap, symmetry::Type{<:Sector}; cutoff::Integer, tol=nothing)
+
+Symmetrize a bosonic operator defined on `boson_space(Trivial; cutoff)` through the basis transformation for `symmetry`.
+"""
+function symmetrize_operator(
+        O::AbstractTensorMap, symmetry::Type{<:Sector}; cutoff::Integer,
+        tol = nothing
+    )
+    return symmetrize(
+        O, basis_transform(symmetry; cutoff), boson_space(symmetry; cutoff); tol
+    )
+end
 
 # Single-site operators
 # ---------------------

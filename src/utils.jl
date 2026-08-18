@@ -218,7 +218,7 @@ function _operator_defs(alias, def, source)
 
         # symmetric terminal:
         # `op(elt::<c>, s₁::Type{<:Sector}, …; kwargs...) =
-        #      _symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
+        #      symmetrize_operator(op(elt, Trivial, …; kwargs...), s₁, …; kwargs...)`
         tname = gensym(:elt)
         tsyms = [gensym(:S) for _ in 1:N]
         tsig = call_expr(
@@ -226,7 +226,7 @@ function _operator_defs(alias, def, source)
             (Expr(:(::), tsyms[i], :(Type{<:Sector})) for i in 1:N)...
         )
         refcall = call_expr(fname, tname, ntuple(Returns(:Trivial), N)...)
-        hookcall = call_expr(:_symmetrize_operator, refcall, tsyms...)
+        hookcall = call_expr(:symmetrize_operator, refcall, tsyms...)
         method_terminal = method_def(tsig, hookcall)
 
         (method_allsyms, method_elt, method_terminal)
@@ -268,11 +268,11 @@ defaulting the unspecified symmetries of a multi-symmetry operator.
 
 If the reference method takes no symmetry arguments, it is itself the terminal: only the
 `op()` element-type default is generated (the symmetry-first, elt-only, and symmetric-terminal
-methods, including the `_symmetrize_operator` hook, are omitted).
+methods, including the `symmetrize_operator` hook, are omitted).
 
 Otherwise, the last generated method, the *symmetric terminal*, delegates to the module-local
 hook
-`_symmetrize_operator(op(elt, Trivial, …; kwargs...), symmetry₁, …; kwargs...)`, which each
+`symmetrize_operator(op(elt, Trivial, …; kwargs...), symmetry₁, …; kwargs...)`, which each
 operator module defines once (typically wrapping [`symmetrize`](@ref) with the module's
 `basis_transform` and local space). Every generated method simply accepts `kwargs...` and
 forwards them verbatim to both the reference call and the hook; the wrapped reference method
