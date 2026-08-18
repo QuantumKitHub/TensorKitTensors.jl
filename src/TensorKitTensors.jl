@@ -1,6 +1,6 @@
 module TensorKitTensors
 
-export symmetrize, desymmetrize
+export symmetrize, desymmetrize, add_charge
 
 export SpinOperators
 export BosonOperators
