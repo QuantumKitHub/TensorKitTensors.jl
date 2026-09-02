@@ -3,7 +3,7 @@ module TJOperators
 using LinearAlgebra: diagind
 using TensorKit
 import ..HubbardOperators
-import ..TensorKitTensors: symmetrize, desymmetrize, add_charge, @operator
+import ..TensorKitTensors: symmetrize, desymmetrize, fuse_charge, @operator
 
 export tj_space, basis_transform, symmetrize_operator, tj_projector
 export transform_slave_fermion
@@ -245,7 +245,7 @@ operator, and does not commute with taking tensor products of single-site operat
 function transform_slave_fermion(O::AbstractTensorMap)
     (N = numin(O)) == numout(O) || throw(ArgumentError("not a valid operator"))
     aux_charge = slave_fermion_auxiliary_charge(sectortype(O))
-    return add_charge(O, aux_charge)
+    return fuse_charge(O, aux_charge)
 end
 function transform_slave_fermion(V::ElementarySpace)
     charge = slave_fermion_auxiliary_charge(sectortype(V))

@@ -37,7 +37,7 @@ desymmetrize
 
 ## Adding symmetry charges
 
-Use [`add_charge`](@ref) to attach symmetry charges to each site of the operator by fusing a one-dimensional auxiliary space to every local space of an operator.
+Use [`fuse_charge`](@ref) to attach symmetry charges to each site of the operator by fusing a one-dimensional auxiliary space to every local space of an operator.
 
 For example, the following adds a uniform U(1) charge of `1 // 2` to the local spaces of a U(1)-symmetric spin-exchange operator:
 
@@ -47,9 +47,9 @@ using TensorKitTensors
 using TensorKitTensors.SpinOperators
 
 O = S_exchange(U1Irrep)
-O_shifted = add_charge(O, U1Irrep(1 // 2))
+O_shifted = fuse_charge(O, U1Irrep(1 // 2))
 ```
 
 ```@docs
-add_charge
+fuse_charge
 ```

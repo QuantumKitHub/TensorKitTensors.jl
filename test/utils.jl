@@ -116,12 +116,12 @@ end
     @test_throws ArgumentError fuse_local_operators(S_x(), S_x_S_x())
 end
 
-@testset "add_charge" begin
+@testset "fuse_charge" begin
     O = S_exchange(ComplexF64, U1Irrep)
     charge = U1Irrep(1 // 2)
-    O_uniform = @testinferred add_charge(O, charge)
-    O_per_site = @testinferred add_charge(O, (charge, charge))
+    O_uniform = @testinferred fuse_charge(O, charge)
+    O_per_site = @testinferred fuse_charge(O, (charge, charge))
     @test O_uniform ≈ O_per_site
     # wrong length of the tuple
-    @test_throws MethodError add_charge(O, (charge,))
+    @test_throws MethodError fuse_charge(O, (charge,))
 end
