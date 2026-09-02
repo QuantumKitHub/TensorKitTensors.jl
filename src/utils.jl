@@ -153,6 +153,29 @@ function fuse_local_operators(O₁::AbstractTensorMap{<:Any, S₁, N₁, N₂}, 
     return fuser * O₁₂ * fuser'
 end
 
+"""
+    fuse_charge(O::AbstractTensorMap, charge::Sector)
+    fuse_charge(O::AbstractTensorMap{<:Any, <:Any, N, N}, charges::NTuple{N, <:Sector}) where {N}
+
+Fuse auxiliary symmetry charges into the local spaces of a square `N`-site operator `O`.
+Pass a single `charge` to use it at every site, or an `N`-tuple `charges` to select the charge fused into each site.
+Each charge must be compatible with the sector type of `O`.
+
+If `O` acts on local spaces `V₁, …, Vₙ`, the result acts on `fuse(Vₖ ⊗ Cₖ)` at site `k`, where `Cₖ` is the one-dimensional space carrying the selected charge.
+The transformation fuses `O` with the identity operator on `C₁ ⊗ ⋯ ⊗ Cₙ`.
+"""
+function fuse_charge(O::AbstractTensorMap{E, S, N, N}, charge::Sector) where {E, S, N}
+    charges = ntuple(Returns(charge), Val(N))
+    return fuse_charge(O, charges)
+end
+function fuse_charge(O::AbstractTensorMap{E, S, N, N}, charges::NTuple{N, <:Sector}) where {E, S, N}
+    aux_space = mapreduce(⊗, charges) do charge
+        return S(charge => 1)
+    end
+    aux_operator = id(Int, aux_space)
+    return fuse_local_operators(O, aux_operator)
+end
+
 # type annotation of a positional argument, from either `name::Type` or `::Type`
 function _operator_type_arg(a)
     Meta.isexpr(a, :(::)) ||
