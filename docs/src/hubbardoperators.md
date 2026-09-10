@@ -3,7 +3,7 @@ CollapsedDocStrings = true
 CurrentModule = TensorKitTensors.HubbardOperators
 ```
 
-# Hubbard operators
+# [Hubbard operators](@id hubbard_operators)
 
 Creation, annihilation, number and spin operators for Hubbard-type models, defined on the four-dimensional local space of a spinful fermion, with independent symmetries for the particle number and for the spin.
 

@@ -8,7 +8,7 @@ DocMeta.setdocmeta!(
 
 operatorpages = [
     "spinoperators.md", "bosonoperators.md", "fermionoperators.md",
-    "hubbardoperators.md", "tjoperators.md", "quantumgates.md",
+    "hubbardoperators.md", "tjoperators.md", "quantumgates.md", "sunhubbardoperators.md",
 ]
 makedocs(;
     modules = [TensorKitTensors],
