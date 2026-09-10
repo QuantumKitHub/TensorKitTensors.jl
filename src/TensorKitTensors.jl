@@ -1,13 +1,17 @@
 module TensorKitTensors
 
+export symmetrize, desymmetrize, fuse_charge
+
 export SpinOperators
 export BosonOperators
 export FermionOperators
 export TJOperators
 export HubbardOperators
 export SUNHubbardOperators
+export QuantumGates
 
 using TensorKit
+using Logging
 
 include("utils.jl")
 include("spinoperators.jl")
@@ -16,5 +20,6 @@ include("fermionoperators.jl")
 include("hubbardoperators.jl")
 include("sunhubbardoperators.jl")
 include("tjoperators.jl")
+include("quantumgates.jl")
 
 end
